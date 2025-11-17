@@ -13,7 +13,7 @@
 
     <style>
         :root {
-            --primary:#26211d;
+            --primary:#3b2818;
             --secondary:#f9a90f;
             --tertiary:#858585;
 
