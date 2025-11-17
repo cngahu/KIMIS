@@ -1,0 +1,4 @@
+<footer class="page-footer">
+    <p class="mb-0">Copyright © <script>document.write(new Date().getFullYear())</script> All right reserved.</p>
+</footer>
+<?php /**PATH C:\xampp\htdocs\rukada starter\resources\views/admin/body/footer.blade.php ENDPATH**/ ?>
