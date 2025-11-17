@@ -104,54 +104,6 @@
 
 
         
-        <div class="row mt-4">
-            <div class="col-12 col-xl-7 mb-3">
-                <div class="card radius-10 h-100">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center mb-2">
-                            <h5 class="mb-0 fw-bold">Applications by Month</h5>
-                            <span class="badge bg-light text-muted ms-2">Last 12 Months</span>
-                        </div>
-                        <small class="text-muted fw-semibold d-block mb-3">
-                            Total applications received per month
-                        </small>
-                        <div style="height:260px;">
-                            <canvas id="applicationsChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            
-            <div class="col-12 col-xl-5 mb-3">
-                <div class="card radius-10 h-100">
-                    <div class="card-body">
-                        <h5 class="mb-0 fw-bold">Summary by Status</h5>
-                        <small class="text-muted fw-semibold d-block mb-3">Current intake snapshot</small>
-
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="fw-semibold">Submitted</span>
-                            <span class="badge bg-light-info text-info fw-semibold">120</span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="fw-semibold">Under Review</span>
-                            <span class="badge bg-light-warning text-warning fw-semibold">85</span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="fw-semibold">Admitted</span>
-                            <span class="badge bg-light-success text-success fw-semibold">64</span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="fw-semibold">Rejected</span>
-                            <span class="badge bg-light-danger text-danger fw-semibold">18</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-
-        
         <div class="card radius-10 mt-3">
             <div class="card-body">
 
@@ -324,6 +276,54 @@
                 </div>
             </div>
         </div>
+        
+        <div class="row mt-4">
+            <div class="col-12 col-xl-7 mb-3">
+                <div class="card radius-10 h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-2">
+                            <h5 class="mb-0 fw-bold">Applications by Month</h5>
+                            <span class="badge bg-light text-muted ms-2">Last 12 Months</span>
+                        </div>
+                        <small class="text-muted fw-semibold d-block mb-3">
+                            Total applications received per month
+                        </small>
+                        <div style="height:260px;">
+                            <canvas id="applicationsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            
+            <div class="col-12 col-xl-5 mb-3">
+                <div class="card radius-10 h-100">
+                    <div class="card-body">
+                        <h5 class="mb-0 fw-bold">Summary by Status</h5>
+                        <small class="text-muted fw-semibold d-block mb-3">Current intake snapshot</small>
+
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="fw-semibold">Submitted</span>
+                            <span class="badge bg-light-info text-info fw-semibold">120</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="fw-semibold">Under Review</span>
+                            <span class="badge bg-light-warning text-warning fw-semibold">85</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="fw-semibold">Admitted</span>
+                            <span class="badge bg-light-success text-success fw-semibold">64</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="fw-semibold">Rejected</span>
+                            <span class="badge bg-light-danger text-danger fw-semibold">18</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
 
     </div>
 
