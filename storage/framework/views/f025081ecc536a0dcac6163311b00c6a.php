@@ -101,7 +101,7 @@
         <div class="container">
             <nav class="navbar navbar-expand-lg navbar-light">
                 <a class="navbar-brand d-flex align-items-center" href="#">
-                    <img src="{{ asset('adminbackend/assets/images/logokihbt.png') }}" class="logo-img" alt="KIHBT">
+                    <img src="<?php echo e(asset('adminbackend/assets/images/logokihbt.png')); ?>" class="logo-img" alt="KIHBT">
                     <span class="brand-title">Kenya Institute of Highways and Building Technology (KIHBT)</span>
                 </a>
 
@@ -114,16 +114,16 @@
                         <li class="nav-item"><a class="nav-link" href="#">Home</a></li>
                         <li class="nav-item"><a class="nav-link" href="#">Contact</a></li>
 
-                        @if (Route::has('login'))
-                            @auth
-                                <li class="nav-item"><a class="nav-link" href="{{ url('/dashboard') }}">Dashboard</a></li>
-                            @else
-                                <li class="nav-item"><a class="nav-link" href="{{ route('login') }}">Log in</a></li>
-                                @if (Route::has('register'))
-                                    <li class="nav-item"><a class="nav-link" href="{{ route('register') }}">Register</a></li>
-                                @endif
-                            @endauth
-                        @endif
+                        <?php if(Route::has('login')): ?>
+                            <?php if(auth()->guard()->check()): ?>
+                                <li class="nav-item"><a class="nav-link" href="<?php echo e(url('/dashboard')); ?>">Dashboard</a></li>
+                            <?php else: ?>
+                                <li class="nav-item"><a class="nav-link" href="<?php echo e(route('login')); ?>">Log in</a></li>
+                                <?php if(Route::has('register')): ?>
+                                    <li class="nav-item"><a class="nav-link" href="<?php echo e(route('register')); ?>">Register</a></li>
+                                <?php endif; ?>
+                            <?php endif; ?>
+                        <?php endif; ?>
                     </ul>
                 </div>
             </nav>
@@ -169,7 +169,7 @@
 
     <!-- Footer -->
     <footer class="footer-bottom">
-        © {{ date('Y') }} Kenya Institute of Highways and Building Technology (KIHBT). All rights reserved.
+        © <?php echo e(date('Y')); ?> Kenya Institute of Highways and Building Technology (KIHBT). All rights reserved.
     </footer>
 
 </div>
@@ -177,3 +177,4 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+<?php /**PATH C:\xampp\htdocs\PROJECT2\KIMIS\resources\views/welcome.blade.php ENDPATH**/ ?>

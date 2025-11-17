@@ -130,7 +130,7 @@
     <!-- Brand Pane -->
     <div class="brand-pane">
         <div>
-            <img src="{{ asset('adminbackend/assets/images/logokihbt.png') }}" class="brand-logo" alt="KIHBT Logo">
+            <img src="<?php echo e(asset('adminbackend/assets/images/logokihbt.png')); ?>" class="brand-logo" alt="KIHBT Logo">
             <div class="brand-name">Kenya Institute of Highways and Building Technology (KIHBT)</div>
             <div class="brand-tag">Empowering Skills in Transport, Infrastructure & Construction</div>
         </div>
@@ -143,8 +143,8 @@
         <h1 class="title">Secure Login</h1>
         <p class="subtitle">Access the KIHBT student & administration portal</p>
 
-        <form id="loginForm" method="POST" action="{{ route('login') }}">
-            @csrf
+        <form id="loginForm" method="POST" action="<?php echo e(route('login')); ?>">
+            <?php echo csrf_field(); ?>
 
             <div class="form-group">
                 <label for="email">Username or Email</label>
@@ -171,7 +171,7 @@
 
             <div class="remember-forgot">
                 <label><input type="checkbox" name="remember"> Remember Me</label>
-                <a href="{{ route('password.request') }}">Forgot Password?</a>
+                <a href="<?php echo e(route('password.request')); ?>">Forgot Password?</a>
             </div>
 
             <button type="submit" class="btn">Login</button>
@@ -219,3 +219,4 @@
 
 </body>
 </html>
+<?php /**PATH C:\xampp\htdocs\PROJECT2\KIMIS\resources\views/auth/login.blade.php ENDPATH**/ ?>
