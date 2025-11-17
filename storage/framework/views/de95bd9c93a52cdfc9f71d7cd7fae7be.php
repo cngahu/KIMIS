@@ -1,5 +1,4 @@
-@extends('admin.admin_dashboard')
-@section('admin')
+<?php $__env->startSection('admin'); ?>
 
     <div class="page-content" >
 
@@ -117,7 +116,7 @@
                             <td>
                                 <div class="d-flex align-items-center">
                                     <div class="recent-product-img">
-                                        <img src="{{ asset('adminbackend/assets/images/icons/chair.png') }}" alt="">
+                                        <img src="<?php echo e(asset('adminbackend/assets/images/icons/chair.png')); ?>" alt="">
                                     </div>
                                     <div class="ms-2">
                                         <h6 class="mb-1 font-14">Light Blue Chair</h6>
@@ -141,7 +140,7 @@
                             <td>
                                 <div class="d-flex align-items-center">
                                     <div class="recent-product-img">
-                                        <img src="{{ asset('adminbackend/assets/images/icons/shoes.png') }}" alt="">
+                                        <img src="<?php echo e(asset('adminbackend/assets/images/icons/shoes.png')); ?>" alt="">
                                     </div>
                                     <div class="ms-2">
                                         <h6 class="mb-1 font-14">Green Sport Shoes</h6>
@@ -165,7 +164,7 @@
                             <td>
                                 <div class="d-flex align-items-center">
                                     <div class="recent-product-img">
-                                        <img src="{{ asset('adminbackend/assets/images/icons/headphones.png') }}" alt="">
+                                        <img src="<?php echo e(asset('adminbackend/assets/images/icons/headphones.png')); ?>" alt="">
                                     </div>
                                     <div class="ms-2">
                                         <h6 class="mb-1 font-14">Red Headphone 07</h6>
@@ -189,7 +188,7 @@
                             <td>
                                 <div class="d-flex align-items-center">
                                     <div class="recent-product-img">
-                                        <img src="{{ asset('adminbackend/assets/images/icons/idea.png') }}" alt="">
+                                        <img src="<?php echo e(asset('adminbackend/assets/images/icons/idea.png')); ?>" alt="">
                                     </div>
                                     <div class="ms-2">
                                         <h6 class="mb-1 font-14">Mini Laptop Device</h6>
@@ -213,7 +212,7 @@
                             <td>
                                 <div class="d-flex align-items-center">
                                     <div class="recent-product-img">
-                                        <img src="{{ asset('adminbackend/assets/images/icons/user-interface.png') }}" alt="">
+                                        <img src="<?php echo e(asset('adminbackend/assets/images/icons/user-interface.png')); ?>" alt="">
                                     </div>
                                     <div class="ms-2">
                                         <h6 class="mb-1 font-14">Purple Mobile Phone</h6>
@@ -237,7 +236,7 @@
                             <td>
                                 <div class="d-flex align-items-center">
                                     <div class="recent-product-img">
-                                        <img src="{{ asset('adminbackend/assets/images/icons/watch.png') }}" alt="">
+                                        <img src="<?php echo e(asset('adminbackend/assets/images/icons/watch.png')); ?>" alt="">
                                     </div>
                                     <div class="ms-2">
                                         <h6 class="mb-1 font-14">Smart Hand Watch</h6>
@@ -261,7 +260,7 @@
                             <td>
                                 <div class="d-flex align-items-center">
                                     <div class="recent-product-img">
-                                        <img src="{{ asset('adminbackend/assets/images/icons/tshirt.png') }}" alt="">
+                                        <img src="<?php echo e(asset('adminbackend/assets/images/icons/tshirt.png')); ?>" alt="">
                                     </div>
                                     <div class="ms-2">
                                         <h6 class="mb-1 font-14">T-Shirt Blue</h6>
@@ -288,4 +287,6 @@
 
     </div>
 
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('admin.admin_dashboard', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\xampp\htdocs\kimis.ac.ke\resources\views/admin/index.blade.php ENDPATH**/ ?>
