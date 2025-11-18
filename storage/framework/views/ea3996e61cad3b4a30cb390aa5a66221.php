@@ -13,8 +13,8 @@
     <link href="<?php echo e(asset('adminbackend/assets/plugins/perfect-scrollbar/css/perfect-scrollbar.css')); ?>" rel="stylesheet" />
     <link href="<?php echo e(asset('adminbackend/assets/plugins/metismenu/css/metisMenu.min.css')); ?>" rel="stylesheet" />
     <!-- loader-->
-    <link href="<?php echo e(asset('adminbackend/assets/css/pace.min.css')); ?>" rel="stylesheet" />
-    <script src="<?php echo e(asset('adminbackend/assets/js/pace.min.js')); ?>"></script>
+
+
     <!-- Bootstrap CSS -->
     <link href="<?php echo e(asset('adminbackend/assets/css/bootstrap.min.css')); ?>" rel="stylesheet">
     <link href="<?php echo e(asset('adminbackend/assets/css/app.css')); ?>" rel="stylesheet">
