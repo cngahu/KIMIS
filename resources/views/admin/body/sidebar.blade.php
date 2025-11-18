@@ -146,6 +146,10 @@
 
                         <li><a href="{{ route('all.trainings') }}"><i class="bx bx-right-arrow-alt"></i>Training Schedules</a></li>
                         <li><a href="{{ route('all.courses') }}"><i class="bx bx-right-arrow-alt"></i>Courses</a></li>
+                        <li><a href="{{ route('backend.counties.index') }}"><i class="bx bx-right-arrow-alt"></i>Counties</a></li>
+                        <li><a href="{{ route('backend.subcounties.index') }}"><i class="bx bx-right-arrow-alt"></i>Sub Counties</a></li>
+                        <li><a href="{{ route('backend.postal_codes.index') }}"><i class="bx bx-right-arrow-alt"></i>Postal Codes</a></li>
+
                     </ul>
                 </li>
 

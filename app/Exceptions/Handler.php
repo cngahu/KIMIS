@@ -27,4 +27,14 @@ class Handler extends ExceptionHandler
             //
         });
     }
+    public function render($request, Throwable $e)
+    {
+        if ($e instanceof \Spatie\Permission\Exceptions\UnauthorizedException) {
+            return response()->view('errors.no-permission', [], 403);
+        }
+
+        return parent::render($request, $e);
+    }
+
+
 }
