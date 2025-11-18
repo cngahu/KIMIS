@@ -29,6 +29,13 @@ Route::get('/login', function () {
     return view('auth.login');
 });
 
+Route::get('/verify-otp', [\App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'showOtpForm'])
+    ->name('otp.verify.form');
+
+Route::post('/verify-otp', [\App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'verifyOtp'])
+    ->name('otp.verify');
+Route::get('/resend-otp', [\App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'resendOtp'])->name('otp.resend');
+
 ;
 Route::get('/logout', [AdminController::class, 'Logout'])->name('logout');
 Route::middleware(['auth','history','verified'])->group(function () {
