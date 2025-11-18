@@ -11,7 +11,9 @@ use App\Http\Controllers\Applicant\EducationQualificationsController;
 use App\Http\Controllers\Backend\CourseController;
 use App\Http\Controllers\Backend\TrainingController;
 use App\Http\Controllers\public\TrainingPublicController;
-
+use App\Http\Controllers\Backend\CountyController;
+use App\Http\Controllers\Backend\SubcountyController;
+use App\Http\Controllers\Backend\PostalCodeController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -126,6 +128,81 @@ Route::middleware(['auth','history','verified'])->group(function () {
 
 
 
+    Route::middleware(['auth'])->prefix('admin')->group(function () {
+
+        /*
+        |--------------------------------------------------------------------------
+        | Counties
+        |--------------------------------------------------------------------------
+        */
+        Route::get('/counties', [CountyController::class, 'index'])
+            ->name('backend.counties.index');
+
+        Route::get('/counties/create', [CountyController::class, 'create'])
+            ->name('backend.counties.create');
+
+        Route::post('/counties/store', [CountyController::class, 'store'])
+            ->name('backend.counties.store');
+
+        Route::get('/counties/{county}/edit', [CountyController::class, 'edit'])
+            ->name('backend.counties.edit');
+
+        Route::post('/counties/{county}/update', [CountyController::class, 'update'])
+            ->name('backend.counties.update');
+
+        Route::delete('/counties/{county}/destroy', [CountyController::class, 'destroy'])
+            ->name('backend.counties.destroy');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Subcounties
+        |--------------------------------------------------------------------------
+        */
+        Route::get('/subcounties', [SubcountyController::class, 'index'])
+            ->name('backend.subcounties.index');
+
+        Route::get('/subcounties/create', [SubcountyController::class, 'create'])
+            ->name('backend.subcounties.create');
+
+        Route::post('/subcounties/store', [SubcountyController::class, 'store'])
+            ->name('backend.subcounties.store');
+
+        Route::get('/subcounties/{subcounty}/edit', [SubcountyController::class, 'edit'])
+            ->name('backend.subcounties.edit');
+
+        Route::post('/subcounties/{subcounty}/update', [SubcountyController::class, 'update'])
+            ->name('backend.subcounties.update');
+
+        Route::delete('/subcounties/{subcounty}/destroy', [SubcountyController::class, 'destroy'])
+            ->name('backend.subcounties.destroy');
+
+
+
+        /*
+     |--------------------------------------------------------------------------
+     | Postal Codes
+     |--------------------------------------------------------------------------
+     */
+
+        Route::get('/postal-codes', [PostalCodeController::class, 'index'])
+            ->name('backend.postal_codes.index');
+
+        Route::get('/postal-codes/create', [PostalCodeController::class, 'create'])
+            ->name('backend.postal_codes.create');
+
+        Route::post('/postal-codes/store', [PostalCodeController::class, 'store'])
+            ->name('backend.postal_codes.store');
+
+        Route::get('/postal-codes/{postal_code}/edit', [PostalCodeController::class, 'edit'])
+            ->name('backend.postal_codes.edit');
+
+        Route::post('/postal-codes/{postal_code}/update', [PostalCodeController::class, 'update'])
+            ->name('backend.postal_codes.update');
+
+        Route::delete('/postal-codes/{postal_code}/destroy', [PostalCodeController::class, 'destroy'])
+            ->name('backend.postal_codes.destroy');
+    });
 
 
 
