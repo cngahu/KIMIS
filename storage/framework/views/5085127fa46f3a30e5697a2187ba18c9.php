@@ -2,21 +2,21 @@
 
 <div class="card shadow-sm border-0 mb-3">
     <div class="card-header bg-white border-0 pb-0">
-        <h5 class="mb-1">Course Details</h5>
+        <h5 class="mb-1">Training Details</h5>
         <p class="text-muted small mb-0">
-            Fill in the information below to create or update a course.
+            Fill in the information below to create or update a training.
         </p>
     </div>
 
     <div class="card-body">
         <div class="row g-3">
 
+            
             <div class="col-md-6">
-                <label class="form-label fw-bold">Course Name <span class="text-danger">*</span></label>
-                <input
-                    type="text"
-                    name="course_name"
-                    class="form-control <?php $__errorArgs = ['course_name'];
+                <label class="form-label fw-bold">Course <span class="text-danger">*</span></label>
+                <select
+                    name="course_id"
+                    class="form-select <?php $__errorArgs = ['course_id'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
@@ -24,28 +24,35 @@ $message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>"
-                    placeholder="e.g. Diploma in ICT"
-                    value="<?php echo e(old('course_name', $course->course_name ?? '')); ?>"
                 >
-                <?php $__errorArgs = ['course_name'];
+                    <option value="">-- Select Course --</option>
+                    <?php $__currentLoopData = $courses; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $courseItem): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <option value="<?php echo e($courseItem->id); ?>"
+                            <?php echo e((int) old('course_id', $training->course_id ?? 0) === $courseItem->id ? 'selected' : ''); ?>>
+                            <?php echo e($courseItem->course_name); ?> (<?php echo e($courseItem->course_code); ?>)
+                        </option>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                </select>
+                <?php $__errorArgs = ['course_id'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?>
                 <div class="invalid-feedback"><?php echo e($message); ?></div>
                 <?php else: ?>
-                    <small class="text-muted">Enter the official name of the course.</small>
+                    <small class="text-muted">Select the course for this training.</small>
                     <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>
             </div>
 
+            
             <div class="col-md-6">
-                <label class="form-label fw-bold">Course Category <span class="text-danger">*</span></label>
+                <label class="form-label fw-bold">College <span class="text-danger">*</span></label>
                 <select
-                    name="course_category"
-                    class="form-select <?php $__errorArgs = ['course_category'];
+                    name="college_id"
+                    class="form-select <?php $__errorArgs = ['college_id'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
@@ -54,35 +61,36 @@ if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>"
                 >
-                    <option value="">-- Select Category --</option>
-                    <?php $__currentLoopData = $categories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $cat): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                        <option value="<?php echo e($cat); ?>"
-                            <?php echo e(old('course_category', $course->course_category ?? '') === $cat ? 'selected' : ''); ?>>
-                            <?php echo e($cat); ?>
+                    <option value="">-- Select College --</option>
+                    <?php $__currentLoopData = $colleges; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $collegeItem): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <option value="<?php echo e($collegeItem->id); ?>"
+                            <?php echo e((int) old('college_id', $training->college_id ?? 0) === $collegeItem->id ? 'selected' : ''); ?>>
+                            <?php echo e($collegeItem->name); ?>
 
                         </option>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </select>
-                <?php $__errorArgs = ['course_category'];
+                <?php $__errorArgs = ['college_id'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?>
                 <div class="invalid-feedback"><?php echo e($message); ?></div>
                 <?php else: ?>
-                    <small class="text-muted">Choose the appropriate course level or type.</small>
+                    <small class="text-muted">Select the college offering this training.</small>
                     <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>
             </div>
 
+            
             <div class="col-md-6">
-                <label class="form-label fw-bold">Course Code <span class="text-danger">*</span></label>
+                <label class="form-label fw-bold">Start Date <span class="text-danger">*</span></label>
                 <input
-                    type="text"
-                    name="course_code"
-                    class="form-control <?php $__errorArgs = ['course_code'];
+                    type="date"
+                    name="start_date"
+                    class="form-control <?php $__errorArgs = ['start_date'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
@@ -90,28 +98,29 @@ $message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>"
-                    placeholder="e.g. ICT101"
-                    value="<?php echo e(old('course_code', $course->course_code ?? '')); ?>"
+                    value="<?php echo e(old('start_date', isset($training->start_date) ? $training->start_date->format('Y-m-d') : '')); ?>"
                 >
-                <?php $__errorArgs = ['course_code'];
+                <?php $__errorArgs = ['start_date'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?>
                 <div class="invalid-feedback"><?php echo e($message); ?></div>
                 <?php else: ?>
-                    <small class="text-muted">Unique identifier used internally and on timetables.</small>
+                    <small class="text-muted">When the training is scheduled to start.</small>
                     <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>
             </div>
 
+            
             <div class="col-md-6">
-                <label class="form-label fw-bold">Course Mode <span class="text-danger">*</span></label>
-                <select
-                    name="course_mode"
-                    class="form-select <?php $__errorArgs = ['course_mode'];
+                <label class="form-label fw-bold">End Date</label>
+                <input
+                    type="date"
+                    name="end_date"
+                    class="form-control <?php $__errorArgs = ['end_date'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
@@ -119,36 +128,31 @@ $message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>"
+                    value="<?php echo e(old('end_date', isset($training->end_date) ? $training->end_date->format('Y-m-d') : '')); ?>"
                 >
-                    <option value="">-- Select Mode --</option>
-                    <?php $__currentLoopData = $modes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $mode): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                        <option value="<?php echo e($mode); ?>"
-                            <?php echo e(old('course_mode', $course->course_mode ?? '') === $mode ? 'selected' : ''); ?>>
-                            <?php echo e($mode); ?>
-
-                        </option>
-                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                </select>
-                <?php $__errorArgs = ['course_mode'];
+                <?php $__errorArgs = ['end_date'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?>
                 <div class="invalid-feedback"><?php echo e($message); ?></div>
                 <?php else: ?>
-                    <small class="text-muted">Specify if the course is long-term or short-term.</small>
+                    <small class="text-muted">When the training is expected to end.</small>
                     <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>
             </div>
 
+            
             <div class="col-md-6">
-                <label class="form-label fw-bold">Duration (months) <span class="text-danger">*</span></label>
+                <label class="form-label fw-bold">Cost (KSh)</label>
                 <input
                     type="number"
-                    name="course_duration"
-                    class="form-control <?php $__errorArgs = ['course_duration'];
+                    name="cost"
+                    step="0.01"
+                    min="0"
+                    class="form-control <?php $__errorArgs = ['cost'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
@@ -156,25 +160,22 @@ $message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>"
-                    min="1"
-                    placeholder="e.g. 12"
-                    value="<?php echo e(old('course_duration', $course->course_duration ?? '')); ?>"
+                    placeholder="e.g. 15000.00"
+                    value="<?php echo e(old('cost', $training->cost ?? 0)); ?>"
                 >
-                <?php $__errorArgs = ['course_duration'];
+                <?php $__errorArgs = ['cost'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?>
                 <div class="invalid-feedback"><?php echo e($message); ?></div>
                 <?php else: ?>
-                    <small class="text-muted">Total duration of the course in months.</small>
+                    <small class="text-muted">Total cost of the training (leave 0 if free).</small>
                     <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>
             </div>
-
-
 
         </div>
     </div>
@@ -184,7 +185,7 @@ unset($__errorArgs, $__bag); ?>
             <span class="text-danger">*</span> Required fields
         </span>
         <div>
-            <a href="<?php echo e(route('all.courses')); ?>" class="btn btn-light border me-2">
+            <a href="<?php echo e(route('all.trainings')); ?>" class="btn btn-light border me-2">
                 Cancel
             </a>
             <button type="submit" class="btn btn-primary">
@@ -194,4 +195,4 @@ unset($__errorArgs, $__bag); ?>
         </div>
     </div>
 </div>
-<?php /**PATH C:\xampp\htdocs\PROJECT2\KIMIS\resources\views/admin/courses/_form.blade.php ENDPATH**/ ?>
+<?php /**PATH C:\xampp\htdocs\PROJECT2\KIMIS\resources\views/admin/trainings/_form.blade.php ENDPATH**/ ?>

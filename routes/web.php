@@ -9,6 +9,8 @@ use App\Http\Controllers\UsersController;
 use App\Http\Controllers\Applicant\AccountController;
 use App\Http\Controllers\Applicant\EducationQualificationsController;
 use App\Http\Controllers\Backend\CourseController;
+use App\Http\Controllers\Backend\TrainingController;
+use App\Http\Controllers\public\TrainingPublicController;
 
 /*
 |--------------------------------------------------------------------------
@@ -25,9 +27,14 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+
+
 Route::get('/login', function () {
     return view('auth.login');
 });
+
+Route::get('/training/scheduled', [TrainingPublicController::class, 'index'])
+    ->name('public.trainings');
 
 Route::get('/verify-otp', [\App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'showOtpForm'])
     ->name('otp.verify.form');
@@ -106,6 +113,20 @@ Route::middleware(['auth','history','verified'])->group(function () {
 
 
     });
+
+    Route::controller(TrainingController::class)->group(function() {
+        Route::get('/all/trainings', 'index')->name('all.trainings');                     // List all trainings
+        Route::get('/training/create', 'create')->name('trainings.create');               // Show create form
+        Route::post('/training/store', 'store')->name('trainings.store');                 // Store new training
+        Route::get('/training/show/{training}', 'show')->name('trainings.show');          // View single training
+        Route::get('/training/edit/{training}', 'edit')->name('trainings.edit');          // Edit training
+        Route::put('/training/update/{training}', 'update')->name('trainings.update');    // Update training
+        Route::delete('/training/delete/{training}', 'destroy')->name('trainings.delete'); // Delete training
+    });
+
+
+
+
 
 
 

@@ -139,11 +139,14 @@
 
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.75rem;max-width:1000px;margin:0 auto;">
             <div class="acct-card">
-                <span class="acct-icon"><i class="la la-file-signature"></i></span>
-                <h3 class="acct-title">Online Registration</h3>
-                <p class="acct-desc">Apply for courses online, upload documents, and submit applications seamlessly.</p>
-                <a href="#" class="btn-primary d-inline-flex align-items-center gap-2">
-                    <i class="la la-arrow-right"></i> Get Started
+                <span class="acct-icon"><i class="la la-calendar-check"></i></span>
+                <h3 class="acct-title">Scheduled Trainings</h3>
+                <p class="acct-desc">
+                    Browse and register for available training programs across all KIHBT campuses.
+                </p>
+
+                <a href="{{ route('public.trainings') }}" class="btn-primary d-inline-flex align-items-center gap-2">
+                    <i class="la la-arrow-right"></i> View Trainings
                 </a>
             </div>
 

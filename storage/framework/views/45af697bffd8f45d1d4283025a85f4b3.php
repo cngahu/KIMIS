@@ -143,6 +143,8 @@
                         <div class="menu-title">Constants</div>
                     </a>
                     <ul>
+
+                        <li><a href="<?php echo e(route('all.trainings')); ?>"><i class="bx bx-right-arrow-alt"></i>Training Schedules</a></li>
                         <li><a href="<?php echo e(route('all.courses')); ?>"><i class="bx bx-right-arrow-alt"></i>Courses</a></li>
                     </ul>
                 </li>
