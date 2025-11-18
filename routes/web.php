@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\Applicant\AccountController;
 use App\Http\Controllers\Applicant\EducationQualificationsController;
+use App\Http\Controllers\Backend\CourseController;
 
 /*
 |--------------------------------------------------------------------------
@@ -28,11 +29,7 @@ Route::get('/login', function () {
     return view('auth.login');
 });
 
-//Route::middleware('history')->get('/dashboard', function () {
-//    return view('admin.index');
-//})->middleware(['auth', 'verified'])->name('dashboard');
-//Route::get('/admin/logout', 'AdminDestroy')->name('admin.logout');
-//            Route::get('/logout',  'Logout');
+;
 Route::get('/logout', [AdminController::class, 'Logout'])->name('logout');
 Route::middleware(['auth','history','verified'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -47,7 +44,7 @@ Route::middleware(['auth','history','verified'])->group(function () {
             Route::get('/dashboard', 'AdminDashboard')->name('dashboard')->middleware('verified');
 
             Route::get('/admin/logout', 'AdminDestroy')->name('admin.logout');
-            Route::get('/logout',  'Logout')->name('logout');
+
 
             Route::get('/admin/profile',  'AdminProfile')->name('admin.profile');
 
@@ -62,6 +59,7 @@ Route::middleware(['auth','history','verified'])->group(function () {
             Route::post('/update/admin','UpdateAdmin')->name('admin.update');
             Route::get('/delete/admin/{id}','DeleteAdmin')->name('delete.admin');
         });
+
         Route::controller(RoleController::class)->group(function() {
             Route::get('/all/permission','AllPermission')->name('all.permission');
             Route::get('/add/permission','AddPermission')->name('add.permission');
@@ -89,7 +87,22 @@ Route::middleware(['auth','history','verified'])->group(function () {
             Route::get('/admin/delete/roles/{id}','AdminDeleteRoles')->name('admin.delete.roles');
 
         });
-        Route::prefix('/admin')->namespace('Constants')-> resource('country',CountryController::class);
+
+    Route::controller(CourseController::class)->group(function() {
+        Route::get('/all/courses', 'index')->name('all.courses');              // List all courses
+        Route::get('/course/create', 'create')->name('courses.create');        // Show create form
+        Route::post('/course/store', 'store')->name('courses.store');          // Save new course
+        Route::get('/course/show/{course}', 'show')->name('courses.show');     // View single course
+        Route::get('/course/edit/{course}', 'edit')->name('courses.edit');     // Edit form
+        Route::put('/course/update/{course}', 'update')->name('courses.update'); // Update course
+        Route::delete('/course/delete/{course}', 'destroy')->name('courses.delete'); // Delete course
+
+
+    });
+
+
+
+    Route::prefix('/admin')->namespace('Constants')-> resource('country',CountryController::class);
 
 
 });
@@ -103,7 +116,7 @@ Route::group(['middleware' => ['role:applicant','auth','history','verified']], f
         Route::get('applicant/dashboard', 'ApplicantDashboard')->name('applicant.dashboard')->middleware('verified');
         Route::get('applicant/dprofile', 'ApplicantDProfile')->name('applicant.dprofile')->middleware('verified');
 
-        Route::get('/applicant/logout', 'ApplicantDestroy')->name('applicant.logout');
+        //Route::get('/applicant/logout', 'ApplicantDestroy')->name('applicant.logout');
         Route::get('/applicant/logout',  'ApplicantLogout')->name('applicant.logout');
 
         Route::get('/applicant/profile',  'ApplicantProfile')->name('applicant.profile');
