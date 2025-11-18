@@ -107,8 +107,7 @@
                     <li><a href="{{ route('all.permission') }}"><i class="bx bx-right-arrow-alt"></i>All Permissions</a></li>
                     <li><a href="{{ route('all.roles') }}"><i class="bx bx-right-arrow-alt"></i>Roles</a></li>
                     <li><a href="{{ route('all.roles.permission') }}"><i class="bx bx-right-arrow-alt"></i>Roles in Permission</a></li>
-                    <li><a href="dashboard-digital-marketing.html"><i class="bx bx-right-arrow-alt"></i>Digital Marketing</a></li>
-                    <li><a href="dashboard-human-resources.html"><i class="bx bx-right-arrow-alt"></i>Human Resources</a></li>
+
                 </ul>
             </li>
         @endif
@@ -134,18 +133,19 @@
             </li>
         @endif
 
-        @if(Auth::user()->hasRole('superadmin'))
-            <li>
-                <a href="javascript:;" class="has-arrow">
-                    <div class="parent-icon"><i class="bx bx-category"></i></div>
-                    <div class="menu-title">Constants</div>
-                </a>
-                <ul>
-                    <li><a href=""><i class="bx bx-right-arrow-alt"></i>County</a></li>
-                    <li><a href="{{ route('all.courses') }}"><i class="bx bx-right-arrow-alt"></i>Courses</a></li>
 
-                </ul>
-            </li>
+
+        @if(Auth::user()->hasRole('superadmin'))
+
+                <li>
+                    <a href="javascript:;" class="has-arrow">
+                        <div class="parent-icon"><i class='bx bx-home-circle'></i></div>
+                        <div class="menu-title">Constants</div>
+                    </a>
+                    <ul>
+                        <li><a href="{{ route('all.courses') }}"><i class="bx bx-right-arrow-alt"></i>Courses</a></li>
+                    </ul>
+                </li>
 
             <li class="menu-label">UI Elements</li>
             <li>
