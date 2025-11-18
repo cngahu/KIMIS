@@ -28,7 +28,6 @@
                     </div>
                 </div>
 
-                <p class="mb-1"><strong>Cost:</strong> KSh {{ number_format($training->cost, 2) }}</p>
                 <p class="mb-1"><strong>Created By:</strong> {{ optional($training->user)->name ?? '-' }}</p>
                 <p class="mb-1">
                     <strong>Created At:</strong>

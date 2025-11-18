@@ -156,7 +156,7 @@
     <!-- Header -->
     <div class="form-header">
         <div class="header-content">
-            <img src="{{ asset('adminbackend/assets/images/logokihbt.png') }}" class="header-logo">
+            <img src="<?php echo e(asset('adminbackend/assets/images/logokihbt.png')); ?>" class="header-logo">
             <div>
                 <div class="header-title">Kenya Institute of Highways & Building Technology</div>
                 <div class="header-tagline">Empowering skills for roads, transport & construction</div>
@@ -172,26 +172,26 @@
             <h2 class="title">Create Account</h2>
             <p class="subtitle">Join KIHBT to access our training programs</p>
 
-            <form id="registerForm" method="POST" action="{{ route('register') }}">
-                @csrf
+            <form id="registerForm" method="POST" action="<?php echo e(route('register')); ?>">
+                <?php echo csrf_field(); ?>
 
                 <div class="form-container">
                     <!-- Left Column -->
                     <div class="form-column-left">
                         <div class="form-group">
                             <label for="surname">Surname</label>
-                            <input id="surname" name="surname" type="text" placeholder="Enter surname" required value="{{ old('surname') }}">
-                            @if($errors->has('surname'))
-                                <span class="error-msg">{{ $errors->first('surname') }}</span>
-                            @endif
+                            <input id="surname" name="surname" type="text" placeholder="Enter surname" required value="<?php echo e(old('surname')); ?>">
+                            <?php if($errors->has('surname')): ?>
+                                <span class="error-msg"><?php echo e($errors->first('surname')); ?></span>
+                            <?php endif; ?>
                         </div>
 
                         <div class="form-group">
                             <label for="firstname">First Name</label>
-                            <input id="firstname" name="firstname" type="text" placeholder="Enter first name" required value="{{ old('firstname') }}">
-                            @if($errors->has('firstname'))
-                                <span class="error-msg">{{ $errors->first('firstname') }}</span>
-                            @endif
+                            <input id="firstname" name="firstname" type="text" placeholder="Enter first name" required value="<?php echo e(old('firstname')); ?>">
+                            <?php if($errors->has('firstname')): ?>
+                                <span class="error-msg"><?php echo e($errors->first('firstname')); ?></span>
+                            <?php endif; ?>
                         </div>
 
                         <div class="form-group">
@@ -202,9 +202,9 @@
                                     <i class="fa-solid fa-eye-slash"></i>
                                 </button>
                             </div>
-                            @if($errors->has('password'))
-                                <span class="error-msg">{{ $errors->first('password') }}</span>
-                            @endif
+                            <?php if($errors->has('password')): ?>
+                                <span class="error-msg"><?php echo e($errors->first('password')); ?></span>
+                            <?php endif; ?>
                         </div>
 
                     </div>
@@ -213,18 +213,18 @@
                     <div class="form-column-right">
                         <div class="form-group">
                             <label for="othername">Other Names</label>
-                            <input id="othername" name="othername" type="text" placeholder="Enter other names" value="{{ old('othername') }}">
-                            @if($errors->has('othername'))
-                                <span class="error-msg">{{ $errors->first('othername') }}</span>
-                            @endif
+                            <input id="othername" name="othername" type="text" placeholder="Enter other names" value="<?php echo e(old('othername')); ?>">
+                            <?php if($errors->has('othername')): ?>
+                                <span class="error-msg"><?php echo e($errors->first('othername')); ?></span>
+                            <?php endif; ?>
                         </div>
 
                         <div class="form-group">
                             <label for="email">Email Address</label>
-                            <input id="email" name="email" type="email" placeholder="Enter email address" required value="{{ old('email') }}">
-                            @if($errors->has('email'))
-                                <span class="error-msg">{{ $errors->first('email') }}</span>
-                            @endif
+                            <input id="email" name="email" type="email" placeholder="Enter email address" required value="<?php echo e(old('email')); ?>">
+                            <?php if($errors->has('email')): ?>
+                                <span class="error-msg"><?php echo e($errors->first('email')); ?></span>
+                            <?php endif; ?>
                         </div>
 
                         <div class="form-group">
@@ -235,9 +235,9 @@
                                     <i class="fa-solid fa-eye-slash"></i>
                                 </button>
                             </div>
-                            @if($errors->has('password_confirmation'))
-                                <span class="error-msg">{{ $errors->first('password_confirmation') }}</span>
-                            @endif
+                            <?php if($errors->has('password_confirmation')): ?>
+                                <span class="error-msg"><?php echo e($errors->first('password_confirmation')); ?></span>
+                            <?php endif; ?>
                         </div>
                     </div>
 
@@ -247,14 +247,14 @@
                         <label for="terms">I agree to the <a href="#" style="color: var(--secondary);">Terms & Conditions</a> and <a href="#" style="color: var(--secondary);">Privacy Policy</a></label>
                     </div>
 
-                    @if($errors->has('terms'))
-                        <span class="error-msg full-width">{{ $errors->first('terms') }}</span>
-                    @endif
+                    <?php if($errors->has('terms')): ?>
+                        <span class="error-msg full-width"><?php echo e($errors->first('terms')); ?></span>
+                    <?php endif; ?>
 
                     <button type="submit" class="btn">Create Account</button>
 
                     <div class="text-center mt-3 full-width" style="font-size: .85rem;">
-                        Already have an account? <a href="{{ route('login') }}" style="color: var(--secondary);">Sign in here</a>
+                        Already have an account? <a href="<?php echo e(route('login')); ?>" style="color: var(--secondary);">Sign in here</a>
                     </div>
                 </div>
             </form>
@@ -291,3 +291,4 @@
 
 </body>
 </html>
+<?php /**PATH C:\xampp\htdocs\PROJECT2\KIMIS\resources\views/auth/register.blade.php ENDPATH**/ ?>

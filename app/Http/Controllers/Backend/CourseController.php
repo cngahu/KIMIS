@@ -10,65 +10,21 @@ class CourseController extends Controller
 {
     public function index(Request $request)
     {
-        $search        = $request->input('search');
-        $category      = $request->input('category');
-        $mode          = $request->input('mode');
-        $sortField     = $request->input('sortField', 'created_at');
-        $sortDirection = $request->input('sortDirection', 'desc');
+        $perPage = $request->per_page ?? 10;
+        $search = $request->search;
 
-        // Allowed sorting fields
-        $allowedSortFields = [
-            'course_name',
-            'course_category',
-            'course_code',
-            'course_mode',
-            'course_duration',
-            'created_at',
-        ];
-
-        if (! in_array($sortField, $allowedSortFields, true)) {
-            $sortField = 'created_at';
-        }
-
-        // Allowed directions
-        if (! in_array($sortDirection, ['asc', 'desc'], true)) {
-            $sortDirection = 'desc';
-        }
-
-        $query = Course::query()
-            ->when($search, function ($q) use ($search) {
-                $q->where(function ($inner) use ($search) {
-                    $inner->where('course_name', 'like', "%{$search}%")
-                        ->orWhere('course_code', 'like', "%{$search}%")
-                        ->orWhere('course_category', 'like', "%{$search}%")
-                        ->orWhere('course_mode', 'like', "%{$search}%");
-                });
+        $courses = Course::query()
+            ->when($search, function ($query) use ($search) {
+                $query->where('course_name', 'like', "%$search%")
+                    ->orWhere('course_code', 'like', "%$search%")
+                    ->orWhere('course_category', 'like', "%$search%");
             })
-            ->when($category, function ($q) use ($category) {
-                $q->where('course_category', $category);
-            })
-            ->when($mode, function ($q) use ($mode) {
-                $q->where('course_mode', $mode);
-            })
-            ->orderBy($sortField, $sortDirection);
+            ->orderBy('course_name', 'asc')
+            ->paginate($perPage)
+            ->appends($request->query());
 
-        $courses = $query->paginate(10)->appends($request->query());
-
-        $categories = ['Diploma', 'Craft', 'Higher Diploma', 'Proficiency'];
-        $modes      = ['Long Term', 'Short Term'];
-
-        return view('admin.courses.index', compact(
-            'courses',
-            'search',
-            'category',
-            'mode',
-            'sortField',
-            'sortDirection',
-            'categories',
-            'modes'
-        ));
+        return view('admin.courses.index', compact('courses', 'search'));
     }
-
     public function create()
     {
         $categories = ['Diploma', 'Craft', 'Higher Diploma', 'Proficiency'];
@@ -85,6 +41,9 @@ class CourseController extends Controller
             'course_code'     => 'required|string|max:255|unique:courses,course_code',
             'course_mode'     => 'required|in:Long Term,Short Term',
             'course_duration' => 'required|integer|min:1',
+            'cost'            => 'nullable|numeric|min:0',
+            'target_group'    => 'nullable|string',
+            'requirement'     => 'required|boolean',
         ]);
 
 
@@ -119,6 +78,9 @@ class CourseController extends Controller
             'course_mode'     => 'required|in:Long Term,Short Term',
             'course_duration' => 'required|integer|min:1',
             'user_id'         => 'nullable|string',
+            'cost'            => 'nullable|numeric|min:0',
+            'target_group'    => 'nullable|string',
+            'requirement'     => 'required|boolean',
         ]);
 
         $course->update($data);

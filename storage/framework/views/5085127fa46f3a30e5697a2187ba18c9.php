@@ -144,38 +144,6 @@ endif;
 unset($__errorArgs, $__bag); ?>
             </div>
 
-            
-            <div class="col-md-6">
-                <label class="form-label fw-bold">Cost (KSh)</label>
-                <input
-                    type="number"
-                    name="cost"
-                    step="0.01"
-                    min="0"
-                    class="form-control <?php $__errorArgs = ['cost'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>"
-                    placeholder="e.g. 15000.00"
-                    value="<?php echo e(old('cost', $training->cost ?? 0)); ?>"
-                >
-                <?php $__errorArgs = ['cost'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?>
-                <div class="invalid-feedback"><?php echo e($message); ?></div>
-                <?php else: ?>
-                    <small class="text-muted">Total cost of the training (leave 0 if free).</small>
-                    <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>
-            </div>
 
         </div>
     </div>

@@ -87,24 +87,6 @@
                     @enderror
             </div>
 
-            {{-- Cost --}}
-            <div class="col-md-6">
-                <label class="form-label fw-bold">Cost (KSh)</label>
-                <input
-                    type="number"
-                    name="cost"
-                    step="0.01"
-                    min="0"
-                    class="form-control @error('cost') is-invalid @enderror"
-                    placeholder="e.g. 15000.00"
-                    value="{{ old('cost', $training->cost ?? 0) }}"
-                >
-                @error('cost')
-                <div class="invalid-feedback">{{ $message }}</div>
-                @else
-                    <small class="text-muted">Total cost of the training (leave 0 if free).</small>
-                    @enderror
-            </div>
 
         </div>
     </div>

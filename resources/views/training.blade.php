@@ -92,38 +92,65 @@
             padding:0 1.5rem 1.5rem;
         }
 
-        /* Cards grid */
-        .trainings-grid{
-            display:grid;
-            grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
-            gap:1.5rem;
-            padding:0 1.5rem 1.5rem;
+        /* Table styling */
+        .table-container {
+            padding: 0 1.5rem 1.5rem;
         }
-        .training-card{
-            border-radius:12px;
-            border:1px solid #eee;
-            padding:1.25rem 1.1rem;
-            box-shadow:0 6px 16px rgba(0,0,0,.04);
-            display:flex;
-            flex-direction:column;
-            justify-content:space-between;
-            height:100%;
+        .trainings-table {
+            width: 100%;
+            border-collapse: collapse;
+            box-shadow: 0 6px 16px rgba(0,0,0,.04);
+            border-radius: 12px;
+            overflow: hidden;
         }
-        .training-header{
-            display:flex;
-            align-items:flex-start;
-            justify-content:space-between;
-            gap:.5rem;
-            margin-bottom:.5rem;
+        .trainings-table th {
+            background-color: var(--primary);
+            color: white;
+            font-weight: 600;
+            padding: 1rem 0.75rem;
+            text-align: left;
+            font-size: 0.9rem;
         }
-        .training-title{
-            font-size:1.05rem;
-            font-weight:600;
-            margin-bottom:.2rem;
+        .trainings-table td {
+            padding: 1rem 0.75rem;
+            border-bottom: 1px solid #eee;
+            vertical-align: middle;
         }
-        .training-campus{
-            font-size:.85rem;
-            color:var(--tertiary);
+        .trainings-table tr:last-child td {
+            border-bottom: none;
+        }
+        .trainings-table tr:hover {
+            background-color: rgba(249, 169, 15, 0.05);
+        }
+        .course-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--primary);
+        }
+        .course-code {
+            font-size: 0.85rem;
+            color: var(--tertiary);
+        }
+        .campus-name {
+            font-size: 0.9rem;
+            color: var(--tertiary);
+        }
+        .campus-name i {
+            color: var(--secondary);
+            margin-right: 0.35rem;
+        }
+        .date-cell {
+            font-size: 0.9rem;
+        }
+        .cost-cell {
+            font-weight: 600;
+            color: var(--primary);
+            font-size: 0.95rem;
+        }
+        .cost-cell span {
+            font-size: 0.8rem;
+            color: var(--tertiary);
+            font-weight: 400;
         }
         .badge-status{
             font-size:.75rem;
@@ -134,32 +161,15 @@
             font-weight:600;
             text-transform:uppercase;
         }
-        .training-meta{
-            font-size:.85rem;
-            color:var(--tertiary);
-            margin:.15rem 0;
-        }
-        .training-meta i{
-            color:var(--secondary);
-            margin-right:.35rem;
-        }
-        .training-footer{
-            margin-top:1rem;
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
-            gap:.75rem;
-            flex-wrap:wrap;
-        }
-        .cost-tag{
-            font-weight:600;
-            color:var(--primary);
-            font-size:.95rem;
-        }
-        .cost-tag span{
-            font-size:.8rem;
-            color:var(--tertiary);
-            font-weight:400;
+
+        /* Responsive table */
+        @media (max-width: 768px) {
+            .table-container {
+                overflow-x: auto;
+            }
+            .trainings-table {
+                min-width: 700px;
+            }
         }
 
         /* Footer */
@@ -263,75 +273,76 @@
         </form>
     </section>
 
-    {{-- Trainings Grid --}}
-    <section class="trainings-grid">
+    {{-- Trainings Table --}}
+    <section class="table-container">
         @if($trainings->count())
-            @foreach($trainings as $training)
-                <div class="training-card">
-                    <div>
-                        <div class="training-header">
-                            <div>
-                                <div class="training-title">
-                                    {{ optional($training->course)->course_name ?? 'Unnamed Course' }}
-                                </div>
-                                <div class="training-campus">
-                                    <i class="la la-map-marker-alt me-1"></i>
-                                    {{ optional($training->college)->name ?? 'All Campuses' }}
-                                </div>
+            <table class="trainings-table">
+                <thead>
+                <tr>
+                    <th>Course</th>
+                    <th>Campus</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th>Cost</th>
+{{--                    <th>Status</th>--}}
+                    <th>Action</th>
+                </tr>
+                </thead>
+                <tbody>
+                @foreach($trainings as $training)
+                    <tr>
+                        <td>
+                            <div class="course-title">
+                                {{ optional($training->course)->course_name ?? 'Unnamed Course' }}
                             </div>
-                            <span class="badge-status">
-                                Approved
-                            </span>
-                        </div>
-
-                        <div class="mt-2">
-                            <div class="training-meta">
-                                <i class="la la-calendar"></i>
-                                <strong>Start:</strong>
-                                @if($training->start_date)
-                                    {{ \Carbon\Carbon::parse($training->start_date)->format('d M Y') }}
-                                @else
-                                    TBA
-                                @endif
+                            <div class="course-code">
+                                {{ optional($training->course)->course_code ?? 'N/A' }}
                             </div>
-
-                            <div class="training-meta">
-                                <i class="la la-calendar-check"></i>
-                                <strong>End:</strong>
-                                @if($training->end_date)
-                                    {{ \Carbon\Carbon::parse($training->end_date)->format('d M Y') }}
-                                @else
-                                    TBA
-                                @endif
+                        </td>
+                        <td>
+                            <div class="campus-name">
+                                <i class="la la-map-marker-alt"></i>
+                                {{ optional($training->college)->name ?? 'All Campuses' }}
                             </div>
-                        </div>
-                    </div>
-
-                    <div class="training-footer">
-                        <div class="cost-tag">
+                        </td>
+                        <td class="date-cell">
+                            @if($training->start_date)
+                                {{ \Carbon\Carbon::parse($training->start_date)->format('d M Y') }}
+                            @else
+                                TBA
+                            @endif
+                        </td>
+                        <td class="date-cell">
+                            @if($training->end_date)
+                                {{ \Carbon\Carbon::parse($training->end_date)->format('d M Y') }}
+                            @else
+                                TBA
+                            @endif
+                        </td>
+                        <td class="cost-cell">
                             KSh {{ number_format($training->cost, 2) }}
                             <span>/ total</span>
-                        </div>
+                        </td>
 
-                        {{-- Register CTA: you can adjust this route later --}}
-                        <a href="{{ route('login', ['training_id' => $training->id]) }}"
-                           class="btn-primary-kihbt d-inline-flex align-items-center gap-1">
-                            <i class="la la-edit"></i> Register
-                        </a>
-                    </div>
-                </div>
-            @endforeach
+                        <td>
+                            <a href="{{ route('login', ['training_id' => $training->id]) }}"
+                               class="btn-primary-kihbt d-inline-flex align-items-center gap-1">
+                                <i class="la la-edit"></i> Apply
+                            </a>
+                        </td>
+                    </tr>
+                @endforeach
+                </tbody>
+            </table>
         @else
-            <div class="col-12">
-                <div class="alert alert-info mx-3 mb-3">
-                    No approved trainings found
-                    @if(request('search') || request('college_id'))
-                        for the current filters.
-                        <a href="{{ route('public.trainings') }}">Clear filters</a>
-                    @else
-                        at the moment. Please check again later.
-                    @endif
-                </div>
+            <div class="alert alert-info mx-3 mb-3">
+                No approved trainings found
+                @if(request('search') || request('college_id'))
+                    for the current filters.
+                    <a href="{{ route('public.trainings') }}">Clear filters</a>
+                @else
+                    at the moment. Please check again later.
+                @endif
             </div>
         @endif
     </section>

@@ -112,7 +112,7 @@
                         <th>Start Date</th>
                         <th>End Date</th>
                         <th>Status</th>
-                        <th class="text-end">Cost (KSh)</th>
+
                         <th style="width: 190px" class="text-center">Actions</th>
                     </tr>
                     </thead>
@@ -168,10 +168,7 @@
                             </td>
 
                             
-                            <td class="text-end">
-                                <?php echo e(number_format($training->cost, 2)); ?>
 
-                            </td>
 
                             
                             <td class="text-center">

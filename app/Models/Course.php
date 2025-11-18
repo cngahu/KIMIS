@@ -10,4 +10,9 @@ class Course extends Model
     use HasFactory;
 
     protected $guarded = [];
+
+    public function requirements()
+    {
+        return $this->hasMany(Requirement::class);
+    }
 }

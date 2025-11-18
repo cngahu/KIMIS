@@ -11,6 +11,7 @@
     <div class="card-body">
         <div class="row g-3">
 
+            {{-- Course Name --}}
             <div class="col-md-6">
                 <label class="form-label fw-bold">Course Name <span class="text-danger">*</span></label>
                 <input
@@ -27,6 +28,7 @@
                     @enderror
             </div>
 
+            {{-- Category --}}
             <div class="col-md-6">
                 <label class="form-label fw-bold">Course Category <span class="text-danger">*</span></label>
                 <select
@@ -48,6 +50,7 @@
                     @enderror
             </div>
 
+            {{-- Course Code --}}
             <div class="col-md-6">
                 <label class="form-label fw-bold">Course Code <span class="text-danger">*</span></label>
                 <input
@@ -64,6 +67,7 @@
                     @enderror
             </div>
 
+            {{-- Mode --}}
             <div class="col-md-6">
                 <label class="form-label fw-bold">Course Mode <span class="text-danger">*</span></label>
                 <select
@@ -85,6 +89,7 @@
                     @enderror
             </div>
 
+            {{-- Duration --}}
             <div class="col-md-6">
                 <label class="form-label fw-bold">Duration (months) <span class="text-danger">*</span></label>
                 <input
@@ -102,7 +107,60 @@
                     @enderror
             </div>
 
+            {{-- Cost --}}
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Cost (KSh)</label>
+                <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    name="cost"
+                    class="form-control @error('cost') is-invalid @enderror"
+                    placeholder="e.g. 15000"
+                    value="{{ old('cost', $course->cost ?? 0) }}"
+                >
+                @error('cost')
+                <div class="invalid-feedback">{{ $message }}</div>
+                @else
+                    <small class="text-muted">Total tuition cost (set 0 if not applicable yet).</small>
+                    @enderror
+            </div>
 
+            {{-- Requirement (Yes / No) --}}
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Requirement</label>
+                <select
+                    name="requirement"
+                    class="form-select @error('requirement') is-invalid @enderror"
+                >
+                    @php
+                        $requirementValue = old('requirement', $course->requirement ?? 1);
+                    @endphp
+                    <option value="1" {{ $requirementValue == 1 ? 'selected' : '' }}>Yes</option>
+                    <option value="0" {{ $requirementValue == 0 ? 'selected' : '' }}>No</option>
+                </select>
+                @error('requirement')
+                <div class="invalid-feedback">{{ $message }}</div>
+                @else
+                    <small class="text-muted">Is there a specific requirement to join this course?</small>
+                    @enderror
+            </div>
+
+            {{-- Target Group --}}
+            <div class="col-md-12">
+                <label class="form-label fw-bold">Target Group</label>
+                <textarea
+                    name="target_group"
+                    rows="2"
+                    class="form-control @error('target_group') is-invalid @enderror"
+                    placeholder="e.g. Form Four leavers, diploma holders, technicians in the construction sector..."
+                >{{ old('target_group', $course->target_group ?? '') }}</textarea>
+                @error('target_group')
+                <div class="invalid-feedback">{{ $message }}</div>
+                @else
+                    <small class="text-muted">Describe who this course is intended for.</small>
+                    @enderror
+            </div>
 
         </div>
     </div>

@@ -80,7 +80,7 @@ class TrainingController extends Controller
             'start_date'  => 'required|date',
             'end_date'    => 'nullable|date|after_or_equal:start_date',
             'status'      => 'nullable|string|max:50', // or 'required|in:Pending,Active,Completed,Cancelled'
-            'cost'        => 'required|numeric|min:0',
+
         ]);
 
         // Link to logged-in user
@@ -128,7 +128,7 @@ class TrainingController extends Controller
             'start_date'  => 'required|date',
             'end_date'    => 'nullable|date|after_or_equal:start_date',
             'status'      => 'nullable|string|max:50', // or 'required|in:Pending,Active,Completed,Cancelled'
-            'cost'        => 'required|numeric|min:0',
+
         ]);
 
         // Optionally update user_id to "last edited by"

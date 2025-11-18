@@ -101,15 +101,15 @@
     }
 </style>
 
-@php
+<?php
     $user=\App\Models\User::find(\Illuminate\Support\Facades\Auth::User()->id);
-@endphp
+?>
 
 <div class="sidebar-wrapper kihbt-sidebar" data-simplebar="true">
     <div class="sidebar-header">
         <div>
-            <a href="{{ route('applicant.dashboard') }}">
-                <img src="{{ asset('adminbackend/assets/images/logokihbt.png') }}" class="logo-icon" alt="logo icon" style="height: 40px;">
+            <a href="<?php echo e(route('applicant.dashboard')); ?>">
+                <img src="<?php echo e(asset('adminbackend/assets/images/logokihbt.png')); ?>" class="logo-icon" alt="logo icon" style="height: 40px;">
             </a>
         </div>
         <div>
@@ -121,7 +121,7 @@
     </div>
 
     <!--navigation-->
-    @if($user->level==1)
+    <?php if($user->level==1): ?>
         <ul class="metismenu" id="menu">
             <li>
                 <div class="status-message">
@@ -131,30 +131,30 @@
                 </div>
             </li>
         </ul>
-    @else
+    <?php else: ?>
         <ul class="metismenu" id="menu">
             <!-- Main Profile Section -->
             <li>
-                <a href="{{ route('applicant.dprofile') }}">
+                <a href="<?php echo e(route('applicant.dprofile')); ?>">
                     <div class="parent-icon"><i class="bx bx-user"></i></div>
                     <div class="menu-title">My Profile</div>
                 </a>
             </li>
 
             <!-- Application Management -->
-            @if(Auth::user()->hasRole('applicant'))
+            <?php if(Auth::user()->hasRole('applicant')): ?>
                 <li>
                     <a class="has-arrow" href="javascript:;">
                         <div class="parent-icon"><i class="bx bx-file"></i></div>
                         <div class="menu-title">My Applications</div>
                     </a>
                     <ul>
-                        <li><a href="{{ route('applicant.applications') }}"><i class="bx bx-right-arrow-alt"></i>View Applications</a></li>
-                        <li><a href="{{ route('applicant.apply') }}"><i class="bx bx-right-arrow-alt"></i>Apply for Training</a></li>
-                        <li><a href="{{ route('applicant.application.status') }}"><i class="bx bx-right-arrow-alt"></i>Application Status</a></li>
+                        <li><a href="<?php echo e(route('applicant.applications')); ?>"><i class="bx bx-right-arrow-alt"></i>View Applications</a></li>
+                        <li><a href="<?php echo e(route('applicant.apply')); ?>"><i class="bx bx-right-arrow-alt"></i>Apply for Training</a></li>
+                        <li><a href="<?php echo e(route('applicant.application.status')); ?>"><i class="bx bx-right-arrow-alt"></i>Application Status</a></li>
                     </ul>
                 </li>
-            @endif
+            <?php endif; ?>
 
             <!-- Training & Courses -->
             <li>
@@ -163,9 +163,9 @@
                     <div class="menu-title">Training Programs</div>
                 </a>
                 <ul>
-                    <li><a href="{{ route('applicant.trainings') }}"><i class="bx bx-right-arrow-alt"></i>Available Trainings</a></li>
-                    <li><a href="{{ route('applicant.courses') }}"><i class="bx bx-right-arrow-alt"></i>Course Catalog</a></li>
-                    <li><a href="{{ route('applicant.enrolled') }}"><i class="bx bx-right-arrow-alt"></i>My Enrollments</a></li>
+                    <li><a href="<?php echo e(route('applicant.trainings')); ?>"><i class="bx bx-right-arrow-alt"></i>Available Trainings</a></li>
+                    <li><a href="<?php echo e(route('applicant.courses')); ?>"><i class="bx bx-right-arrow-alt"></i>Course Catalog</a></li>
+                    <li><a href="<?php echo e(route('applicant.enrolled')); ?>"><i class="bx bx-right-arrow-alt"></i>My Enrollments</a></li>
                 </ul>
             </li>
 
@@ -176,9 +176,9 @@
                     <div class="menu-title">Documents</div>
                 </a>
                 <ul>
-                    <li><a href="{{ route('applicant.documents') }}"><i class="bx bx-right-arrow-alt"></i>My Documents</a></li>
-                    <li><a href="{{ route('applicant.uploads') }}"><i class="bx bx-right-arrow-alt"></i>Upload Documents</a></li>
-                    <li><a href="{{ route('applicant.certificates') }}"><i class="bx bx-right-arrow-alt"></i>Certificates</a></li>
+                    <li><a href="<?php echo e(route('applicant.documents')); ?>"><i class="bx bx-right-arrow-alt"></i>My Documents</a></li>
+                    <li><a href="<?php echo e(route('applicant.uploads')); ?>"><i class="bx bx-right-arrow-alt"></i>Upload Documents</a></li>
+                    <li><a href="<?php echo e(route('applicant.certificates')); ?>"><i class="bx bx-right-arrow-alt"></i>Certificates</a></li>
                 </ul>
             </li>
 
@@ -189,9 +189,9 @@
                     <div class="menu-title">Payments</div>
                 </a>
                 <ul>
-                    <li><a href="{{ route('applicant.invoices') }}"><i class="bx bx-right-arrow-alt"></i>Invoices</a></li>
-                    <li><a href="{{ route('applicant.payment.history') }}"><i class="bx bx-right-arrow-alt"></i>Payment History</a></li>
-                    <li><a href="{{ route('applicant.payment.methods') }}"><i class="bx bx-right-arrow-alt"></i>Payment Methods</a></li>
+                    <li><a href="<?php echo e(route('applicant.invoices')); ?>"><i class="bx bx-right-arrow-alt"></i>Invoices</a></li>
+                    <li><a href="<?php echo e(route('applicant.payment.history')); ?>"><i class="bx bx-right-arrow-alt"></i>Payment History</a></li>
+                    <li><a href="<?php echo e(route('applicant.payment.methods')); ?>"><i class="bx bx-right-arrow-alt"></i>Payment Methods</a></li>
                 </ul>
             </li>
 
@@ -203,20 +203,21 @@
                     <div class="menu-title">Help Center</div>
                 </a>
                 <ul>
-                    <li><a href="{{ route('applicant.faq') }}"><i class="bx bx-right-arrow-alt"></i>FAQ</a></li>
-                    <li><a href="{{ route('applicant.contact') }}"><i class="bx bx-right-arrow-alt"></i>Contact Support</a></li>
-                    <li><a href="{{ route('applicant.guides') }}"><i class="bx bx-right-arrow-alt"></i>User Guides</a></li>
+                    <li><a href="<?php echo e(route('applicant.faq')); ?>"><i class="bx bx-right-arrow-alt"></i>FAQ</a></li>
+                    <li><a href="<?php echo e(route('applicant.contact')); ?>"><i class="bx bx-right-arrow-alt"></i>Contact Support</a></li>
+                    <li><a href="<?php echo e(route('applicant.guides')); ?>"><i class="bx bx-right-arrow-alt"></i>User Guides</a></li>
                 </ul>
             </li>
 
             <!-- Settings -->
             <li>
-                <a href="{{ route('applicant.settings') }}">
+                <a href="<?php echo e(route('applicant.settings')); ?>">
                     <div class="parent-icon"><i class="bx bx-cog"></i></div>
                     <div class="menu-title">Settings</div>
                 </a>
             </li>
         </ul>
-    @endif
+    <?php endif; ?>
     <!--end navigation-->
 </div>
+<?php /**PATH C:\xampp\htdocs\PROJECT2\KIMIS\resources\views/applicant/body/sidebar.blade.php ENDPATH**/ ?>

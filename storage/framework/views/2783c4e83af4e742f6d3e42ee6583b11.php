@@ -92,38 +92,65 @@
             padding:0 1.5rem 1.5rem;
         }
 
-        /* Cards grid */
-        .trainings-grid{
-            display:grid;
-            grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
-            gap:1.5rem;
-            padding:0 1.5rem 1.5rem;
+        /* Table styling */
+        .table-container {
+            padding: 0 1.5rem 1.5rem;
         }
-        .training-card{
-            border-radius:12px;
-            border:1px solid #eee;
-            padding:1.25rem 1.1rem;
-            box-shadow:0 6px 16px rgba(0,0,0,.04);
-            display:flex;
-            flex-direction:column;
-            justify-content:space-between;
-            height:100%;
+        .trainings-table {
+            width: 100%;
+            border-collapse: collapse;
+            box-shadow: 0 6px 16px rgba(0,0,0,.04);
+            border-radius: 12px;
+            overflow: hidden;
         }
-        .training-header{
-            display:flex;
-            align-items:flex-start;
-            justify-content:space-between;
-            gap:.5rem;
-            margin-bottom:.5rem;
+        .trainings-table th {
+            background-color: var(--primary);
+            color: white;
+            font-weight: 600;
+            padding: 1rem 0.75rem;
+            text-align: left;
+            font-size: 0.9rem;
         }
-        .training-title{
-            font-size:1.05rem;
-            font-weight:600;
-            margin-bottom:.2rem;
+        .trainings-table td {
+            padding: 1rem 0.75rem;
+            border-bottom: 1px solid #eee;
+            vertical-align: middle;
         }
-        .training-campus{
-            font-size:.85rem;
-            color:var(--tertiary);
+        .trainings-table tr:last-child td {
+            border-bottom: none;
+        }
+        .trainings-table tr:hover {
+            background-color: rgba(249, 169, 15, 0.05);
+        }
+        .course-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--primary);
+        }
+        .course-code {
+            font-size: 0.85rem;
+            color: var(--tertiary);
+        }
+        .campus-name {
+            font-size: 0.9rem;
+            color: var(--tertiary);
+        }
+        .campus-name i {
+            color: var(--secondary);
+            margin-right: 0.35rem;
+        }
+        .date-cell {
+            font-size: 0.9rem;
+        }
+        .cost-cell {
+            font-weight: 600;
+            color: var(--primary);
+            font-size: 0.95rem;
+        }
+        .cost-cell span {
+            font-size: 0.8rem;
+            color: var(--tertiary);
+            font-weight: 400;
         }
         .badge-status{
             font-size:.75rem;
@@ -134,32 +161,15 @@
             font-weight:600;
             text-transform:uppercase;
         }
-        .training-meta{
-            font-size:.85rem;
-            color:var(--tertiary);
-            margin:.15rem 0;
-        }
-        .training-meta i{
-            color:var(--secondary);
-            margin-right:.35rem;
-        }
-        .training-footer{
-            margin-top:1rem;
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
-            gap:.75rem;
-            flex-wrap:wrap;
-        }
-        .cost-tag{
-            font-weight:600;
-            color:var(--primary);
-            font-size:.95rem;
-        }
-        .cost-tag span{
-            font-size:.8rem;
-            color:var(--tertiary);
-            font-weight:400;
+
+        /* Responsive table */
+        @media (max-width: 768px) {
+            .table-container {
+                overflow-x: auto;
+            }
+            .trainings-table {
+                min-width: 700px;
+            }
         }
 
         /* Footer */
@@ -265,79 +275,81 @@
     </section>
 
     
-    <section class="trainings-grid">
+    <section class="table-container">
         <?php if($trainings->count()): ?>
-            <?php $__currentLoopData = $trainings; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $training): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                <div class="training-card">
-                    <div>
-                        <div class="training-header">
-                            <div>
-                                <div class="training-title">
-                                    <?php echo e(optional($training->course)->course_name ?? 'Unnamed Course'); ?>
+            <table class="trainings-table">
+                <thead>
+                <tr>
+                    <th>Course</th>
+                    <th>Campus</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th>Cost</th>
 
-                                </div>
-                                <div class="training-campus">
-                                    <i class="la la-map-marker-alt me-1"></i>
-                                    <?php echo e(optional($training->college)->name ?? 'All Campuses'); ?>
+                    <th>Action</th>
+                </tr>
+                </thead>
+                <tbody>
+                <?php $__currentLoopData = $trainings; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $training): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <tr>
+                        <td>
+                            <div class="course-title">
+                                <?php echo e(optional($training->course)->course_name ?? 'Unnamed Course'); ?>
 
-                                </div>
                             </div>
-                            <span class="badge-status">
-                                Approved
-                            </span>
-                        </div>
+                            <div class="course-code">
+                                <?php echo e(optional($training->course)->course_code ?? 'N/A'); ?>
 
-                        <div class="mt-2">
-                            <div class="training-meta">
-                                <i class="la la-calendar"></i>
-                                <strong>Start:</strong>
-                                <?php if($training->start_date): ?>
-                                    <?php echo e(\Carbon\Carbon::parse($training->start_date)->format('d M Y')); ?>
-
-                                <?php else: ?>
-                                    TBA
-                                <?php endif; ?>
                             </div>
+                        </td>
+                        <td>
+                            <div class="campus-name">
+                                <i class="la la-map-marker-alt"></i>
+                                <?php echo e(optional($training->college)->name ?? 'All Campuses'); ?>
 
-                            <div class="training-meta">
-                                <i class="la la-calendar-check"></i>
-                                <strong>End:</strong>
-                                <?php if($training->end_date): ?>
-                                    <?php echo e(\Carbon\Carbon::parse($training->end_date)->format('d M Y')); ?>
-
-                                <?php else: ?>
-                                    TBA
-                                <?php endif; ?>
                             </div>
-                        </div>
-                    </div>
+                        </td>
+                        <td class="date-cell">
+                            <?php if($training->start_date): ?>
+                                <?php echo e(\Carbon\Carbon::parse($training->start_date)->format('d M Y')); ?>
 
-                    <div class="training-footer">
-                        <div class="cost-tag">
+                            <?php else: ?>
+                                TBA
+                            <?php endif; ?>
+                        </td>
+                        <td class="date-cell">
+                            <?php if($training->end_date): ?>
+                                <?php echo e(\Carbon\Carbon::parse($training->end_date)->format('d M Y')); ?>
+
+                            <?php else: ?>
+                                TBA
+                            <?php endif; ?>
+                        </td>
+                        <td class="cost-cell">
                             KSh <?php echo e(number_format($training->cost, 2)); ?>
 
                             <span>/ total</span>
-                        </div>
+                        </td>
 
-                        
-                        <a href="<?php echo e(route('login', ['training_id' => $training->id])); ?>"
-                           class="btn-primary-kihbt d-inline-flex align-items-center gap-1">
-                            <i class="la la-edit"></i> Register
-                        </a>
-                    </div>
-                </div>
-            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                        <td>
+                            <a href="<?php echo e(route('login', ['training_id' => $training->id])); ?>"
+                               class="btn-primary-kihbt d-inline-flex align-items-center gap-1">
+                                <i class="la la-edit"></i> Apply
+                            </a>
+                        </td>
+                    </tr>
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                </tbody>
+            </table>
         <?php else: ?>
-            <div class="col-12">
-                <div class="alert alert-info mx-3 mb-3">
-                    No approved trainings found
-                    <?php if(request('search') || request('college_id')): ?>
-                        for the current filters.
-                        <a href="<?php echo e(route('public.trainings')); ?>">Clear filters</a>
-                    <?php else: ?>
-                        at the moment. Please check again later.
-                    <?php endif; ?>
-                </div>
+            <div class="alert alert-info mx-3 mb-3">
+                No approved trainings found
+                <?php if(request('search') || request('college_id')): ?>
+                    for the current filters.
+                    <a href="<?php echo e(route('public.trainings')); ?>">Clear filters</a>
+                <?php else: ?>
+                    at the moment. Please check again later.
+                <?php endif; ?>
             </div>
         <?php endif; ?>
     </section>

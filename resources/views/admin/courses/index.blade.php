@@ -2,130 +2,188 @@
 
 @section('admin')
     <style>
-        .icon-brown {
-            color: #6B3A0E !important;
+        .icon-brown { color: #6B3A0E !important; }
+
+        .dataTables_filter input {
+            border: 1px solid #dee2e6 !important;
+            border-radius: 4px !important;
         }
     </style>
-    <div class="container">
+
+    <div class="container-fluid">
+
+        {{-- Header --}}
         <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-            <h1 class="mb-0">Courses</h1>
-
-            <div class="d-flex align-items-center gap-2">
-                <form action="{{ route('all.courses') }}" method="GET" class="d-flex">
-                    <input
-                        type="text"
-                        name="search"
-                        class="form-control form-control-sm me-2"
-                        placeholder="Search by name, code, category..."
-                        value="{{ request('search') }}"
-                    >
-                    <button class="btn btn-sm btn-outline-secondary me-1" type="submit">
-                        Search
-                    </button>
-                    @if(request('search'))
-                        <a href="{{ route('all.courses') }}" class="btn btn-sm btn-outline-light border">
-                            Clear
-                        </a>
-                    @endif
-                </form>
-
-                <a href="{{ route('courses.create') }}" class="btn btn-primary btn-sm">
-                    Add Course
-                </a>
-            </div>
+            <h1 class="h3 mb-0">Courses Management</h1>
+            <a href="{{ route('courses.create') }}" class="btn btn-primary">
+                <i class="fas fa-plus me-1"></i> Add New Course
+            </a>
         </div>
 
+        {{-- Success Message --}}
         @if(session('success'))
-            <div class="alert alert-success">{{ session('success') }}</div>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
         @endif
 
-        @if($courses->count())
-            <div class="table-responsive">
-                <table class="table table-bordered table-striped align-middle mb-0">
-                    <thead class="table-light">
-                    <tr>
-                        <th style="width: 60px">#</th>
-                        <th>Name</th>
-                        <th>Category</th>
-                        <th>Code</th>
-                        <th>Mode</th>
-                        <th>Duration (months)</th>
-                        <th style="width: 200px">Actions</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    @foreach($courses as $course)
-                        <tr>
-                            <td>{{ $courses->firstItem() + $loop->index }}</td>
-                            <td>{{ $course->course_name }}</td>
-                            <td>{{ $course->course_category }}</td>
-                            <td>{{ $course->course_code }}</td>
-                            <td>{{ $course->course_mode }}</td>
-                            <td>{{ $course->course_duration }}</td>
-                            <td class="text-center">
-
-                                <a href="{{ route('courses.show', $course) }}"
-                                   class="btn btn-sm btn-outline-info"
-                                   title="View Course">
-                                    <i class="fa-solid fa-eye icon-brown"></i>
-                                </a>
-
-                                <a href="{{ route('courses.edit', $course) }}"
-                                   class="btn btn-sm btn-outline-warning"
-                                   title="Edit Course">
-                                    <i class="fa-solid fa-pen-to-square icon-brown"></i>
-                                </a>
-
-                                <form action="{{ route('courses.delete', $course) }}"
-                                      method="POST"
-                                      class="d-inline js-confirm-form"
-                                      data-confirm-title="Delete this course?"
-                                      data-confirm-text="This will permanently delete {{ $course->course_name }}."
-                                      data-confirm-icon="warning"
-                                      data-confirm-button="Yes, delete it"
-                                      data-cancel-button="No, keep it">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button class="btn btn-sm btn-outline-danger" type="submit" title="Delete Course">
-                                        <i class="fa-solid fa-trash icon-brown"></i>
-                                    </button>
-                                </form>
-
-                            </td>
 
 
-                        </tr>
+
+        {{-- Courses Table --}}
+        {{-- Filters: Search + Per Page --}}
+        <form method="GET" action="{{ route('all.courses') }}" class="row g-2 mb-3">
+
+            {{-- Search --}}
+            <div class="col-md-4">
+                <input type="text" name="search" class="form-control form-control-sm"
+                       placeholder="Search name, code or category..."
+                       value="{{ request('search') }}">
+            </div>
+
+            {{-- Per page selector --}}
+            <div class="col-md-2">
+                <select name="per_page" class="form-select form-select-sm" onchange="this.form.submit()">
+                    @foreach([10, 50, 100] as $size)
+                        <option value="{{ $size }}" {{ request('per_page', 10) == $size ? 'selected' : '' }}>
+                            Show {{ $size }}
+                        </option>
                     @endforeach
-                    </tbody>
-                </table>
+                </select>
             </div>
 
-            <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
-                <div class="text-muted small">
-                    Showing
-                    <strong>{{ $courses->firstItem() }}</strong>
-                    to
-                    <strong>{{ $courses->lastItem() }}</strong>
-                    of
-                    <strong>{{ $courses->total() }}</strong>
-                    results
-                    @if(request('search'))
-                        for "<strong>{{ request('search') }}</strong>"
-                    @endif
-                </div>
-                <div>
-                    {{ $courses->links() }}
-                </div>
+            {{-- Search button --}}
+            <div class="col-md-2 d-grid">
+                <button class="btn btn-sm btn-primary" type="submit">
+                    <i class="fas fa-search me-1"></i> Search
+                </button>
             </div>
-        @else
-            <div class="alert alert-info">
-                @if(request('search'))
-                    No courses found for "<strong>{{ request('search') }}</strong>".
-                    <a href="{{ route('all.courses') }}">Clear search</a>
-                @else
-                    No courses found.
+
+            {{-- Reset button --}}
+            @if(request('search') || request('per_page'))
+                <div class="col-md-2 d-grid">
+                    <a href="{{ route('all.courses') }}" class="btn btn-sm btn-secondary">
+                        <i class="fas fa-undo me-1"></i> Reset
+                    </a>
+                </div>
+            @endif
+        </form>
+
+
+
+
+        <div class="card-body">
+                <div class="table-responsive">
+                    <table id="coursesTable" class="table table-hover table-striped">
+                        <thead class="table-dark">
+                        <tr>
+                            <th width="5%">#</th>
+                            <th width="35%">Course Name</th>
+                            <th width="12%">Category</th>
+                            <th width="10%">Code</th>
+                            <th width="10%">Mode</th>
+                            <th width="8%">Duration</th>
+                            <th width="20%" class="text-center">Actions</th>
+                        </tr>
+                        </thead>
+
+                        <tbody>
+                        @foreach($courses as $course)
+                            <tr>
+                                <td>{{ $courses->firstItem() + $loop->index }}</td>
+
+                                <td><strong>{{ $course->course_name }}</strong></td>
+
+                                <td>
+                                    <span class="badge
+                                        @if($course->course_category == 'Diploma') bg-primary
+                                        @elseif($course->course_category == 'Craft') bg-success
+                                        @elseif($course->course_category == 'Higher Diploma') bg-warning text-dark
+                                        @else bg-info text-dark @endif">
+                                        {{ $course->course_category }}
+                                    </span>
+                                </td>
+
+                                <td><code class="bg-light px-2 py-1 rounded">{{ $course->course_code }}</code></td>
+
+                                <td>
+                                    <span class="badge
+                                        @if($course->course_mode == 'Long Term') bg-dark
+                                        @else bg-secondary @endif">
+                                        {{ $course->course_mode }}
+                                    </span>
+                                </td>
+
+                                <td class="text-center">
+                                    <span class="fw-bold text-primary">{{ $course->course_duration }} months</span>
+                                </td>
+
+                                <td class="text-center">
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a href="{{ route('courses.show', $course) }}" class="btn btn-outline-info" title="View">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{{ route('courses.edit', $course) }}" class="btn btn-outline-warning" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <form action="{{ route('courses.delete', $course) }}" method="POST"
+                                              class="d-inline js-confirm-form"
+                                              data-confirm-title="Delete Course?"
+                                              data-confirm-text="Delete '{{ $course->course_name }}'? Action cannot be undone."
+                                              data-confirm-icon="warning">
+                                            @csrf @method('DELETE')
+                                            <button type="submit" class="btn btn-outline-danger" title="Delete">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+
+                            </tr>
+                        @endforeach
+                        </tbody>
+
+                    </table>
+                </div>
+
+                {{-- Pagination --}}
+                @if ($courses->hasPages())
+                    <div class="mt-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <div class="text-muted small">
+                            Showing <strong>{{ $courses->firstItem() }}</strong>
+                            to <strong>{{ $courses->lastItem() }}</strong>
+                            of <strong>{{ $courses->total() }}</strong> courses
+                        </div>
+
+                        <div>
+                            {{ $courses->links('pagination::bootstrap-5') }}
+                        </div>
+                    </div>
                 @endif
+
             </div>
-        @endif
+        </div>
     </div>
+@endsection
+
+
+@section('scripts')
+    <script>
+        $(document).ready(function () {
+            $('#coursesTable').DataTable({
+                paging: false,      // disable DataTables pagination
+                info: false,        // hide "showing x of y"
+                responsive: true,
+                order: [[1, 'asc']],
+                language: { search: "_INPUT_", searchPlaceholder: "Search courses..." },
+                columnDefs: [
+                    { targets: [0, 6], orderable: false, searchable: false },
+                    { targets: '_all', className: 'align-middle' }
+                ]
+            });
+
+            $('[data-bs-toggle="tooltip"]').tooltip();
+        });
+    </script>
 @endsection

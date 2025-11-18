@@ -10,8 +10,11 @@
                 <p><strong>Category:</strong> {{ $course->course_category }}</p>
                 <p><strong>Code:</strong> {{ $course->course_code }}</p>
                 <p><strong>Mode:</strong> {{ $course->course_mode }}</p>
+                <p><strong>Cost:</strong> KSh {{ number_format($course->cost, 2) }}</p>
+                <p><strong>Target Group:</strong> {{ $course->target_group ?? '-' }}</p>
+                <p><strong>Requirement:</strong> {{ $course->requirement ? 'Yes' : 'No' }}</p>
                 <p><strong>Duration:</strong> {{ $course->course_duration }} months</p>
-                <p><strong>User ID:</strong> {{ $course->user_id ?? '-' }}</p>
+{{--                <p><strong>User ID:</strong> {{ $course->user_id ?? '-' }}</p>--}}
             </div>
         </div>
 
