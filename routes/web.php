@@ -137,12 +137,17 @@ Route::middleware(['auth','history','verified'])->group(function () {
         Route::put('/training/update/{training}', 'update')->name('trainings.update');    // Update training
         Route::delete('/training/delete/{training}', 'destroy')->name('trainings.delete'); // Delete training
 
+        Route::get('/trainings/registrar', 'registrarIndex')->name('trainings.registrar.index');
+        Route::get('/trainings/hqregistrar', 'hqregistrarIndex')->name('trainings.hqregistrar.index');
+        Route::get('/trainings/director/registrar', 'directorregistrarIndex')->name('trainings.drregistrar.index');
 
-        Route::post('/training/{training}/submit-for-approval', 'submitForApproval')->name('trainings.submit');
+        Route::post('/training/{training}/send-for-approval', 'sendForApproval')->name('trainings.send_for_approval');
+        Route::post('/training/{training}/registrar-approve', 'registrarApprove')->name('trainings.registrar_approve');
+        Route::post('/training/{training}/registrar-reject', 'registrarReject')->name('trainings.registrar_reject');
+        Route::post('/training/{training}/hq-review', 'hqReview')->name('trainings.hq_review');
+        Route::post('/training/{training}/director-approve', 'directorApprove')->name('trainings.director_approve');
+        Route::post('/training/{training}/director-reject', 'directorReject')->name('trainings.director_reject');
 
-        // 🔸 Registrar view pending trainings
-     Route::get('/registrar/trainings/pending', 'registrarIndex')->name('registrar.trainings.pending')
-        ->middleware('role:campus_registrar|kihbt_registrar|superadmin');
 
     });
 

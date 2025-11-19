@@ -83,8 +83,8 @@
 <div class="sidebar-wrapper kihbt-sidebar" data-simplebar="true">
     <div class="sidebar-header">
         <div>
-            <a href="{{ route('dashboard') }}">
-                <img src="{{ asset('adminbackend/assets/images/logokihbt.png') }}" class="logo-icon" alt="logo icon">
+            <a href="<?php echo e(route('dashboard')); ?>">
+                <img src="<?php echo e(asset('adminbackend/assets/images/logokihbt.png')); ?>" class="logo-icon" alt="logo icon">
             </a>
         </div>
         <div>
@@ -98,8 +98,8 @@
     <!--navigation-->
     <ul class="metismenu" id="menu">
 
-        {{-- Roles & Permissions (permission-based, not role-based) --}}
-        @if(Auth::user()->can('roles.menu'))
+        
+        <?php if(Auth::user()->can('roles.menu')): ?>
             <li>
                 <a href="javascript:;" class="has-arrow">
                     <div class="parent-icon"><i class='bx bx-home-circle'></i></div>
@@ -107,52 +107,52 @@
                 </a>
                 <ul>
                     <li>
-                        <a href="{{ route('all.permission') }}">
+                        <a href="<?php echo e(route('all.permission')); ?>">
                             <i class="bx bx-right-arrow-alt"></i>All Permissions
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('all.roles') }}">
+                        <a href="<?php echo e(route('all.roles')); ?>">
                             <i class="bx bx-right-arrow-alt"></i>Roles
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('all.roles.permission') }}">
+                        <a href="<?php echo e(route('all.roles.permission')); ?>">
                             <i class="bx bx-right-arrow-alt"></i>Roles in Permission
                         </a>
                     </li>
                 </ul>
             </li>
-        @endif
+        <?php endif; ?>
 
-        {{-- User Setups (permission-based) --}}
-        @if(Auth::user()->can('users.menu'))
+        
+        <?php if(Auth::user()->can('users.menu')): ?>
             <li>
                 <a class="has-arrow" href="javascript:;">
                     <div class="parent-icon"><i class="bx bx-repeat"></i></div>
                     <div class="menu-title">User Setups</div>
                 </a>
                 <ul>
-                    @if(Auth::user()->can('users.all'))
+                    <?php if(Auth::user()->can('users.all')): ?>
                         <li>
-                            <a href="{{ route('all.admin') }}">
+                            <a href="<?php echo e(route('all.admin')); ?>">
                                 <i class="bx bx-right-arrow-alt"></i>All Admin
                             </a>
                         </li>
-                    @endif
-                    @if(Auth::user()->can('users.add'))
+                    <?php endif; ?>
+                    <?php if(Auth::user()->can('users.add')): ?>
                         <li>
-                            <a href="{{ route('add.admin') }}">
+                            <a href="<?php echo e(route('add.admin')); ?>">
                                 <i class="bx bx-right-arrow-alt"></i>Add Admin
                             </a>
                         </li>
-                    @endif
+                    <?php endif; ?>
                 </ul>
             </li>
-        @endif
+        <?php endif; ?>
 
-        {{-- SUPERADMIN MENU --}}
-        @if(Auth::user()->hasRole('superadmin'))
+        
+        <?php if(Auth::user()->hasRole('superadmin')): ?>
             <li>
                 <a href="javascript:;" class="has-arrow">
                     <div class="parent-icon"><i class='bx bx-home-circle'></i></div>
@@ -160,27 +160,27 @@
                 </a>
                 <ul>
                     <li>
-                        <a href="{{ route('all.trainings') }}">
+                        <a href="<?php echo e(route('all.trainings')); ?>">
                             <i class="bx bx-right-arrow-alt"></i>Training Schedules
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('all.courses') }}">
+                        <a href="<?php echo e(route('all.courses')); ?>">
                             <i class="bx bx-right-arrow-alt"></i>Courses
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('backend.counties.index') }}">
+                        <a href="<?php echo e(route('backend.counties.index')); ?>">
                             <i class="bx bx-right-arrow-alt"></i>Counties
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('backend.subcounties.index') }}">
+                        <a href="<?php echo e(route('backend.subcounties.index')); ?>">
                             <i class="bx bx-right-arrow-alt"></i>Sub Counties
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('backend.postal_codes.index') }}">
+                        <a href="<?php echo e(route('backend.postal_codes.index')); ?>">
                             <i class="bx bx-right-arrow-alt"></i>Postal Codes
                         </a>
                     </li>
@@ -194,10 +194,10 @@
                     <div class="menu-title">Widgets</div>
                 </a>
             </li>
-        @endif
+        <?php endif; ?>
 
-        {{-- HOD MENU --}}
-        @if(Auth::user()->hasRole('hod'))
+        
+        <?php if(Auth::user()->hasRole('hod')): ?>
             <li class="menu-label">Department</li>
 
             <li>
@@ -207,21 +207,21 @@
                 </a>
                 <ul>
                     <li>
-                        <a href="{{ route('all.trainings') }}">
+                        <a href="<?php echo e(route('all.trainings')); ?>">
                             <i class="bx bx-right-arrow-alt"></i>Training Schedules
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('all.courses') }}">
+                        <a href="<?php echo e(route('all.courses')); ?>">
                             <i class="bx bx-right-arrow-alt"></i>Courses
                         </a>
                     </li>
                 </ul>
             </li>
-        @endif
+        <?php endif; ?>
 
-        {{-- REGISTRAR MENU --}}
-        @if(Auth::user()->hasRole('campus_registrar'))
+        
+        <?php if(Auth::user()->hasRole('campus_registrar')): ?>
             <li class="menu-label">Department</li>
 
             <li>
@@ -232,22 +232,22 @@
                 <ul>
 
                     <li>
-                        <a href="{{ route('trainings.registrar.index') }}">
+                        <a href="<?php echo e(route('trainings.registrar.index')); ?>">
                             <i class="bx bx-right-arrow-alt"></i> Registrar Approval Queue
                         </a>
                     </li>
 
                     <li>
-                        <a href="{{ route('all.courses') }}">
+                        <a href="<?php echo e(route('all.courses')); ?>">
                             <i class="bx bx-right-arrow-alt"></i>Courses
                         </a>
                     </li>
                 </ul>
             </li>
-        @endif
+        <?php endif; ?>
 
-        {{-- HQ REGISTRAR MENU --}}
-        @if(Auth::user()->hasRole('kihbt_registrar'))
+        
+        <?php if(Auth::user()->hasRole('kihbt_registrar')): ?>
             <li class="menu-label">Department</li>
 
             <li>
@@ -258,23 +258,23 @@
                 <ul>
 
                     <li>
-                        <a href="{{ route('trainings.hqregistrar.index') }}">
+                        <a href="<?php echo e(route('trainings.hqregistrar.index')); ?>">
                             <i class="bx bx-right-arrow-alt"></i>  HQ Registrar Approval Queue
                         </a>
                     </li>
 
                     <li>
-                        <a href="{{ route('all.courses') }}">
+                        <a href="<?php echo e(route('all.courses')); ?>">
                             <i class="bx bx-right-arrow-alt"></i>Courses
                         </a>
                     </li>
                 </ul>
             </li>
-        @endif
+        <?php endif; ?>
 
 
-        {{-- HQ REGISTRAR MENU --}}
-        @if(Auth::user()->hasRole('director'))
+        
+        <?php if(Auth::user()->hasRole('director')): ?>
             <li class="menu-label">Director Dashboard</li>
 
             <li>
@@ -285,19 +285,19 @@
                 <ul>
 
                     <li>
-                        <a href="{{ route('trainings.drregistrar.index') }}">
+                        <a href="<?php echo e(route('trainings.drregistrar.index')); ?>">
                             <i class="bx bx-right-arrow-alt"></i>  Director Approval Queue
                         </a>
                     </li>
 
                     <li>
-                        <a href="{{ route('all.courses') }}">
+                        <a href="<?php echo e(route('all.courses')); ?>">
                             <i class="bx bx-right-arrow-alt"></i>Courses
                         </a>
                     </li>
                 </ul>
             </li>
-        @endif
+        <?php endif; ?>
 
 
     </ul>
@@ -306,3 +306,4 @@
 
     <!--end navigation-->
 </div>
+<?php /**PATH C:\xampp\htdocs\PROJECT2\KIMIS\resources\views/admin/body/sidebar.blade.php ENDPATH**/ ?>

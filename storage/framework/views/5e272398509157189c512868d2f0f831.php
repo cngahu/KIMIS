@@ -1,84 +1,85 @@
-@extends('admin.admin_dashboard')
-
-@section('admin')
+<?php $__env->startSection('admin'); ?>
     <style>
         .icon-brown {
             color: #6B3A0E !important;
         }
     </style>
-    @php
+    <?php
         $authUser = auth()->user();
         $isHod    = $authUser->hasRole('hod');
         $isSuper  = $authUser->hasRole('superadmin');
         $isRegistrar = $authUser->hasAnyRole(['campus_registrar', 'kihbt_registrar']);
-    @endphp
+    ?>
 
     <div class="container">
 
-        {{-- Header + filters + create button --}}
-        {{-- Header Row --}}
+        
+        
         <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
             <h1 class="mb-0">Trainings</h1>
 
-            <a href="{{ route('trainings.create') }}" class="btn btn-primary btn-sm">
+            <a href="<?php echo e(route('trainings.create')); ?>" class="btn btn-primary btn-sm">
                 Add Training
             </a>
         </div>
 
-        {{-- Filters & search --}}
-        <form action="{{ route('all.trainings') }}" method="GET" class="w-100 mb-3">
+        
+        <form action="<?php echo e(route('all.trainings')); ?>" method="GET" class="w-100 mb-3">
             <div class="row g-2">
 
-                {{-- Search --}}
+                
                 <div class="col-md-3">
                     <input
                         type="text"
                         name="search"
                         class="form-control form-control-sm"
                         placeholder="Search by course or code..."
-                        value="{{ request('search') }}"
+                        value="<?php echo e(request('search')); ?>"
                     >
                 </div>
 
-                {{-- Course Filter --}}
+                
                 <div class="col-md-2">
                     <select name="course_id" class="form-select form-select-sm">
                         <option value="">All Courses</option>
-                        @foreach($courses as $courseItem)
-                            <option value="{{ $courseItem->id }}"
-                                {{ (int) request('course_id') === $courseItem->id ? 'selected' : '' }}>
-                                {{ $courseItem->course_name }}
+                        <?php $__currentLoopData = $courses; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $courseItem): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <option value="<?php echo e($courseItem->id); ?>"
+                                <?php echo e((int) request('course_id') === $courseItem->id ? 'selected' : ''); ?>>
+                                <?php echo e($courseItem->course_name); ?>
+
                             </option>
-                        @endforeach
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </select>
                 </div>
 
-                {{-- College Filter --}}
+                
                 <div class="col-md-2">
                     <select name="college_id" class="form-select form-select-sm">
                         <option value="">All Colleges</option>
-                        @foreach($colleges as $collegeItem)
-                            <option value="{{ $collegeItem->id }}"
-                                {{ (int) request('college_id') === $collegeItem->id ? 'selected' : '' }}>
-                                {{ $collegeItem->name }}
+                        <?php $__currentLoopData = $colleges; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $collegeItem): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <option value="<?php echo e($collegeItem->id); ?>"
+                                <?php echo e((int) request('college_id') === $collegeItem->id ? 'selected' : ''); ?>>
+                                <?php echo e($collegeItem->name); ?>
+
                             </option>
-                        @endforeach
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </select>
                 </div>
 
-                {{-- Status Filter --}}
+                
                 <div class="col-md-2">
                     <select name="status" class="form-select form-select-sm">
                         <option value="">All Statuses</option>
-                        @foreach($statuses as $optStatus)
-                            <option value="{{ $optStatus }}" {{ request('status') === $optStatus ? 'selected' : '' }}>
-                                {{ $optStatus }}
+                        <?php $__currentLoopData = $statuses; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $optStatus): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <option value="<?php echo e($optStatus); ?>" <?php echo e(request('status') === $optStatus ? 'selected' : ''); ?>>
+                                <?php echo e($optStatus); ?>
+
                             </option>
-                        @endforeach
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </select>
                 </div>
 
-                {{-- Buttons --}}
+                
                 <div class="col-md-3 d-flex gap-2">
 
                     <button class="btn btn-sm text-white px-3 flex-fill"
@@ -87,12 +88,12 @@
                         Filter
                     </button>
 
-                    @if(request('search') || request('status') || request('course_id') || request('college_id'))
-                        <a href="{{ route('all.trainings') }}"
+                    <?php if(request('search') || request('status') || request('course_id') || request('college_id')): ?>
+                        <a href="<?php echo e(route('all.trainings')); ?>"
                            class="btn btn-sm btn-outline-secondary px-3 flex-fill">
                             Reset
                         </a>
-                    @endif
+                    <?php endif; ?>
 
                 </div>
 
@@ -101,12 +102,12 @@
 
 
 
-        {{-- Flash success --}}
-        @if(session('success'))
-            <div class="alert alert-success py-2">{{ session('success') }}</div>
-        @endif
+        
+        <?php if(session('success')): ?>
+            <div class="alert alert-success py-2"><?php echo e(session('success')); ?></div>
+        <?php endif; ?>
 
-        @if($trainings->count())
+        <?php if($trainings->count()): ?>
             <div class="table-responsive">
                 <table class="table table-bordered table-striped align-middle mb-0">
                     <thead class="table-light">
@@ -117,45 +118,48 @@
                         <th>Start Date</th>
                         <th>End Date</th>
                         <th>Status</th>
-{{--                        <th class="text-end">Cost (KSh)</th>--}}
+
                         <th style="width: 190px" class="text-center">Actions</th>
                     </tr>
                     </thead>
                     <tbody>
-                    @foreach($trainings as $training)
+                    <?php $__currentLoopData = $trainings; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $training): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <tr>
-                            {{-- Serial number --}}
+                            
                             <td class="text-center">
-                                {{ $trainings->firstItem() + $loop->index }}
+                                <?php echo e($trainings->firstItem() + $loop->index); ?>
+
                             </td>
 
-                            {{-- Course & college --}}
-                            <td>{{ optional($training->course)->course_name ?? '-' }}</td>
-                            <td>{{ optional($training->college)->name ?? '-' }}</td>
+                            
+                            <td><?php echo e(optional($training->course)->course_name ?? '-'); ?></td>
+                            <td><?php echo e(optional($training->college)->name ?? '-'); ?></td>
 
-                            {{-- Start date --}}
+                            
                             <td>
-                                @if($training->start_date)
-                                    {{ \Carbon\Carbon::parse($training->start_date)->format('d M Y') }}
-                                @else
+                                <?php if($training->start_date): ?>
+                                    <?php echo e(\Carbon\Carbon::parse($training->start_date)->format('d M Y')); ?>
+
+                                <?php else: ?>
                                     -
-                                @endif
+                                <?php endif; ?>
                             </td>
 
-                            {{-- End date --}}
+                            
                             <td>
-                                @if($training->end_date)
-                                    {{ \Carbon\Carbon::parse($training->end_date)->format('d M Y') }}
-                                @else
+                                <?php if($training->end_date): ?>
+                                    <?php echo e(\Carbon\Carbon::parse($training->end_date)->format('d M Y')); ?>
+
+                                <?php else: ?>
                                     -
-                                @endif
+                                <?php endif; ?>
                             </td>
 
-                            {{-- Status with badge --}}
-                            {{-- Status with badge --}}
-                            {{-- Status with badge --}}
+                            
+                            
+                            
                             <td>
-                                @php
+                                <?php
                                     $status = $training->status;
 
                                     $badgeClass = match ($status) {
@@ -167,42 +171,42 @@
                                         \App\Models\Training::STATUS_REJECTED              => 'badge bg-danger',
                                         default                                            => 'badge bg-secondary',
                                     };
-                                @endphp
+                                ?>
 
-                                <span class="{{ $badgeClass }}">{{ $status ?? '-' }}</span>
+                                <span class="<?php echo e($badgeClass); ?>"><?php echo e($status ?? '-'); ?></span>
                             </td>
 
 
-                            {{-- Cost --}}
+                            
 
 
-                            {{-- Actions --}}
+                            
                             <td class="text-center">
-                                {{-- View always allowed --}}
-                                <a href="{{ route('trainings.show', $training) }}"
+                                
+                                <a href="<?php echo e(route('trainings.show', $training)); ?>"
                                    class="btn btn-sm btn-outline-info"
                                    title="View Training">
                                     <i class="fa-solid fa-eye icon-brown"></i>
                                 </a>
 
-                                @php
+                                <?php
                                     $user = Auth::user();
                                     $isHod      = $user->hasRole('hod');
                                     $isCampus   = $user->hasRole('campus_registrar');
                                     $isKihbt    = $user->hasRole('kihbt_registrar');
                                     $isDirector = $user->hasRole('director');
                                     $isSuper    = $user->hasRole('superadmin');
-                                @endphp
+                                ?>
 
-                                {{-- HOD: can edit / delete only Draft or Rejected --}}
-                                @if(($isHod && $training->isEditableByHod()) || $isSuper)
-                                    <a href="{{ route('trainings.edit', $training) }}"
+                                
+                                <?php if(($isHod && $training->isEditableByHod()) || $isSuper): ?>
+                                    <a href="<?php echo e(route('trainings.edit', $training)); ?>"
                                        class="btn btn-sm btn-outline-warning"
                                        title="Edit Training">
                                         <i class="fa-solid fa-pen-to-square icon-brown"></i>
                                     </a>
 
-                                    <form action="{{ route('trainings.delete', $training) }}"
+                                    <form action="<?php echo e(route('trainings.delete', $training)); ?>"
                                           method="POST"
                                           class="d-inline js-confirm-form"
                                           data-confirm-title="Delete this training?"
@@ -210,34 +214,34 @@
                                           data-confirm-icon="warning"
                                           data-confirm-button="Yes, delete it"
                                           data-cancel-button="No, keep it">
-                                        @csrf
-                                        @method('DELETE')
+                                        <?php echo csrf_field(); ?>
+                                        <?php echo method_field('DELETE'); ?>
                                         <button class="btn btn-sm btn-outline-danger" type="submit" title="Delete Training">
                                             <i class="fa-solid fa-trash icon-brown"></i>
                                         </button>
                                     </form>
-                                @endif
+                                <?php endif; ?>
 
-                                {{-- HOD: Send for approval from Draft/Rejected --}}
-                                @if(($isHod || $isSuper) && $training->isEditableByHod())
-                                    <form action="{{ route('trainings.send_for_approval', $training) }}"
+                                
+                                <?php if(($isHod || $isSuper) && $training->isEditableByHod()): ?>
+                                    <form action="<?php echo e(route('trainings.send_for_approval', $training)); ?>"
                                           method="POST"
                                           class="d-inline">
-                                        @csrf
+                                        <?php echo csrf_field(); ?>
                                         <button type="submit"
                                                 class="btn btn-sm btn-outline-primary"
                                                 title="Send to Registrar for Approval">
                                             <i class="fa-solid fa-paper-plane icon-brown"></i> Submit
                                         </button>
                                     </form>
-                                @endif
+                                <?php endif; ?>
 
-                                {{-- Campus Registrar: Approve / Reject when Pending Registrar --}}
-                                @if(($isCampus || $isSuper) && $training->status === \App\Models\Training::STATUS_PENDING_REGISTRAR)
-                                    <form action="{{ route('trainings.registrar_approve', $training) }}"
+                                
+                                <?php if(($isCampus || $isSuper) && $training->status === \App\Models\Training::STATUS_PENDING_REGISTRAR): ?>
+                                    <form action="<?php echo e(route('trainings.registrar_approve', $training)); ?>"
                                           method="POST"
                                           class="d-inline">
-                                        @csrf
+                                        <?php echo csrf_field(); ?>
                                         <button type="submit"
                                                 class="btn btn-sm btn-success"
                                                 title="Approve and send to HQ">
@@ -245,38 +249,38 @@
                                         </button>
                                     </form>
 
-                                    <form action="{{ route('trainings.registrar_reject', $training) }}"
+                                    <form action="<?php echo e(route('trainings.registrar_reject', $training)); ?>"
                                           method="POST"
                                           class="d-inline">
-                                        @csrf
+                                        <?php echo csrf_field(); ?>
                                         <button type="submit"
                                                 class="btn btn-sm btn-danger"
                                                 title="Reject training">
                                             <i class="fa-solid fa-times"></i>
                                         </button>
                                     </form>
-                                @endif
+                                <?php endif; ?>
 
-                                {{-- KIHBT Registrar (HQ): Mark HQ Reviewed --}}
-                                @if(($isKihbt || $isSuper) && $training->status === \App\Models\Training::STATUS_REGISTRAR_APPROVED_HQ)
-                                    <form action="{{ route('trainings.hq_review', $training) }}"
+                                
+                                <?php if(($isKihbt || $isSuper) && $training->status === \App\Models\Training::STATUS_REGISTRAR_APPROVED_HQ): ?>
+                                    <form action="<?php echo e(route('trainings.hq_review', $training)); ?>"
                                           method="POST"
                                           class="d-inline">
-                                        @csrf
+                                        <?php echo csrf_field(); ?>
                                         <button type="submit"
                                                 class="btn btn-sm btn-primary"
                                                 title="Mark as HQ Reviewed">
                                             <i class="fa-solid fa-search"></i> HQ Review
                                         </button>
                                     </form>
-                                @endif
+                                <?php endif; ?>
 
-                                {{-- Director: Final Approve / Reject from HQ Reviewed --}}
-                                @if(($isDirector || $isSuper) && $training->status === \App\Models\Training::STATUS_HQ_REVIEWED)
-                                    <form action="{{ route('trainings.director_approve', $training) }}"
+                                
+                                <?php if(($isDirector || $isSuper) && $training->status === \App\Models\Training::STATUS_HQ_REVIEWED): ?>
+                                    <form action="<?php echo e(route('trainings.director_approve', $training)); ?>"
                                           method="POST"
                                           class="d-inline">
-                                        @csrf
+                                        <?php echo csrf_field(); ?>
                                         <button type="submit"
                                                 class="btn btn-sm btn-success"
                                                 title="Final Approve">
@@ -284,53 +288,56 @@
                                         </button>
                                     </form>
 
-                                    <form action="{{ route('trainings.director_reject', $training) }}"
+                                    <form action="<?php echo e(route('trainings.director_reject', $training)); ?>"
                                           method="POST"
                                           class="d-inline">
-                                        @csrf
+                                        <?php echo csrf_field(); ?>
                                         <button type="submit"
                                                 class="btn btn-sm btn-danger"
                                                 title="Reject">
                                             <i class="fa-solid fa-times-circle"></i>
                                         </button>
                                     </form>
-                                @endif
+                                <?php endif; ?>
                             </td>
 
 
                         </tr>
-                    @endforeach
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </tbody>
                 </table>
             </div>
 
-            {{-- Pagination summary + links --}}
+            
             <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
                 <div class="text-muted small">
                     Showing
-                    <strong>{{ $trainings->firstItem() }}</strong>
+                    <strong><?php echo e($trainings->firstItem()); ?></strong>
                     to
-                    <strong>{{ $trainings->lastItem() }}</strong>
+                    <strong><?php echo e($trainings->lastItem()); ?></strong>
                     of
-                    <strong>{{ $trainings->total() }}</strong>
+                    <strong><?php echo e($trainings->total()); ?></strong>
                     trainings
-                    @if(request('search'))
-                        for "<strong>{{ request('search') }}</strong>"
-                    @endif
+                    <?php if(request('search')): ?>
+                        for "<strong><?php echo e(request('search')); ?></strong>"
+                    <?php endif; ?>
                 </div>
                 <div>
-                    {{ $trainings->links() }}
+                    <?php echo e($trainings->links()); ?>
+
                 </div>
             </div>
-        @else
+        <?php else: ?>
             <div class="alert alert-info">
-                @if(request('search') || request('status') || request('course_id') || request('college_id'))
+                <?php if(request('search') || request('status') || request('course_id') || request('college_id')): ?>
                     No trainings found for the current filters.
-                    <a href="{{ route('all.trainings') }}">Clear filters</a>
-                @else
+                    <a href="<?php echo e(route('all.trainings')); ?>">Clear filters</a>
+                <?php else: ?>
                     No trainings found.
-                @endif
+                <?php endif; ?>
             </div>
-        @endif
+        <?php endif; ?>
     </div>
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('admin.admin_dashboard', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\xampp\htdocs\PROJECT2\KIMIS\resources\views/admin/trainings/index.blade.php ENDPATH**/ ?>

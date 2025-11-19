@@ -9,7 +9,34 @@ class Training extends Model
 {
     use HasFactory;
 
+    protected $fillable = [
+        'course_id',
+        'college_id',
+        'user_id',
+        'start_date',
+        'end_date',
+        'status',
+        'cost',
+    ];
 
+    protected $casts = [
+        'start_date' => 'date',
+        'end_date'   => 'date',
+    ];
+
+    // -----------------------------
+    // STATUS CONSTANTS
+    // -----------------------------
+    public const STATUS_DRAFT                 = 'Draft';
+    public const STATUS_PENDING_REGISTRAR     = 'Pending Registrar Approval';
+    public const STATUS_REGISTRAR_APPROVED_HQ = 'Registrar Approved - Pending HQ Review';
+    public const STATUS_HQ_REVIEWED           = 'HQ Reviewed';
+    public const STATUS_APPROVED              = 'Approved';
+    public const STATUS_REJECTED              = 'Rejected';
+
+    // -----------------------------
+    // RELATIONSHIPS (if not already)
+    // -----------------------------
     public function course()
     {
         return $this->belongsTo(Course::class);
@@ -25,27 +52,45 @@ class Training extends Model
         return $this->belongsTo(User::class);
     }
 
-    public const STATUS_DRAFT                     = 'Draft';
-    public const STATUS_PENDING_REGISTRAR          = 'Pending Registrar Approval';
-    public const STATUS_REGISTRAR_APPROVED_HQ      = 'Registrar Approved - Pending HQ Review';
-    public const STATUS_HQ_REVIEWED                = 'HQ Reviewed';
-    public const STATUS_APPROVED                   = 'Approved'; // Final Approval
-    public const STATUS_REJECTED                   = 'Rejected';
+    // -----------------------------
+    // HELPER METHODS FOR PERMISSIONS
+    // -----------------------------
 
+    /**
+     * HOD can edit only Draft or Rejected trainings.
+     */
+    public function isEditableByHod(): bool
+    {
+        return in_array($this->status, [
+            self::STATUS_DRAFT,
+            self::STATUS_REJECTED,
+        ], true);
+    }
 
+    /**
+     * HOD can send for approval only when status is Draft.
+     */
+    public function isSendableByHod(): bool
+    {
+        return $this->status === self::STATUS_DRAFT;
+    }
 
-    protected $fillable = [
-        'course_id',
-        'college_id',
-        'user_id',
-        'start_date',
-        'end_date',
-        'status',
-        'cost',
-    ];
-    protected $casts = [
-        'start_date' => 'date',
-        'end_date'   => 'date',
-    ];
+    /**
+     * HOD can delete only Draft or Rejected trainings (if you want this rule).
+     */
+    public function isDeletableByHod(): bool
+    {
+        return in_array($this->status, [
+            self::STATUS_DRAFT,
+            self::STATUS_REJECTED,
+        ], true);
+    }
 
+    /**
+     * Campus / KIHBT Registrar can act only when Pending Registrar Approval.
+     */
+    public function isActionableByRegistrar(): bool
+    {
+        return $this->status === self::STATUS_PENDING_REGISTRAR;
+    }
 }
