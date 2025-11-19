@@ -36,6 +36,12 @@ Route::get('/login', function () {
     return view('auth.login');
 });
 
+Route::get('/counties/{county}/subcounties', function ($county) {
+    return \App\Models\Subcounty::where('county_id', $county)
+        ->orderBy('name')
+        ->select('id','name')
+        ->get();
+});
 Route::get('/training/scheduled', [TrainingPublicController::class, 'index'])
     ->name('public.trainings');
 
@@ -279,3 +285,4 @@ Route::group(['middleware' => ['role:applicant','auth','history','verified']], f
 
 
 require __DIR__.'/auth.php';
+require __DIR__.'/application.php';

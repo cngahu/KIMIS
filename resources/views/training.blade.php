@@ -424,7 +424,8 @@
 
                         {{-- Action --}}
                         <td>
-                            <a href="{{ route('login', ['training_id' => $training->id]) }}"
+{{--                            href="{{ route('login', ['training_id' => $training->id]) }}"--}}
+                            <a href="{{ route('applications.form',  $training->course_id) }}"
                                class="btn-primary-kihbt d-inline-flex align-items-center gap-1">
                                 <i class="la la-edit"></i> Apply
                             </a>
