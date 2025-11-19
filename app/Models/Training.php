@@ -9,19 +9,27 @@ class Training extends Model
 {
     use HasFactory;
 
+    // ✅ Allow mass assignment for these columns
     protected $fillable = [
         'course_id',
         'college_id',
-        'user_id',
         'start_date',
         'end_date',
-        'status',
         'cost',
+        'status',
+        'user_id',
+        'rejection_comment',
+        'rejection_stage',
+        'rejected_at',
     ];
 
+    // ✅ Casts so ->format() works
     protected $casts = [
-        'start_date' => 'date',
-        'end_date'   => 'date',
+        'start_date'    => 'date',
+        'end_date'      => 'date',
+        'rejected_at'   => 'datetime',
+        'created_at'    => 'datetime',
+        'updated_at'    => 'datetime',
     ];
 
     // -----------------------------

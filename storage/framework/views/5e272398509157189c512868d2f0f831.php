@@ -156,10 +156,11 @@
                             </td>
 
                             
-                            
-                            
                             <td>
+
                                 <?php
+
+
                                     $status = $training->status;
 
                                     $badgeClass = match ($status) {
@@ -169,12 +170,38 @@
                                         \App\Models\Training::STATUS_HQ_REVIEWED           => 'badge bg-primary',
                                         \App\Models\Training::STATUS_APPROVED              => 'badge bg-success',
                                         \App\Models\Training::STATUS_REJECTED              => 'badge bg-danger',
-                                        default                                            => 'badge bg-secondary',
+                                        default                                => 'badge bg-secondary',
                                     };
                                 ?>
 
-                                <span class="<?php echo e($badgeClass); ?>"><?php echo e($status ?? '-'); ?></span>
+                                
+                                <span class="<?php echo e($badgeClass); ?>">
+        <?php echo e($status); ?>
+
+    </span>
+
+                                
+                                <?php if($training->status ===  \App\Models\Training::STATUS_REJECTED && $training->rejection_comment): ?>
+                                    <span
+                                        class="ms-1 text-warning"
+                                        style="cursor: pointer;"
+                                        data-bs-toggle="tooltip"
+                                        data-bs-html="true"
+                                        title="
+                <strong>Returned with comments</strong><br>
+                Stage: <?php echo e(ucfirst(str_replace('_',' ', $training->rejection_stage))); ?><br>
+                <?php echo e($training->rejection_comment); ?><br>
+                <?php if($training->rejected_at): ?>
+                    <small class='text-muted'>On <?php echo e($training->rejected_at->format('d M Y H:i')); ?></small>
+                <?php endif; ?>
+            "
+                                    >
+            <i class="fa-solid fa-circle-exclamation"></i>
+        </span>
+                                <?php endif; ?>
+
                             </td>
+
 
 
                             
@@ -338,6 +365,18 @@
             </div>
         <?php endif; ?>
     </div>
+
+    <?php $__env->startPush('scripts'); ?>
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+                tooltipTriggerList.map(function (tooltipTriggerEl) {
+                    return new bootstrap.Tooltip(tooltipTriggerEl)
+                })
+            });
+        </script>
+    <?php $__env->stopPush(); ?>
+
 <?php $__env->stopSection(); ?>
 
 <?php echo $__env->make('admin.admin_dashboard', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\xampp\htdocs\PROJECT2\KIMIS\resources\views/admin/trainings/index.blade.php ENDPATH**/ ?>

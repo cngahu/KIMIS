@@ -49,7 +49,6 @@ class TrainingController extends Controller
         $courses  = Course::orderBy('course_name')->get();
         $colleges = College::orderBy('name')->get();
 
-        // Statuses used in filters
         $statuses = [
             Training::STATUS_DRAFT,
             Training::STATUS_PENDING_REGISTRAR,
@@ -102,18 +101,19 @@ class TrainingController extends Controller
             'college_id' => 'required|exists:colleges,id',
             'start_date' => 'required|date',
             'end_date'   => 'nullable|date|after_or_equal:start_date',
-            'cost'       => 'required|numeric|min:0',
+            //'cost'       => 'required|numeric|min:0',
         ]);
 
         $data['user_id'] = Auth::id();
         $data['status']  = Training::STATUS_DRAFT;
 
-        $training = Training::create($data);
+        Training::create($data);
 
         return redirect()
-            ->route('trainings.edit', $training)
-            ->with('success', 'Training created as Draft. You can now review and send for approval.');
+            ->route('all.trainings')  // 👈 Redirect to index
+            ->with('success', 'Training created as Draft.');
     }
+
 
     /**
      * Display the specified training.
@@ -171,10 +171,9 @@ class TrainingController extends Controller
             'college_id' => 'required|exists:colleges,id',
             'start_date' => 'required|date',
             'end_date'   => 'nullable|date|after_or_equal:start_date',
-            'cost'       => 'required|numeric|min:0',
+           // 'cost'       => 'required|numeric|min:0',
         ]);
 
-        // Optionally track last edited by
         $data['user_id'] = Auth::id();
 
         $training->update($data);
@@ -222,16 +221,17 @@ class TrainingController extends Controller
             return back()->with('error', 'Only Draft or Rejected trainings can be submitted for approval.');
         }
 
-        $training->status = Training::STATUS_PENDING_REGISTRAR;
+        // Clear old rejection info when resubmitting
+        $training->status            = Training::STATUS_PENDING_REGISTRAR;
+        $training->rejection_comment = null;
+        $training->rejection_stage   = null;
+        $training->rejected_by       = null;
+        $training->rejected_at       = null;
         $training->save();
 
         return back()->with('success', 'Training sent to Campus Registrar for approval.');
     }
 
-    /**
-     * Backwards-compat: if you already wired a route to submitForApproval,
-     * we just forward to sendForApproval().
-     */
     public function submitForApproval(Training $training)
     {
         return $this->sendForApproval($training);
@@ -260,7 +260,7 @@ class TrainingController extends Controller
     {
         $user = auth()->user();
 
-        if (! $user->hasAnyRole(['kihbt_registrar', 'kihbt_registrar', 'superadmin'])) {
+        if (! $user->hasAnyRole(['kihbt_registrar', 'superadmin'])) {
             abort(403);
         }
 
@@ -304,13 +304,18 @@ class TrainingController extends Controller
         }
 
         $training->status = Training::STATUS_REGISTRAR_APPROVED_HQ;
+        // Clear rejection info if any left
+        $training->rejection_comment = null;
+        $training->rejection_stage   = null;
+        $training->rejected_by       = null;
+        $training->rejected_at       = null;
         $training->save();
 
         return back()->with('success', 'Training approved and sent to HQ for review.');
     }
 
     /**
-     * Campus Registrar: reject back to HOD.
+     * Campus Registrar: reject back to HOD with comment.
      */
     public function registrarReject(Request $request, Training $training)
     {
@@ -324,18 +329,17 @@ class TrainingController extends Controller
             return back()->with('error', 'Only trainings pending Registrar approval can be rejected.');
         }
 
-        // If you later add a 'rejection_reason' column:
-        // $request->validate(['reason' => 'nullable|string|max:1000']);
-        // $training->rejection_reason = $request->input('reason');
+        $data = $request->validate([
+            'reason' => 'required|string|max:1000',
+        ]);
 
-        $training->status = Training::STATUS_REJECTED;
-        $training->save();
+        $this->rejectTraining($training, 'campus_registrar', $data['reason'], $user->id);
 
-        return back()->with('success', 'Training rejected and returned to HOD.');
+        return back()->with('success', 'Training rejected and returned to HOD with comments.');
     }
 
     /**
-     * KIHBT Registrar (HQ): mark as HQ Reviewed.
+     * KIHBT Registrar (HQ): approve → HQ Reviewed.
      */
     public function hqReview(Training $training)
     {
@@ -350,9 +354,37 @@ class TrainingController extends Controller
         }
 
         $training->status = Training::STATUS_HQ_REVIEWED;
+        $training->rejection_comment = null;
+        $training->rejection_stage   = null;
+        $training->rejected_by       = null;
+        $training->rejected_at       = null;
         $training->save();
 
         return back()->with('success', 'Training marked as HQ Reviewed.');
+    }
+
+    /**
+     * KIHBT Registrar (HQ): reject back to HOD with comment.
+     */
+    public function hqReject(Request $request, Training $training)
+    {
+        $user = auth()->user();
+
+        if (! $user->hasAnyRole(['kihbt_registrar', 'superadmin'])) {
+            abort(403);
+        }
+
+        if ($training->status !== Training::STATUS_REGISTRAR_APPROVED_HQ) {
+            return back()->with('error', 'Only Registrar-approved trainings can be rejected by HQ.');
+        }
+
+        $data = $request->validate([
+            'reason' => 'required|string|max:1000',
+        ]);
+
+        $this->rejectTraining($training, 'kihbt_registrar', $data['reason'], $user->id);
+
+        return back()->with('success', 'Training rejected by HQ and returned to HOD with comments.');
     }
 
     /**
@@ -371,15 +403,19 @@ class TrainingController extends Controller
         }
 
         $training->status = Training::STATUS_APPROVED;
+        $training->rejection_comment = null;
+        $training->rejection_stage   = null;
+        $training->rejected_by       = null;
+        $training->rejected_at       = null;
         $training->save();
 
         return back()->with('success', 'Training finally approved.');
     }
 
     /**
-     * Director: final rejection (while under HQ review).
+     * Director: final rejection (while under HQ review or just after Registrar approval).
      */
-    public function directorReject(Training $training)
+    public function directorReject(Request $request, Training $training)
     {
         $user = auth()->user();
 
@@ -394,9 +430,25 @@ class TrainingController extends Controller
             return back()->with('error', 'Only trainings under HQ review can be rejected by the Director.');
         }
 
-        $training->status = Training::STATUS_REJECTED;
-        $training->save();
+        $data = $request->validate([
+            'reason' => 'required|string|max:1000',
+        ]);
 
-        return back()->with('success', 'Training rejected by Director.');
+        $this->rejectTraining($training, 'director', $data['reason'], $user->id);
+
+        return back()->with('success', 'Training rejected by Director and returned to HOD with comments.');
+    }
+
+    /**
+     * Shared helper to handle rejections with comments.
+     */
+    protected function rejectTraining(Training $training, string $stage, string $reason, int $userId): void
+    {
+        $training->status            = Training::STATUS_REJECTED;
+        $training->rejection_comment = $reason;
+        $training->rejection_stage   = $stage;
+        $training->rejected_by       = $userId;
+        $training->rejected_at       = now();
+        $training->save();
     }
 }

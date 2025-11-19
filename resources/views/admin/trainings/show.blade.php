@@ -26,7 +26,7 @@
                     $isHqReg      = $user->hasRole('kihbt_registrar');
                     $isDirector   = $user->hasRole('director');
 
-                    // Make sure this helper exists in your Training model
+                    // Fallback if helper doesn't exist
                     $hodCanEdit = method_exists($training, 'isEditableByHod')
                         ? $training->isEditableByHod()
                         : in_array($training->status, [
@@ -189,6 +189,27 @@
                     </div>
                 </div>
 
+                {{-- 🔶 Rejection info (when returned with comments) --}}
+                @if($training->status === \App\Models\Training::STATUS_REJECTED && $training->rejection_comment)
+                    <div class="alert alert-warning mt-2">
+                        <strong>
+                            Returned with comments
+                            @if($training->rejection_stage)
+                                ({{ ucfirst(str_replace('_', ' ', $training->rejection_stage)) }})
+                            @endif
+                            :
+                        </strong>
+                        <br>
+                        {{ $training->rejection_comment }}
+                        <br>
+                        @if($training->rejected_at)
+                            <small class="text-muted">
+                                On {{ $training->rejected_at->format('d M Y H:i') }}
+                            </small>
+                        @endif
+                    </div>
+                @endif
+
                 <hr>
 
                 {{-- Details --}}
@@ -214,7 +235,7 @@
                         <p class="mb-1">
                             <strong>Start Date:</strong><br>
                             @if($training->start_date)
-                                {{ $training->start_date->format('d M Y') }}
+                                {{ \Carbon\Carbon::parse($training->start_date)->format('d M Y') }}
                             @else
                                 <span class="text-muted">Not set</span>
                             @endif
@@ -223,7 +244,7 @@
                         <p class="mb-1">
                             <strong>End Date:</strong><br>
                             @if($training->end_date)
-                                {{ $training->end_date->format('d M Y') }}
+                                {{ \Carbon\Carbon::parse($training->end_date)->format('d M Y') }}
                             @else
                                 <span class="text-muted">Not set</span>
                             @endif
@@ -263,9 +284,6 @@
                 </div>
             </div>
         </div>
-
-        {{-- Optional: small legend for statuses --}}
-
 
     </div>
 @endsection
