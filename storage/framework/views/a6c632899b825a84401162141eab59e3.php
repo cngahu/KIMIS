@@ -23,7 +23,8 @@
 
                 <div class="row mb-2">
                     <div class="col-md-6">
-                        <p><strong>Category:</strong>
+                        <p>
+                            <strong>Category:</strong>
                             <span class="badge
                                 <?php if($course->course_category == 'Diploma'): ?> bg-primary
                                 <?php elseif($course->course_category == 'Craft'): ?> bg-success
@@ -33,8 +34,11 @@
 
                             </span>
                         </p>
+
                         <p><strong>Code:</strong> <code><?php echo e($course->course_code); ?></code></p>
-                        <p><strong>Mode:</strong>
+
+                        <p>
+                            <strong>Mode:</strong>
                             <span class="badge
                                 <?php if($course->course_mode == 'Long Term'): ?> bg-dark
                                 <?php else: ?> bg-secondary <?php endif; ?>">
@@ -77,22 +81,73 @@
         
         <?php if($course->requirement): ?>
             <div class="card shadow-sm border-0">
-                <div class="card-header bg-white border-0">
-                    <h5 class="mb-1">Entry Requirements</h5>
-                    <p class="text-muted small mb-0">
-                        Below are the stored requirements for this course.
-                    </p>
+                <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-1">Entry Requirements</h5>
+                        <p class="text-muted small mb-0">
+                            Below are the stored requirements for this course.
+                        </p>
+                    </div>
+                    <a href="<?php echo e(route('courses.requirements.create', $course)); ?>"
+                       class="btn btn-sm btn-primary">
+                        <i class="fas fa-plus me-1"></i> Add Requirement
+                    </a>
                 </div>
                 <div class="card-body">
                     <?php if($course->requirements->count()): ?>
                         <ul class="list-group">
                             <?php $__currentLoopData = $course->requirements; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $req): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                <li class="list-group-item">
-                                    <?php echo nl2br(e($req->course_requirement)); ?>
+                                <li class="list-group-item d-flex justify-content-between align-items-start">
+                                    <div class="me-3">
+                                        
+                                        <div class="mb-1">
+                                            <?php if($req->type === 'text'): ?>
+                                                <span class="badge bg-light text-dark">Text</span>
+                                            <?php elseif($req->type === 'upload'): ?>
+                                                <span class="badge bg-info text-dark">Document</span>
+                                            <?php endif; ?>
+                                        </div>
 
-                                    <div class="small text-muted mt-1">
-                                        Added on <?php echo e($req->created_at->format('d M Y H:i')); ?>
+                                        
+                                        <?php if($req->type === 'text'): ?>
+                                            <?php echo nl2br(e($req->course_requirement)); ?>
 
+                                        <?php elseif($req->type === 'upload'): ?>
+                                            <?php if($req->file_path): ?>
+                                                <strong>Requirement document:</strong>
+                                                <a href="<?php echo e(\Illuminate\Support\Facades\Storage::url($req->file_path)); ?>"
+                                                   target="_blank">
+                                                    View / Download
+                                                </a>
+                                            <?php else: ?>
+                                                <span class="text-muted">No file available.</span>
+                                            <?php endif; ?>
+                                        <?php endif; ?>
+
+                                        <div class="small text-muted mt-1">
+                                            Added on <?php echo e($req->created_at->format('d M Y H:i')); ?>
+
+                                        </div>
+                                    </div>
+
+                                    
+                                    <div>
+                                        <form action="<?php echo e(route('courses.requirements.delete', [$course, $req])); ?>"
+                                              method="POST"
+                                              class="d-inline js-confirm-form"
+                                              data-confirm-title="Delete this requirement?"
+                                              data-confirm-text="This will permanently delete this requirement from the course."
+                                              data-confirm-icon="warning"
+                                              data-confirm-button="Yes, delete it"
+                                              data-cancel-button="Cancel">
+                                            <?php echo csrf_field(); ?>
+                                            <?php echo method_field('DELETE'); ?>
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-outline-danger"
+                                                    title="Delete Requirement">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
                                     </div>
                                 </li>
                             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>

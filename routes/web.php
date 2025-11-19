@@ -119,6 +119,7 @@ Route::middleware(['auth','history','verified'])->group(function () {
     Route::controller(RequirementController::class)->group(function () {
         Route::get('/courses/{course}/requirements/create', 'create')->name('courses.requirements.create');
         Route::post('/courses/{course}/requirements', 'store')->name('courses.requirements.store');
+        Route::delete('/courses/{course}/requirements/{requirement}', 'destroy')->name('courses.requirements.delete');
     });
 
     Route::controller(TrainingController::class)->group(function() {

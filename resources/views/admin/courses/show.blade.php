@@ -25,7 +25,8 @@
 
                 <div class="row mb-2">
                     <div class="col-md-6">
-                        <p><strong>Category:</strong>
+                        <p>
+                            <strong>Category:</strong>
                             <span class="badge
                                 @if($course->course_category == 'Diploma') bg-primary
                                 @elseif($course->course_category == 'Craft') bg-success
@@ -34,8 +35,11 @@
                                 {{ $course->course_category }}
                             </span>
                         </p>
+
                         <p><strong>Code:</strong> <code>{{ $course->course_code }}</code></p>
-                        <p><strong>Mode:</strong>
+
+                        <p>
+                            <strong>Mode:</strong>
                             <span class="badge
                                 @if($course->course_mode == 'Long Term') bg-dark
                                 @else bg-secondary @endif">
@@ -76,20 +80,71 @@
         {{-- Requirements List --}}
         @if($course->requirement)
             <div class="card shadow-sm border-0">
-                <div class="card-header bg-white border-0">
-                    <h5 class="mb-1">Entry Requirements</h5>
-                    <p class="text-muted small mb-0">
-                        Below are the stored requirements for this course.
-                    </p>
+                <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-1">Entry Requirements</h5>
+                        <p class="text-muted small mb-0">
+                            Below are the stored requirements for this course.
+                        </p>
+                    </div>
+                    <a href="{{ route('courses.requirements.create', $course) }}"
+                       class="btn btn-sm btn-primary">
+                        <i class="fas fa-plus me-1"></i> Add Requirement
+                    </a>
                 </div>
                 <div class="card-body">
                     @if($course->requirements->count())
                         <ul class="list-group">
                             @foreach($course->requirements as $req)
-                                <li class="list-group-item">
-                                    {!! nl2br(e($req->course_requirement)) !!}
-                                    <div class="small text-muted mt-1">
-                                        Added on {{ $req->created_at->format('d M Y H:i') }}
+                                <li class="list-group-item d-flex justify-content-between align-items-start">
+                                    <div class="me-3">
+                                        {{-- Type badge --}}
+                                        <div class="mb-1">
+                                            @if($req->type === 'text')
+                                                <span class="badge bg-light text-dark">Text</span>
+                                            @elseif($req->type === 'upload')
+                                                <span class="badge bg-info text-dark">Document</span>
+                                            @endif
+                                        </div>
+
+                                        {{-- Content --}}
+                                        @if($req->type === 'text')
+                                            {!! nl2br(e($req->course_requirement)) !!}
+                                        @elseif($req->type === 'upload')
+                                            @if($req->file_path)
+                                                <strong>Requirement document:</strong>
+                                                <a href="{{ \Illuminate\Support\Facades\Storage::url($req->file_path) }}"
+                                                   target="_blank">
+                                                    View / Download
+                                                </a>
+                                            @else
+                                                <span class="text-muted">No file available.</span>
+                                            @endif
+                                        @endif
+
+                                        <div class="small text-muted mt-1">
+                                            Added on {{ $req->created_at->format('d M Y H:i') }}
+                                        </div>
+                                    </div>
+
+                                    {{-- Delete requirement --}}
+                                    <div>
+                                        <form action="{{ route('courses.requirements.delete', [$course, $req]) }}"
+                                              method="POST"
+                                              class="d-inline js-confirm-form"
+                                              data-confirm-title="Delete this requirement?"
+                                              data-confirm-text="This will permanently delete this requirement from the course."
+                                              data-confirm-icon="warning"
+                                              data-confirm-button="Yes, delete it"
+                                              data-cancel-button="Cancel">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-outline-danger"
+                                                    title="Delete Requirement">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
                                     </div>
                                 </li>
                             @endforeach

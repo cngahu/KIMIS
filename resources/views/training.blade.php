@@ -333,7 +333,16 @@
                                     <span class="requirements-label">Requirements:</span>
                                     <ul class="requirements-list">
                                         @foreach($training->course->requirements as $req)
-                                            <li>{!! nl2br(e($req->course_requirement)) !!}</li>
+                                            @if($req->type === 'text')
+                                                <li>{!! nl2br(e($req->course_requirement)) !!}</li>
+                                            @elseif($req->type === 'upload' && $req->file_path)
+                                                <li>
+                                                    <a href="{{ \Illuminate\Support\Facades\Storage::url($req->file_path) }}"
+                                                       target="_blank">
+                                                        View requirement document
+                                                    </a>
+                                                </li>
+                                            @endif
                                         @endforeach
                                     </ul>
                                 </div>
