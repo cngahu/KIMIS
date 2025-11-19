@@ -27,38 +27,44 @@
             <div class="card-header bg-white border-0 pb-0">
                 <h5 class="mb-1">Entry Requirements</h5>
                 <p class="text-muted small mb-0">
-                    Choose whether to enter requirements as text or upload a document.
+                    Enter the requirement details as text.
                 </p>
             </div>
 
             <form action="{{ route('courses.requirements.store', $course) }}"
-                  method="POST"
-                  enctype="multipart/form-data">
+                  method="POST">
                 @csrf
 
                 <div class="card-body">
                     <div class="row g-3">
 
-                        {{-- Type --}}
+                        {{-- (Optional) Type – purely for classification, always text for now --}}
                         <div class="col-md-4">
-                            <label class="form-label fw-bold">Requirement Type <span class="text-danger">*</span></label>
+                            <label class="form-label fw-bold">Requirement Type</label>
                             <select
                                 name="type"
-                                id="reqType"
                                 class="form-select @error('type') is-invalid @enderror">
-                                <option value="text" {{ old('type', 'text') === 'text' ? 'selected' : '' }}>Text</option>
-                                <option value="upload" {{ old('type') === 'upload' ? 'selected' : '' }}>Upload Document</option>
+                                <option value="text" {{ old('type', 'text') === 'text' ? 'selected' : '' }}>
+                                    Text
+                                </option>
+                                <option value="upload" {{ old('type') === 'upload' ? 'selected' : '' }}>
+                                    Upload
+                                </option>
                             </select>
                             @error('type')
                             <div class="invalid-feedback">{{ $message }}</div>
                             @else
-                                <small class="text-muted">Select how you want to provide the requirement.</small>
+                                <small class="text-muted">
+                                    Used just to classify the requirement; content will still be captured as text.
+                                </small>
                                 @enderror
                         </div>
 
-                        {{-- Text requirement --}}
-                        <div class="col-md-12" id="textRequirementWrapper">
-                            <label class="form-label fw-bold">Requirement Details <span class="text-danger">*</span></label>
+                        {{-- Text requirement (always shown) --}}
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold">
+                                Requirement Details <span class="text-danger">*</span>
+                            </label>
                             <textarea
                                 name="course_requirement"
                                 rows="5"
@@ -69,27 +75,11 @@
                             <div class="invalid-feedback">{{ $message }}</div>
                             @else
                                 <small class="text-muted">
-                                    You can describe the entry requirements in a paragraph or bullet form.
+                                    Describe the entry requirements (you can also mention that documents like KCSE certificates must be uploaded during application).
                                 </small>
                                 @enderror
                         </div>
 
-                        {{-- File upload --}}
-                        <div class="col-md-12 d-none" id="fileRequirementWrapper">
-                            <label class="form-label fw-bold">Upload Requirement Document <span class="text-danger">*</span></label>
-                            <input
-                                type="file"
-                                name="file"
-                                class="form-control @error('file') is-invalid @enderror"
-                            >
-                            @error('file')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                            @else
-                                <small class="text-muted">
-                                    Allowed types: PDF, DOC, DOCX, JPG, PNG (max 5MB).
-                                </small>
-                                @enderror
-                        </div>
                     </div>
                 </div>
 
@@ -120,19 +110,20 @@
                     <ul class="list-group">
                         @foreach($requirements as $req)
                             <li class="list-group-item">
-                                @if($req->type === 'text')
+                                {{-- We keep support for old uploaded-type entries, but everything new is text --}}
+                                @if($req->type === 'upload' && $req->file_path)
+                                    <strong>[Upload Type]</strong>
+                                    <br>
                                     {!! nl2br(e($req->course_requirement)) !!}
+                                    <br>
+                                    <a href="{{ \Illuminate\Support\Facades\Storage::url($req->file_path) }}"
+                                       target="_blank">
+                                        View / Download attached document
+                                    </a>
                                 @else
-                                    <strong>Uploaded Document:</strong>
-                                    @if($req->file_path)
-                                        <a href="{{ \Illuminate\Support\Facades\Storage::url($req->file_path) }}"
-                                           target="_blank">
-                                            View / Download
-                                        </a>
-                                    @else
-                                        <span class="text-muted">No file path stored.</span>
-                                    @endif
+                                    {!! nl2br(e($req->course_requirement)) !!}
                                 @endif
+
                                 <div class="small text-muted mt-1">
                                     Added on {{ $req->created_at->format('d M Y H:i') }}
                                 </div>
@@ -144,34 +135,4 @@
         @endif
 
     </div>
-
-    {{-- Inline script so it always runs --}}
-    <script>
-        (function() {
-            const typeSelect   = document.getElementById('reqType');
-            const textWrapper  = document.getElementById('textRequirementWrapper');
-            const fileWrapper  = document.getElementById('fileRequirementWrapper');
-
-            function toggleRequirementFields() {
-                if (!typeSelect) return;
-                const value = typeSelect.value;
-
-                if (value === 'text') {
-                    textWrapper.classList.remove('d-none');
-                    fileWrapper.classList.add('d-none');
-                } else {
-                    textWrapper.classList.add('d-none');
-                    fileWrapper.classList.remove('d-none');
-                }
-            }
-
-            // Bind change event
-            if (typeSelect) {
-                typeSelect.addEventListener('change', toggleRequirementFields);
-            }
-
-            // Initialize state on page load (respect old() value)
-            toggleRequirementFields();
-        })();
-    </script>
 @endsection

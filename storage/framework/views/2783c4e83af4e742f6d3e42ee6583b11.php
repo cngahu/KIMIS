@@ -152,37 +152,56 @@
             color: var(--tertiary);
             font-weight: 400;
         }
-        .badge-status{
-            font-size:.75rem;
-            padding:.25rem .6rem;
-            border-radius:999px;
-            background:#e7f6e7;
-            color:#157347;
-            font-weight:600;
-            text-transform:uppercase;
-        }
 
-        /* Requirements styling */
+        /* Requirements styling – improved */
         .requirements-wrap {
-            margin-top: 0.25rem;
+            margin-top: 0.4rem;
             font-size: 0.8rem;
             color: var(--tertiary);
+            background: #faf7f2;
+            border-radius: 8px;
+            padding: 0.45rem 0.6rem;
+            border-left: 3px solid var(--secondary);
         }
-
+        .requirements-header-line {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            margin-bottom: 0.2rem;
+        }
         .requirements-label {
             font-weight: 600;
             color: var(--primary);
-            display: block;
-            margin-bottom: 0.1rem;
         }
-
+        .requirements-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.1rem 0.5rem;
+            border-radius: 999px;
+            background: #f0e2c7;
+            color: #5b4224;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
         .requirements-list {
-            padding-left: 1rem;
-            margin-bottom: 0;
+            padding-left: 1.1rem;
+            margin-bottom: 0.2rem;
         }
-
         .requirements-list li {
             margin-bottom: 0.1rem;
+        }
+        .requirements-docs {
+            margin-top: 0.2rem;
+        }
+        .requirements-docs a {
+            font-size: 0.8rem;
+            color: var(--primary);
+            text-decoration: underline;
+        }
+        .requirements-docs a:hover {
+            color: #000;
         }
 
         /* Responsive table */
@@ -313,32 +332,64 @@
                 </thead>
                 <tbody>
                 <?php $__currentLoopData = $trainings; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $training): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <?php
+                        $course = $training->course;
+                        $hasRequirementFlag = $course && $course->requirement;
+                        $requirements = $hasRequirementFlag ? $course->requirements : collect();
+                        $hasTextReq = $requirements->where('type', 'text')->count() > 0;
+                        $hasDocReq  = $requirements->where('type', 'upload')->whereNotNull('file_path')->count() > 0;
+                    ?>
+
                     <tr>
                         
                         <td>
                             <div class="course-title">
-                                <?php echo e(optional($training->course)->course_name ?? 'Unnamed Course'); ?>
+                                <?php echo e($course->course_name ?? 'Unnamed Course'); ?>
 
                             </div>
 
                             <div class="course-code">
-                                <?php echo e(optional($training->course)->course_code ?? 'N/A'); ?>
+                                <?php echo e($course->course_code ?? 'N/A'); ?>
 
                             </div>
 
                             
-                            <?php if(
-                                $training->course
-                                && $training->course->requirement
-                                && $training->course->requirements->count()
-                            ): ?>
+                            <?php if($hasRequirementFlag && $requirements->count()): ?>
                                 <div class="requirements-wrap">
-                                    <span class="requirements-label">Requirements:</span>
-                                    <ul class="requirements-list">
-                                        <?php $__currentLoopData = $training->course->requirements; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $req): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                            <li><?php echo nl2br(e($req->course_requirement)); ?></li>
-                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                                    </ul>
+                                    <div class="requirements-header-line">
+                                        <span class="requirements-label">Entry Requirements</span>
+                                        <span class="requirements-chip">
+                                            <i class="la la-info-circle"></i>
+                                            <?php echo e($requirements->count()); ?> item<?php echo e($requirements->count() > 1 ? 's' : ''); ?>
+
+                                        </span>
+                                    </div>
+
+                                    
+                                    <?php if($hasTextReq): ?>
+                                        <ul class="requirements-list">
+                                            <?php $__currentLoopData = $requirements->where('type', 'text'); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $req): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                <li><?php echo nl2br(e($req->course_requirement)); ?></li>
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                        </ul>
+                                    <?php endif; ?>
+
+                                    
+                                    <?php if($hasDocReq): ?>
+                                        <div class="requirements-docs">
+                                            <strong>Documents:</strong>
+                                            <ul class="requirements-list">
+                                                <?php $__currentLoopData = $requirements->where('type', 'upload')->whereNotNull('file_path'); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $req): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                    <li>
+                                                        <a href="<?php echo e(\Illuminate\Support\Facades\Storage::url($req->file_path)); ?>"
+                                                           target="_blank">
+                                                            📎 View requirement document
+                                                        </a>
+                                                    </li>
+                                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                            </ul>
+                                        </div>
+                                    <?php endif; ?>
                                 </div>
                             <?php endif; ?>
                         </td>

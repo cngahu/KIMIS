@@ -5,14 +5,10 @@
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
                 <h1 class="h4 mb-1">Course Details</h1>
-                <p class="text-muted mb-0">
-                    View full details of this course.
-                </p>
+                <p class="text-muted mb-0">View full details of this course.</p>
             </div>
             <div>
-                <a href="{{ route('all.courses') }}" class="btn btn-light border me-2">
-                    Back to Courses
-                </a>
+                <a href="{{ route('all.courses') }}" class="btn btn-light border me-2">Back to Courses</a>
                 <a href="{{ route('courses.edit', $course) }}" class="btn btn-warning">
                     <i class="fas fa-edit me-1"></i> Edit
                 </a>
@@ -25,8 +21,7 @@
 
                 <div class="row mb-2">
                     <div class="col-md-6">
-                        <p>
-                            <strong>Category:</strong>
+                        <p><strong>Category:</strong>
                             <span class="badge
                                 @if($course->course_category == 'Diploma') bg-primary
                                 @elseif($course->course_category == 'Craft') bg-success
@@ -38,8 +33,7 @@
 
                         <p><strong>Code:</strong> <code>{{ $course->course_code }}</code></p>
 
-                        <p>
-                            <strong>Mode:</strong>
+                        <p><strong>Mode:</strong>
                             <span class="badge
                                 @if($course->course_mode == 'Long Term') bg-dark
                                 @else bg-secondary @endif">
@@ -52,25 +46,19 @@
                         <p><strong>Duration:</strong> {{ $course->course_duration }} months</p>
                         <p><strong>Cost:</strong> KSh {{ number_format($course->cost, 2) }}</p>
 
-                        {{-- Requirement Badge + Manage button --}}
                         <p class="mb-1">
                             <strong>Requirement:</strong>
                             @if($course->requirement)
                                 <span class="badge bg-success">Yes</span>
                                 <a href="{{ route('courses.requirements.create', $course) }}"
-                                   class="btn btn-sm btn-outline-primary ms-2">
-                                    Manage Requirements
-                                </a>
+                                   class="btn btn-sm btn-outline-primary ms-2">Manage Requirements</a>
                             @else
                                 <span class="badge bg-secondary">No specific requirements</span>
                             @endif
                         </p>
 
                         @if($course->target_group)
-                            <p class="mt-2">
-                                <strong>Target Group:</strong><br>
-                                {{ $course->target_group }}
-                            </p>
+                            <p class="mt-2"><strong>Target Group:</strong><br>{{ $course->target_group }}</p>
                         @endif
                     </div>
                 </div>
@@ -83,78 +71,57 @@
                 <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
                     <div>
                         <h5 class="mb-1">Entry Requirements</h5>
-                        <p class="text-muted small mb-0">
-                            Below are the stored requirements for this course.
-                        </p>
+                        <p class="text-muted small mb-0">Below are the stored requirements for this course.</p>
                     </div>
+
                     <a href="{{ route('courses.requirements.create', $course) }}"
                        class="btn btn-sm btn-primary">
                         <i class="fas fa-plus me-1"></i> Add Requirement
                     </a>
                 </div>
+
                 <div class="card-body">
                     @if($course->requirements->count())
                         <ul class="list-group">
                             @foreach($course->requirements as $req)
                                 <li class="list-group-item d-flex justify-content-between align-items-start">
-                                    <div class="me-3">
-                                        {{-- Type badge --}}
-                                        <div class="mb-1">
-                                            @if($req->type === 'text')
-                                                <span class="badge bg-light text-dark">Text</span>
-                                            @elseif($req->type === 'upload')
-                                                <span class="badge bg-info text-dark">Document</span>
-                                            @endif
-                                        </div>
 
-                                        {{-- Content --}}
-                                        @if($req->type === 'text')
-                                            {!! nl2br(e($req->course_requirement)) !!}
-                                        @elseif($req->type === 'upload')
-                                            @if($req->file_path)
-                                                <strong>Requirement document:</strong>
-                                                <a href="{{ \Illuminate\Support\Facades\Storage::url($req->file_path) }}"
-                                                   target="_blank">
-                                                    View / Download
-                                                </a>
-                                            @else
-                                                <span class="text-muted">No file available.</span>
-                                            @endif
-                                        @endif
+                                    <div>
+                                        {{-- Type is always text now --}}
+                                        <span class="badge bg-light text-dark mb-1">{{ $req->type }}</span>
+
+                                        <div>{!! nl2br(e($req->course_requirement)) !!}</div>
 
                                         <div class="small text-muted mt-1">
                                             Added on {{ $req->created_at->format('d M Y H:i') }}
                                         </div>
                                     </div>
 
-                                    {{-- Delete requirement --}}
-                                    <div>
-                                        <form action="{{ route('courses.requirements.delete', [$course, $req]) }}"
-                                              method="POST"
-                                              class="d-inline js-confirm-form"
-                                              data-confirm-title="Delete this requirement?"
-                                              data-confirm-text="This will permanently delete this requirement from the course."
-                                              data-confirm-icon="warning"
-                                              data-confirm-button="Yes, delete it"
-                                              data-cancel-button="Cancel">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit"
-                                                    class="btn btn-sm btn-outline-danger"
-                                                    title="Delete Requirement">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </form>
-                                    </div>
+                                    {{-- Delete button --}}
+                                    <form action="{{ route('courses.requirements.delete', [$course, $req]) }}"
+                                          method="POST"
+                                          class="d-inline js-confirm-form"
+                                          data-confirm-title="Delete this requirement?"
+                                          data-confirm-text="This will permanently delete the requirement."
+                                          data-confirm-icon="warning"
+                                          data-confirm-button="Yes, delete it"
+                                          data-cancel-button="Cancel">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit"
+                                                class="btn btn-sm btn-outline-danger"
+                                                title="Delete Requirement">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+
                                 </li>
                             @endforeach
                         </ul>
                     @else
                         <p class="text-muted mb-0">
                             No requirements captured yet.
-                            <a href="{{ route('courses.requirements.create', $course) }}">
-                                Click here to add one.
-                            </a>
+                            <a href="{{ route('courses.requirements.create', $course) }}">Click here to add one.</a>
                         </p>
                     @endif
                 </div>

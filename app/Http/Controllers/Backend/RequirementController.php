@@ -20,37 +20,18 @@ class RequirementController extends Controller
 
     public function store(Request $request, Course $course)
     {
-        // Validate base + type-specific fields
-        $request->validate([
-            'type' => 'required|in:text,upload',
+        // Validate: type is optional (or you can keep it required), and text is required
+        $data = $request->validate([
+            'type'               => 'nullable|in:text,upload',
+            'course_requirement' => 'required|string|max:5000',
         ]);
 
-        $type = $request->input('type');
-
-        if ($type === 'text') {
-            $data = $request->validate([
-                'course_requirement' => 'required|string|max:5000',
-            ]);
-        } else { // upload
-            $data = $request->validate([
-                'file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120', // 5MB
-            ]);
-        }
-
         $requirement = new Requirement();
-        $requirement->course_id = $course->id;
-        $requirement->type      = $type;
-        $requirement->user_id   = auth()->id();
-
-        if ($type === 'text') {
-            $requirement->course_requirement = $data['course_requirement'];
-            $requirement->file_path = null;
-        } else {
-            // Store file in "public/requirements"
-            $path = $request->file('file')->store('requirements', 'public');
-            $requirement->file_path = $path;
-            $requirement->course_requirement = null;
-        }
+        $requirement->course_id          = $course->id;
+        $requirement->type               = $data['type'] ?? 'text'; // we still store the type, but treat all as text
+        $requirement->course_requirement = $data['course_requirement'];
+        $requirement->file_path          = null;                    // no upload anymore
+        $requirement->user_id            = auth()->id();
 
         $requirement->save();
 
@@ -61,12 +42,12 @@ class RequirementController extends Controller
 
     public function destroy(Course $course, Requirement $requirement)
     {
-        // Ensure the requirement belongs to this course
+        // Make sure the requirement belongs to this course
         if ($requirement->course_id !== $course->id) {
             abort(404);
         }
 
-        // Delete file if it's an upload requirement
+        // For legacy data: delete file if it exists and was previously uploaded
         if ($requirement->type === 'upload' && $requirement->file_path) {
             Storage::disk('public')->delete($requirement->file_path);
         }

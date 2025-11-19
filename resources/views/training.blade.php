@@ -152,37 +152,56 @@
             color: var(--tertiary);
             font-weight: 400;
         }
-        .badge-status{
-            font-size:.75rem;
-            padding:.25rem .6rem;
-            border-radius:999px;
-            background:#e7f6e7;
-            color:#157347;
-            font-weight:600;
-            text-transform:uppercase;
-        }
 
-        /* Requirements styling */
+        /* Requirements styling – improved */
         .requirements-wrap {
-            margin-top: 0.25rem;
+            margin-top: 0.4rem;
             font-size: 0.8rem;
             color: var(--tertiary);
+            background: #faf7f2;
+            border-radius: 8px;
+            padding: 0.45rem 0.6rem;
+            border-left: 3px solid var(--secondary);
         }
-
+        .requirements-header-line {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            margin-bottom: 0.2rem;
+        }
         .requirements-label {
             font-weight: 600;
             color: var(--primary);
-            display: block;
-            margin-bottom: 0.1rem;
         }
-
+        .requirements-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.1rem 0.5rem;
+            border-radius: 999px;
+            background: #f0e2c7;
+            color: #5b4224;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
         .requirements-list {
-            padding-left: 1rem;
-            margin-bottom: 0;
+            padding-left: 1.1rem;
+            margin-bottom: 0.2rem;
         }
-
         .requirements-list li {
             margin-bottom: 0.1rem;
+        }
+        .requirements-docs {
+            margin-top: 0.2rem;
+        }
+        .requirements-docs a {
+            font-size: 0.8rem;
+            color: var(--primary);
+            text-decoration: underline;
+        }
+        .requirements-docs a:hover {
+            color: #000;
         }
 
         /* Responsive table */
@@ -312,39 +331,61 @@
                 </thead>
                 <tbody>
                 @foreach($trainings as $training)
+                    @php
+                        $course = $training->course;
+                        $hasRequirementFlag = $course && $course->requirement;
+                        $requirements = $hasRequirementFlag ? $course->requirements : collect();
+                        $hasTextReq = $requirements->where('type', 'text')->count() > 0;
+                        $hasDocReq  = $requirements->where('type', 'upload')->whereNotNull('file_path')->count() > 0;
+                    @endphp
+
                     <tr>
                         {{-- Course + Code + Requirements --}}
                         <td>
                             <div class="course-title">
-                                {{ optional($training->course)->course_name ?? 'Unnamed Course' }}
+                                {{ $course->course_name ?? 'Unnamed Course' }}
                             </div>
 
                             <div class="course-code">
-                                {{ optional($training->course)->course_code ?? 'N/A' }}
+                                {{ $course->course_code ?? 'N/A' }}
                             </div>
 
-                            {{-- Requirements (if any) --}}
-                            @if(
-                                $training->course
-                                && $training->course->requirement
-                                && $training->course->requirements->count()
-                            )
+                            {{-- Requirements block --}}
+                            @if($hasRequirementFlag && $requirements->count())
                                 <div class="requirements-wrap">
-                                    <span class="requirements-label">Requirements:</span>
-                                    <ul class="requirements-list">
-                                        @foreach($training->course->requirements as $req)
-                                            @if($req->type === 'text')
+                                    <div class="requirements-header-line">
+                                        <span class="requirements-label">Entry Requirements</span>
+                                        <span class="requirements-chip">
+                                            <i class="la la-info-circle"></i>
+                                            {{ $requirements->count() }} item{{ $requirements->count() > 1 ? 's' : '' }}
+                                        </span>
+                                    </div>
+
+                                    {{-- Text requirements --}}
+                                    @if($hasTextReq)
+                                        <ul class="requirements-list">
+                                            @foreach($requirements->where('type', 'text') as $req)
                                                 <li>{!! nl2br(e($req->course_requirement)) !!}</li>
-                                            @elseif($req->type === 'upload' && $req->file_path)
-                                                <li>
-                                                    <a href="{{ \Illuminate\Support\Facades\Storage::url($req->file_path) }}"
-                                                       target="_blank">
-                                                        View requirement document
-                                                    </a>
-                                                </li>
-                                            @endif
-                                        @endforeach
-                                    </ul>
+                                            @endforeach
+                                        </ul>
+                                    @endif
+
+                                    {{-- Uploaded documents --}}
+                                    @if($hasDocReq)
+                                        <div class="requirements-docs">
+                                            <strong>Documents:</strong>
+                                            <ul class="requirements-list">
+                                                @foreach($requirements->where('type', 'upload')->whereNotNull('file_path') as $req)
+                                                    <li>
+                                                        <a href="{{ \Illuminate\Support\Facades\Storage::url($req->file_path) }}"
+                                                           target="_blank">
+                                                            📎 View requirement document
+                                                        </a>
+                                                    </li>
+                                                @endforeach
+                                            </ul>
+                                        </div>
+                                    @endif
                                 </div>
                             @endif
                         </td>
