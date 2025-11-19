@@ -138,6 +138,8 @@ Route::middleware(['auth','history','verified'])->group(function () {
         Route::post('/training/{training}/send-for-approval', 'sendForApproval')->name('trainings.send_for_approval');
         Route::post('/training/{training}/registrar-approve', 'registrarApprove')->name('trainings.registrar_approve');
         Route::post('/training/{training}/registrar-reject', 'registrarReject')->name('trainings.registrar_reject');
+        Route::post('/training/{training}/hqReject', 'hqReject')->name('trainings.hqReject');
+
         Route::post('/training/{training}/hq-review', 'hqReview')->name('trainings.hq_review');
         Route::post('/training/{training}/director-approve', 'directorApprove')->name('trainings.director_approve');
         Route::post('/training/{training}/director-reject', 'directorReject')->name('trainings.director_reject');

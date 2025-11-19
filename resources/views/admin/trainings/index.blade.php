@@ -152,10 +152,11 @@
                             </td>
 
                             {{-- Status with badge --}}
-                            {{-- Status with badge --}}
-                            {{-- Status with badge --}}
                             <td>
+
                                 @php
+
+
                                     $status = $training->status;
 
                                     $badgeClass = match ($status) {
@@ -165,12 +166,37 @@
                                         \App\Models\Training::STATUS_HQ_REVIEWED           => 'badge bg-primary',
                                         \App\Models\Training::STATUS_APPROVED              => 'badge bg-success',
                                         \App\Models\Training::STATUS_REJECTED              => 'badge bg-danger',
-                                        default                                            => 'badge bg-secondary',
+                                        default                                => 'badge bg-secondary',
                                     };
                                 @endphp
 
-                                <span class="{{ $badgeClass }}">{{ $status ?? '-' }}</span>
+                                {{-- Status badge --}}
+                                <span class="{{ $badgeClass }}">
+        {{ $status }}
+    </span>
+
+                                {{-- 🔶 Rejection popup indicator --}}
+                                @if($training->status ===  \App\Models\Training::STATUS_REJECTED && $training->rejection_comment)
+                                    <span
+                                        class="ms-1 text-warning"
+                                        style="cursor: pointer;"
+                                        data-bs-toggle="tooltip"
+                                        data-bs-html="true"
+                                        title="
+                <strong>Returned with comments</strong><br>
+                Stage: {{ ucfirst(str_replace('_',' ', $training->rejection_stage)) }}<br>
+                {{ $training->rejection_comment }}<br>
+                @if($training->rejected_at)
+                    <small class='text-muted'>On {{ $training->rejected_at->format('d M Y H:i') }}</small>
+                @endif
+            "
+                                    >
+            <i class="fa-solid fa-circle-exclamation"></i>
+        </span>
+                                @endif
+
                             </td>
+
 
 
                             {{-- Cost --}}
@@ -333,4 +359,16 @@
             </div>
         @endif
     </div>
+
+    @push('scripts')
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+                tooltipTriggerList.map(function (tooltipTriggerEl) {
+                    return new bootstrap.Tooltip(tooltipTriggerEl)
+                })
+            });
+        </script>
+    @endpush
+
 @endsection

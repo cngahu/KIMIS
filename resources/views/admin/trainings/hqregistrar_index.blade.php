@@ -66,17 +66,26 @@
                                             Approve
                                         </button>
                                     </form>
-
-                                    <form action="{{ route('trainings.registrar_reject', $training) }}"
-                                          method="POST"
-                                          class="d-inline">
+                                    <form action="{{ route('trainings.hqReject', $training) }}" method="POST">
                                         @csrf
-                                        <button type="submit"
-                                                class="btn btn-sm btn-danger mb-1"
-                                                onclick="return confirm('Reject this training?');">
+                                        @method('POST')
+                                        <textarea name="reason" class="form-control" rows="2" required
+                                                  placeholder="Enter rejection comments for HOD..."></textarea>
+                                        <button type="submit" class="btn btn-sm btn-danger mt-1">
                                             Reject
                                         </button>
                                     </form>
+
+{{--                                    <form action="{{ route('trainings.registrar_reject', $training) }}"--}}
+{{--                                          method="POST"--}}
+{{--                                          class="d-inline">--}}
+{{--                                        @csrf--}}
+{{--                                        <button type="submit"--}}
+{{--                                                class="btn btn-sm btn-danger mb-1"--}}
+{{--                                                onclick="return confirm('Reject this training?');">--}}
+{{--                                            Reject--}}
+{{--                                        </button>--}}
+{{--                                    </form>--}}
 
                                 </td>
                             </tr>
