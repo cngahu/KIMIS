@@ -195,7 +195,14 @@
                 </a>
             </li>
         @endif
+        <li class="menu-label">Course Applications</li>
+        <li>
 
+            <a href="{{route('registrar.applications')}}">
+                <div class="parent-icon"><i class='bx bx-cookie'></i></div>
+                <div class="menu-title">Course Applications</div>
+            </a>
+        </li>
         {{-- HOD MENU --}}
         @if(Auth::user()->hasRole('hod'))
             <li class="menu-label">Department</li>

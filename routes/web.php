@@ -15,6 +15,7 @@ use App\Http\Controllers\Backend\CountyController;
 use App\Http\Controllers\Backend\SubcountyController;
 use App\Http\Controllers\Backend\PostalCodeController;
 use App\Http\Controllers\Backend\RequirementController;
+use App\Http\Controllers\Admin\RegistrarApplicationController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -58,6 +59,20 @@ Route::middleware(['auth','history','verified'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+
+    Route::prefix('admin/registrar')->group(function () {
+
+        Route::get('/applications',
+            [RegistrarApplicationController::class, 'index'])
+            ->name('registrar.applications');
+
+        Route::post('/applications/{application}/assign',
+            [RegistrarApplicationController::class, 'assignReviewer'])
+            ->name('registrar.assign');
+
+    });
+
 
 
 
