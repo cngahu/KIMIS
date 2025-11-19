@@ -172,33 +172,66 @@
 
                             
                             <td class="text-center">
+                                
                                 <a href="<?php echo e(route('trainings.show', $training)); ?>"
                                    class="btn btn-sm btn-outline-info"
                                    title="View Training">
                                     <i class="fa-solid fa-eye icon-brown"></i>
                                 </a>
 
-                                <a href="<?php echo e(route('trainings.edit', $training)); ?>"
-                                   class="btn btn-sm btn-outline-warning"
-                                   title="Edit Training">
-                                    <i class="fa-solid fa-pen-to-square icon-brown"></i>
-                                </a>
+                                <?php
+                                    $isHod    = auth()->user()->hasRole('hod');
+                                    $isDraft  = $training->status === \App\Models\Training::STATUS_DRAFT;
+                                ?>
 
-                                <form action="<?php echo e(route('trainings.delete', $training)); ?>"
-                                      method="POST"
-                                      class="d-inline js-confirm-form"
-                                      data-confirm-title="Delete this training?"
-                                      data-confirm-text="This will permanently delete this training record."
-                                      data-confirm-icon="warning"
-                                      data-confirm-button="Yes, delete it"
-                                      data-cancel-button="No, keep it">
-                                    <?php echo csrf_field(); ?>
-                                    <?php echo method_field('DELETE'); ?>
-                                    <button class="btn btn-sm btn-outline-danger" type="submit" title="Delete Training">
-                                        <i class="fa-solid fa-trash icon-brown"></i>
+                                
+                                <?php if($isHod && $isDraft || auth()->user()->hasRole('superadmin')): ?>
+                                    <a href="<?php echo e(route('trainings.edit', $training)); ?>"
+                                       class="btn btn-sm btn-outline-warning"
+                                       title="Edit Training">
+                                        <i class="fa-solid fa-pen-to-square icon-brown"></i>
+                                    </a>
+                                <?php else: ?>
+                                    
+                                    <button class="btn btn-sm btn-outline-secondary" type="button" disabled
+                                            title="Cannot edit once submitted for approval">
+                                        <i class="fa-solid fa-lock"></i>
                                     </button>
-                                </form>
+                                <?php endif; ?>
+
+                                
+                                <?php if($isHod && $isDraft): ?>
+                                    <form action="<?php echo e(route('trainings.submit', $training)); ?>"
+                                          method="POST"
+                                          class="d-inline">
+                                        <?php echo csrf_field(); ?>
+                                        <button type="submit"
+                                                class="btn btn-sm btn-outline-primary"
+                                                title="Send to Registrar for approval">
+                                            <i class="fa-solid fa-paper-plane"></i> Submit
+                                        </button>
+                                    </form>
+                                <?php endif; ?>
+
+                                
+                                <?php if($isDraft || auth()->user()->hasRole('superadmin')): ?>
+                                    <form action="<?php echo e(route('trainings.delete', $training)); ?>"
+                                          method="POST"
+                                          class="d-inline js-confirm-form"
+                                          data-confirm-title="Delete this training?"
+                                          data-confirm-text="This will permanently delete this training record."
+                                          data-confirm-icon="warning"
+                                          data-confirm-button="Yes, delete it"
+                                          data-cancel-button="No, keep it">
+                                        <?php echo csrf_field(); ?>
+                                        <?php echo method_field('DELETE'); ?>
+                                        <button class="btn btn-sm btn-outline-danger" type="submit" title="Delete Training">
+                                            <i class="fa-solid fa-trash icon-brown"></i>
+                                        </button>
+                                    </form>
+                                <?php endif; ?>
                             </td>
+
                         </tr>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </tbody>

@@ -85,7 +85,7 @@ class TrainingController extends Controller
 
         // Link to logged-in user
         $data['user_id'] = Auth::id();
-        $data['status'] = 'Pending';
+        $data['status'] = \App\Models\Training::STATUS_DRAFT;
 
         Training::create($data);
 
@@ -122,6 +122,15 @@ class TrainingController extends Controller
      */
     public function update(Request $request, Training $training)
     {
+        $user = Auth::user();
+        if ($user->hasRole('hod') &&
+            $training->status !== Training::STATUS_DRAFT) {
+
+            return redirect()
+                ->route('all.trainings')
+                ->with('error', 'You cannot edit this training once it has been submitted for approval.');
+        }
+
         $data = $request->validate([
             'course_id'   => 'required|exists:courses,id',
             'college_id'  => 'required|exists:colleges,id',
@@ -132,7 +141,7 @@ class TrainingController extends Controller
         ]);
 
         // Optionally update user_id to "last edited by"
-        $data['user_id'] = Auth::id();
+        $data['user_id'] = $user;
 
         $training->update($data);
 
@@ -151,5 +160,44 @@ class TrainingController extends Controller
         return redirect()
             ->route('all.trainings')
             ->with('success', 'Training deleted successfully.');
+    }
+
+    public function submitForApproval(Training $training)
+    {
+        $user = Auth::user();
+
+        // Only HOD can submit (adjust as you like)
+        if (! $user->hasRole('hod')) {
+            abort(403, 'Only HOD can submit trainings for approval.');
+        }
+
+        // Only Draft trainings can be submitted
+        if ($training->status !== Training::STATUS_DRAFT) {
+            return back()->with('error', 'Only trainings in Draft status can be submitted for approval.');
+        }
+
+        $training->status = Training::STATUS_PENDING_REGISTRAR;
+        // Optional tracking fields if you have them:
+        // $training->submitted_by = $user->id;
+        // $training->submitted_at = now();
+        $training->save();
+
+        return back()->with('success', 'Training sent to Registrar for approval.');
+    }
+
+    public function registrarIndex(Request $request)
+    {
+        $user = auth()->user();
+
+        if (! $user->hasAnyRole(['campus_registrar', 'kihbt_registrar', 'superadmin'])) {
+            abort(403);
+        }
+
+        $trainings = Training::with(['course', 'college', 'user'])
+            ->where('status', Training::STATUS_PENDING_REGISTRAR)
+            ->orderBy('start_date', 'asc')
+            ->paginate(15);
+
+        return view('admin.trainings.registrar_index', compact('trainings'));
     }
 }

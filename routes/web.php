@@ -130,6 +130,14 @@ Route::middleware(['auth','history','verified'])->group(function () {
         Route::get('/training/edit/{training}', 'edit')->name('trainings.edit');          // Edit training
         Route::put('/training/update/{training}', 'update')->name('trainings.update');    // Update training
         Route::delete('/training/delete/{training}', 'destroy')->name('trainings.delete'); // Delete training
+
+
+        Route::post('/training/{training}/submit-for-approval', 'submitForApproval')->name('trainings.submit');
+
+        // 🔸 Registrar view pending trainings
+     Route::get('/registrar/trainings/pending', 'registrarIndex')->name('registrar.trainings.pending')
+        ->middleware('role:campus_registrar|kihbt_registrar|superadmin');
+
     });
 
 

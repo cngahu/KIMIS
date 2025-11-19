@@ -29,7 +29,7 @@ class AuthenticatedSessionController extends Controller
     /**
      * Handle an incoming authentication request.
      */
-    public function store0(LoginRequest $request): RedirectResponse
+    public function store(LoginRequest $request): RedirectResponse
     {
 
         $request->authenticate();
@@ -42,13 +42,22 @@ class AuthenticatedSessionController extends Controller
         elseif($request->user()->hasRole('superadmin')){
             $url='/dashboard';
         }
+
+        elseif($request->user()->hasRole('hod')){
+            $url='/dashboard';
+        }
+
+        elseif($request->user()->hasRole('campus_registrar')){
+            $url='/dashboard';
+        }
         else {
             abort(403);
         }
+        return redirect($url);
 //        return redirect()->intended(RouteServiceProvider::HOME);
-        return redirect()->intended($url);
+       // return redirect()->intended($url);
     }
-    public function store(LoginRequest $request)
+    public function store1(LoginRequest $request)
     {
         // First: validate email + password
         $request->authenticate();
@@ -139,10 +148,18 @@ class AuthenticatedSessionController extends Controller
         // ROLE REDIRECT
         if ($user->hasRole('applicant')) {
             return redirect('applicant/dashboard');
-        } elseif ($user->hasRole('superadmin')) {
+        }
+        elseif ($user->hasRole('superadmin')) {
             return redirect('/dashboard');
         }
 
+        elseif ($user->hasRole('hod')) {
+            return redirect('/dashboard');
+        }
+
+        elseif($request->user()->hasRole('campus_registrar')){
+            $url='/dashboard';
+}
         abort(403);
     }
     public function resendOtp()

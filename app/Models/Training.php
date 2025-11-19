@@ -25,6 +25,15 @@ class Training extends Model
         return $this->belongsTo(User::class);
     }
 
+    public const STATUS_DRAFT                     = 'Draft';
+    public const STATUS_PENDING_REGISTRAR          = 'Pending Registrar Approval';
+    public const STATUS_REGISTRAR_APPROVED_HQ      = 'Registrar Approved - Pending HQ Review';
+    public const STATUS_HQ_REVIEWED                = 'HQ Reviewed';
+    public const STATUS_APPROVED                   = 'Approved'; // Final Approval
+    public const STATUS_REJECTED                   = 'Rejected';
+
+
+
     protected $fillable = [
         'course_id',
         'college_id',

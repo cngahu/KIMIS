@@ -40,11 +40,44 @@
             </div>
         </div>
 
-        <a href="{{ route('trainings.edit', $training) }}" class="btn btn-warning">
-            Edit
-        </a>
+        @php
+            use App\Models\Training;
+
+            $user = auth()->user();
+            $status = $training->status;
+
+            $isHod = $user->hasRole('hod');
+            $isSuper = $user->hasRole('superadmin');
+
+            // HOD can only edit/delete when Draft
+            $canEdit = ($isSuper || ($isHod && $status === Training::STATUS_DRAFT));
+            $canDelete = $canEdit;
+        @endphp
+
         <a href="{{ route('all.trainings') }}" class="btn btn-secondary">
             Back
         </a>
+
+        {{-- EDIT BUTTON --}}
+        @if($canEdit)
+            <a href="{{ route('trainings.edit', $training) }}" class="btn btn-warning">
+                Edit
+            </a>
+        @endif
+
+        {{-- DELETE BUTTON --}}
+        @if($canDelete)
+            <form action="{{ route('trainings.delete', $training) }}"
+                  method="POST"
+                  class="d-inline"
+                  onsubmit="return confirm('Are you sure you want to delete this training?');">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="btn btn-danger">
+                    Delete
+                </button>
+            </form>
+        @endif
+
     </div>
 @endsection

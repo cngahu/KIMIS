@@ -22,33 +22,22 @@ class AdminController extends Controller
 
     public function AdminDashboard()
     {
-        $user=User::find(Auth::user()->id);
-//        if($user->must_change_password==1)
-//        {
-//            return redirect()->route('admin.change.password');
-//        }
-//        else{
-//
-//        }
+        $user = Auth::user(); // no need to re-find
 
-        if($user->hasRole('superadmin'))
-        {
+        // 1) Staff dashboard: superadmin + hod
+        if ($user->hasAnyRole(['superadmin', 'hod','campus_registrar'])) {
             return view('admin.index');
         }
-       elseif($user->hasRole('applicant'))
-        {
-          return redirect()->route('applicant.dashboard');
-        }
-        else
-        {
-            abort(404);
+
+        // 2) If somehow an applicant hits /dashboard, redirect them properly
+        if ($user->hasRole('applicant')) {
+            return redirect()->route('applicant.dashboard');
         }
 
-
-
-
-
+        // 3) Everyone else: forbidden (or 404 if you prefer hiding it)
+        abort(403); // or abort(404);
     }
+
 
     public function Logout(Request $request){
         Auth::guard('web')->logout();

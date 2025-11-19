@@ -168,33 +168,68 @@
 
                             {{-- Actions --}}
                             <td class="text-center">
+                                {{-- View always allowed --}}
                                 <a href="{{ route('trainings.show', $training) }}"
                                    class="btn btn-sm btn-outline-info"
                                    title="View Training">
                                     <i class="fa-solid fa-eye icon-brown"></i>
                                 </a>
 
-                                <a href="{{ route('trainings.edit', $training) }}"
-                                   class="btn btn-sm btn-outline-warning"
-                                   title="Edit Training">
-                                    <i class="fa-solid fa-pen-to-square icon-brown"></i>
-                                </a>
+                                @php
+                                    $isHod    = auth()->user()->hasRole('hod');
+                                    $isDraft  = $training->status === \App\Models\Training::STATUS_DRAFT;
+                                @endphp
 
-                                <form action="{{ route('trainings.delete', $training) }}"
-                                      method="POST"
-                                      class="d-inline js-confirm-form"
-                                      data-confirm-title="Delete this training?"
-                                      data-confirm-text="This will permanently delete this training record."
-                                      data-confirm-icon="warning"
-                                      data-confirm-button="Yes, delete it"
-                                      data-cancel-button="No, keep it">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button class="btn btn-sm btn-outline-danger" type="submit" title="Delete Training">
-                                        <i class="fa-solid fa-trash icon-brown"></i>
+                                {{-- Edit: allowed for:
+                                     - HOD only if Draft
+                                     - Superadmin (if you want) --}}
+                                @if($isHod && $isDraft || auth()->user()->hasRole('superadmin'))
+                                    <a href="{{ route('trainings.edit', $training) }}"
+                                       class="btn btn-sm btn-outline-warning"
+                                       title="Edit Training">
+                                        <i class="fa-solid fa-pen-to-square icon-brown"></i>
+                                    </a>
+                                @else
+                                    {{-- disabled edit button --}}
+                                    <button class="btn btn-sm btn-outline-secondary" type="button" disabled
+                                            title="Cannot edit once submitted for approval">
+                                        <i class="fa-solid fa-lock"></i>
                                     </button>
-                                </form>
+                                @endif
+
+                                {{-- HOD: Send for approval button, only when Draft --}}
+                                @if($isHod && $isDraft)
+                                    <form action="{{ route('trainings.submit', $training) }}"
+                                          method="POST"
+                                          class="d-inline">
+                                        @csrf
+                                        <button type="submit"
+                                                class="btn btn-sm btn-outline-primary"
+                                                title="Send to Registrar for approval">
+                                            <i class="fa-solid fa-paper-plane"></i> Submit
+                                        </button>
+                                    </form>
+                                @endif
+
+                                {{-- Delete maybe only when Draft; adjust as you like --}}
+                                @if($isDraft || auth()->user()->hasRole('superadmin'))
+                                    <form action="{{ route('trainings.delete', $training) }}"
+                                          method="POST"
+                                          class="d-inline js-confirm-form"
+                                          data-confirm-title="Delete this training?"
+                                          data-confirm-text="This will permanently delete this training record."
+                                          data-confirm-icon="warning"
+                                          data-confirm-button="Yes, delete it"
+                                          data-cancel-button="No, keep it">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button class="btn btn-sm btn-outline-danger" type="submit" title="Delete Training">
+                                            <i class="fa-solid fa-trash icon-brown"></i>
+                                        </button>
+                                    </form>
+                                @endif
                             </td>
+
                         </tr>
                     @endforeach
                     </tbody>
