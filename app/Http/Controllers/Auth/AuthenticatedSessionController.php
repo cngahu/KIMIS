@@ -50,6 +50,16 @@ class AuthenticatedSessionController extends Controller
         elseif($request->user()->hasRole('campus_registrar')){
             $url='/dashboard';
         }
+
+        elseif($request->user()->hasRole('kihbt_registrar')) {
+            $url = '/dashboard';
+        }
+
+        elseif($request->user()->hasRole('director')) {
+            $url = '/dashboard';
+        }
+
+
         else {
             abort(403);
         }
@@ -157,9 +167,16 @@ class AuthenticatedSessionController extends Controller
             return redirect('/dashboard');
         }
 
-        elseif($request->user()->hasRole('campus_registrar')){
+        elseif($request->user()->hasRole('campus_registrar')) {
+            $url = '/dashboard';
+        }
+        elseif($request->user()->hasRole('kihbt_registrar')){
             $url='/dashboard';
-}
+         }
+
+        elseif($request->user()->hasRole('director')) {
+            $url = '/dashboard';
+        }
         abort(403);
     }
     public function resendOtp()

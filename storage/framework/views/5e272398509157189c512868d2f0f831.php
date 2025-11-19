@@ -4,6 +4,12 @@
             color: #6B3A0E !important;
         }
     </style>
+    <?php
+        $authUser = auth()->user();
+        $isHod    = $authUser->hasRole('hod');
+        $isSuper  = $authUser->hasRole('superadmin');
+        $isRegistrar = $authUser->hasAnyRole(['campus_registrar', 'kihbt_registrar']);
+    ?>
 
     <div class="container">
 
@@ -150,22 +156,26 @@
                             </td>
 
                             
+                            
+                            
                             <td>
-                                <?php if($training->status): ?>
-                                    <?php
-                                        $statusClass = match($training->status) {
-                                            'Active'    => 'badge bg-success',
-                                            'Pending'   => 'badge bg-warning text-dark',
-                                            'Completed' => 'badge bg-primary',
-                                            'Cancelled' => 'badge bg-danger',
-                                            default     => 'badge bg-secondary',
-                                        };
-                                    ?>
-                                    <span class="<?php echo e($statusClass); ?>"><?php echo e($training->status); ?></span>
-                                <?php else: ?>
-                                    -
-                                <?php endif; ?>
+                                <?php
+                                    $status = $training->status;
+
+                                    $badgeClass = match ($status) {
+                                        \App\Models\Training::STATUS_DRAFT                 => 'badge bg-secondary',
+                                        \App\Models\Training::STATUS_PENDING_REGISTRAR     => 'badge bg-warning text-dark',
+                                        \App\Models\Training::STATUS_REGISTRAR_APPROVED_HQ => 'badge bg-info text-dark',
+                                        \App\Models\Training::STATUS_HQ_REVIEWED           => 'badge bg-primary',
+                                        \App\Models\Training::STATUS_APPROVED              => 'badge bg-success',
+                                        \App\Models\Training::STATUS_REJECTED              => 'badge bg-danger',
+                                        default                                            => 'badge bg-secondary',
+                                    };
+                                ?>
+
+                                <span class="<?php echo e($badgeClass); ?>"><?php echo e($status ?? '-'); ?></span>
                             </td>
+
 
                             
 
@@ -180,41 +190,22 @@
                                 </a>
 
                                 <?php
-                                    $isHod    = auth()->user()->hasRole('hod');
-                                    $isDraft  = $training->status === \App\Models\Training::STATUS_DRAFT;
+                                    $user = Auth::user();
+                                    $isHod      = $user->hasRole('hod');
+                                    $isCampus   = $user->hasRole('campus_registrar');
+                                    $isKihbt    = $user->hasRole('kihbt_registrar');
+                                    $isDirector = $user->hasRole('director');
+                                    $isSuper    = $user->hasRole('superadmin');
                                 ?>
 
                                 
-                                <?php if($isHod && $isDraft || auth()->user()->hasRole('superadmin')): ?>
+                                <?php if(($isHod && $training->isEditableByHod()) || $isSuper): ?>
                                     <a href="<?php echo e(route('trainings.edit', $training)); ?>"
                                        class="btn btn-sm btn-outline-warning"
                                        title="Edit Training">
                                         <i class="fa-solid fa-pen-to-square icon-brown"></i>
                                     </a>
-                                <?php else: ?>
-                                    
-                                    <button class="btn btn-sm btn-outline-secondary" type="button" disabled
-                                            title="Cannot edit once submitted for approval">
-                                        <i class="fa-solid fa-lock"></i>
-                                    </button>
-                                <?php endif; ?>
 
-                                
-                                <?php if($isHod && $isDraft): ?>
-                                    <form action="<?php echo e(route('trainings.submit', $training)); ?>"
-                                          method="POST"
-                                          class="d-inline">
-                                        <?php echo csrf_field(); ?>
-                                        <button type="submit"
-                                                class="btn btn-sm btn-outline-primary"
-                                                title="Send to Registrar for approval">
-                                            <i class="fa-solid fa-paper-plane"></i> Submit
-                                        </button>
-                                    </form>
-                                <?php endif; ?>
-
-                                
-                                <?php if($isDraft || auth()->user()->hasRole('superadmin')): ?>
                                     <form action="<?php echo e(route('trainings.delete', $training)); ?>"
                                           method="POST"
                                           class="d-inline js-confirm-form"
@@ -230,7 +221,86 @@
                                         </button>
                                     </form>
                                 <?php endif; ?>
+
+                                
+                                <?php if(($isHod || $isSuper) && $training->isEditableByHod()): ?>
+                                    <form action="<?php echo e(route('trainings.send_for_approval', $training)); ?>"
+                                          method="POST"
+                                          class="d-inline">
+                                        <?php echo csrf_field(); ?>
+                                        <button type="submit"
+                                                class="btn btn-sm btn-outline-primary"
+                                                title="Send to Registrar for Approval">
+                                            <i class="fa-solid fa-paper-plane icon-brown"></i> Submit
+                                        </button>
+                                    </form>
+                                <?php endif; ?>
+
+                                
+                                <?php if(($isCampus || $isSuper) && $training->status === \App\Models\Training::STATUS_PENDING_REGISTRAR): ?>
+                                    <form action="<?php echo e(route('trainings.registrar_approve', $training)); ?>"
+                                          method="POST"
+                                          class="d-inline">
+                                        <?php echo csrf_field(); ?>
+                                        <button type="submit"
+                                                class="btn btn-sm btn-success"
+                                                title="Approve and send to HQ">
+                                            <i class="fa-solid fa-check"></i>
+                                        </button>
+                                    </form>
+
+                                    <form action="<?php echo e(route('trainings.registrar_reject', $training)); ?>"
+                                          method="POST"
+                                          class="d-inline">
+                                        <?php echo csrf_field(); ?>
+                                        <button type="submit"
+                                                class="btn btn-sm btn-danger"
+                                                title="Reject training">
+                                            <i class="fa-solid fa-times"></i>
+                                        </button>
+                                    </form>
+                                <?php endif; ?>
+
+                                
+                                <?php if(($isKihbt || $isSuper) && $training->status === \App\Models\Training::STATUS_REGISTRAR_APPROVED_HQ): ?>
+                                    <form action="<?php echo e(route('trainings.hq_review', $training)); ?>"
+                                          method="POST"
+                                          class="d-inline">
+                                        <?php echo csrf_field(); ?>
+                                        <button type="submit"
+                                                class="btn btn-sm btn-primary"
+                                                title="Mark as HQ Reviewed">
+                                            <i class="fa-solid fa-search"></i> HQ Review
+                                        </button>
+                                    </form>
+                                <?php endif; ?>
+
+                                
+                                <?php if(($isDirector || $isSuper) && $training->status === \App\Models\Training::STATUS_HQ_REVIEWED): ?>
+                                    <form action="<?php echo e(route('trainings.director_approve', $training)); ?>"
+                                          method="POST"
+                                          class="d-inline">
+                                        <?php echo csrf_field(); ?>
+                                        <button type="submit"
+                                                class="btn btn-sm btn-success"
+                                                title="Final Approve">
+                                            <i class="fa-solid fa-check-double"></i>
+                                        </button>
+                                    </form>
+
+                                    <form action="<?php echo e(route('trainings.director_reject', $training)); ?>"
+                                          method="POST"
+                                          class="d-inline">
+                                        <?php echo csrf_field(); ?>
+                                        <button type="submit"
+                                                class="btn btn-sm btn-danger"
+                                                title="Reject">
+                                            <i class="fa-solid fa-times-circle"></i>
+                                        </button>
+                                    </form>
+                                <?php endif; ?>
                             </td>
+
 
                         </tr>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>

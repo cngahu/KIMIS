@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
+use App\Models\Training;
 
 use Spatie\Permission\Models\Permission;
 
@@ -22,21 +23,30 @@ class AdminController extends Controller
 
     public function AdminDashboard()
     {
-        $user = Auth::user(); // no need to re-find
+        $user = User::find(Auth::user()->id);
 
-        // 1) Staff dashboard: superadmin + hod
-        if ($user->hasAnyRole(['superadmin', 'hod','campus_registrar'])) {
-            return view('admin.index');
+        if ($user->hasRole('superadmin') || $user->hasRole('hod') || $user->hasAnyRole(['campus_registrar', 'kihbt_registrar','director'])) {
+
+            $draftCount     = Training::where('status', Training::STATUS_DRAFT)->count();
+            $pendingCount   = Training::where('status', Training::STATUS_PENDING_REGISTRAR)->count();
+            $approvedCount  = Training::where('status', Training::STATUS_APPROVED)->count();
+            $rejectedCount  = Training::where('status', Training::STATUS_REJECTED)->count();
+
+            return view('admin.index', compact(
+                'draftCount',
+                'pendingCount',
+                'approvedCount',
+                'rejectedCount'
+            ));
         }
-
-        // 2) If somehow an applicant hits /dashboard, redirect them properly
-        if ($user->hasRole('applicant')) {
+        elseif ($user->hasRole('applicant')) {
             return redirect()->route('applicant.dashboard');
         }
-
-        // 3) Everyone else: forbidden (or 404 if you prefer hiding it)
-        abort(403); // or abort(404);
+        else {
+            abort(404);
+        }
     }
+
 
 
     public function Logout(Request $request){

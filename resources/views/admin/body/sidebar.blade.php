@@ -220,6 +220,89 @@
             </li>
         @endif
 
+        {{-- REGISTRAR MENU --}}
+        @if(Auth::user()->hasRole('campus_registrar'))
+            <li class="menu-label">Department</li>
+
+            <li>
+                <a href="javascript:;" class="has-arrow">
+                    <div class="parent-icon"><i class='bx bx-calendar-event'></i></div>
+                    <div class="menu-title">Registrar Actions</div>
+                </a>
+                <ul>
+
+                    <li>
+                        <a href="{{ route('trainings.registrar.index') }}">
+                            <i class="bx bx-right-arrow-alt"></i> Registrar Approval Queue
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="{{ route('all.courses') }}">
+                            <i class="bx bx-right-arrow-alt"></i>Courses
+                        </a>
+                    </li>
+                </ul>
+            </li>
+        @endif
+
+        {{-- HQ REGISTRAR MENU --}}
+        @if(Auth::user()->hasRole('kihbt_registrar'))
+            <li class="menu-label">Department</li>
+
+            <li>
+                <a href="javascript:;" class="has-arrow">
+                    <div class="parent-icon"><i class='bx bx-calendar-event'></i></div>
+                    <div class="menu-title">Registrar Actions</div>
+                </a>
+                <ul>
+
+                    <li>
+                        <a href="{{ route('trainings.hqregistrar.index') }}">
+                            <i class="bx bx-right-arrow-alt"></i>  HQ Registrar Approval Queue
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="{{ route('all.courses') }}">
+                            <i class="bx bx-right-arrow-alt"></i>Courses
+                        </a>
+                    </li>
+                </ul>
+            </li>
+        @endif
+
+
+        {{-- HQ REGISTRAR MENU --}}
+        @if(Auth::user()->hasRole('director'))
+            <li class="menu-label">Director Dashboard</li>
+
+            <li>
+                <a href="javascript:;" class="has-arrow">
+                    <div class="parent-icon"><i class='bx bx-calendar-event'></i></div>
+                    <div class="menu-title">Director Actions</div>
+                </a>
+                <ul>
+
+                    <li>
+                        <a href="{{ route('trainings.drregistrar.index') }}">
+                            <i class="bx bx-right-arrow-alt"></i>  Director Approval Queue
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="{{ route('all.courses') }}">
+                            <i class="bx bx-right-arrow-alt"></i>Courses
+                        </a>
+                    </li>
+                </ul>
+            </li>
+        @endif
+
+
     </ul>
+
+
+
     <!--end navigation-->
 </div>

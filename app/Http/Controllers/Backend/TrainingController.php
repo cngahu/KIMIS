@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Backend;
+
 use App\Http\Controllers\Controller;
 use App\Models\Training;
 use App\Models\Course;
@@ -10,12 +11,16 @@ use Illuminate\Support\Facades\Auth;
 
 class TrainingController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(['auth', 'verified']);
+    }
+
     /**
      * Display a listing of the trainings.
      */
     public function index(Request $request)
     {
-        // Optional simple filters (can be expanded later)
         $search  = $request->input('search');
         $status  = $request->input('status');
         $course  = $request->input('course_id');
@@ -43,7 +48,16 @@ class TrainingController extends Controller
 
         $courses  = Course::orderBy('course_name')->get();
         $colleges = College::orderBy('name')->get();
-        $statuses = ['Pending', 'Active', 'Completed', 'Cancelled'];
+
+        // Statuses used in filters
+        $statuses = [
+            Training::STATUS_DRAFT,
+            Training::STATUS_PENDING_REGISTRAR,
+            Training::STATUS_REGISTRAR_APPROVED_HQ,
+            Training::STATUS_HQ_REVIEWED,
+            Training::STATUS_APPROVED,
+            Training::STATUS_REJECTED,
+        ];
 
         return view('admin.trainings.index', compact(
             'trainings',
@@ -59,39 +73,46 @@ class TrainingController extends Controller
 
     /**
      * Show the form for creating a new training.
+     * Only HOD & superadmin.
      */
     public function create()
     {
+        if (! Auth::user()->hasAnyRole(['hod', 'superadmin'])) {
+            abort(403);
+        }
+
         $courses  = Course::orderBy('course_name')->get();
         $colleges = College::orderBy('name')->get();
-        $statuses = ['Pending', 'Active', 'Completed', 'Cancelled'];
 
-        return view('admin.trainings.create', compact('courses', 'colleges', 'statuses'));
+        return view('admin.trainings.create', compact('courses', 'colleges'));
     }
 
     /**
      * Store a newly created training in storage.
+     * Saved as Draft.
      */
     public function store(Request $request)
     {
-        $data = $request->validate([
-            'course_id'   => 'required|exists:courses,id',
-            'college_id'  => 'required|exists:colleges,id',
-            'start_date'  => 'required|date',
-            'end_date'    => 'nullable|date|after_or_equal:start_date',
-            'status'      => 'nullable|string|max:50', // or 'required|in:Pending,Active,Completed,Cancelled'
+        if (! Auth::user()->hasAnyRole(['hod', 'superadmin'])) {
+            abort(403);
+        }
 
+        $data = $request->validate([
+            'course_id'  => 'required|exists:courses,id',
+            'college_id' => 'required|exists:colleges,id',
+            'start_date' => 'required|date',
+            'end_date'   => 'nullable|date|after_or_equal:start_date',
+            'cost'       => 'required|numeric|min:0',
         ]);
 
-        // Link to logged-in user
         $data['user_id'] = Auth::id();
-        $data['status'] = \App\Models\Training::STATUS_DRAFT;
+        $data['status']  = Training::STATUS_DRAFT;
 
-        Training::create($data);
+        $training = Training::create($data);
 
         return redirect()
-            ->route('all.trainings')
-            ->with('success', 'Training created successfully.');
+            ->route('trainings.edit', $training)
+            ->with('success', 'Training created as Draft. You can now review and send for approval.');
     }
 
     /**
@@ -99,7 +120,6 @@ class TrainingController extends Controller
      */
     public function show(Training $training)
     {
-        // Eager load relations if not already
         $training->load(['course', 'college', 'user']);
 
         return view('admin.trainings.show', compact('training'));
@@ -107,14 +127,26 @@ class TrainingController extends Controller
 
     /**
      * Show the form for editing the specified training.
+     * HOD can edit only Draft/Rejected, superadmin any.
      */
     public function edit(Training $training)
     {
+        $user = Auth::user();
+
+        if (! $user->hasAnyRole(['hod', 'superadmin'])) {
+            abort(403);
+        }
+
+        if ($user->hasRole('hod') && ! $training->isEditableByHod()) {
+            return redirect()
+                ->route('trainings.show', $training)
+                ->with('error', 'You cannot edit this training once it has been submitted for approval.');
+        }
+
         $courses  = Course::orderBy('course_name')->get();
         $colleges = College::orderBy('name')->get();
-        $statuses = ['Pending', 'Active', 'Completed', 'Cancelled'];
 
-        return view('admin.trainings.edit', compact('training', 'courses', 'colleges', 'statuses'));
+        return view('admin.trainings.edit', compact('training', 'courses', 'colleges'));
     }
 
     /**
@@ -123,38 +155,51 @@ class TrainingController extends Controller
     public function update(Request $request, Training $training)
     {
         $user = Auth::user();
-        if ($user->hasRole('hod') &&
-            $training->status !== Training::STATUS_DRAFT) {
 
+        if (! $user->hasAnyRole(['hod', 'superadmin'])) {
+            abort(403);
+        }
+
+        if ($user->hasRole('hod') && ! $training->isEditableByHod()) {
             return redirect()
-                ->route('all.trainings')
-                ->with('error', 'You cannot edit this training once it has been submitted for approval.');
+                ->route('trainings.show', $training)
+                ->with('error', 'You cannot update this training once it has been submitted for approval.');
         }
 
         $data = $request->validate([
-            'course_id'   => 'required|exists:courses,id',
-            'college_id'  => 'required|exists:colleges,id',
-            'start_date'  => 'required|date',
-            'end_date'    => 'nullable|date|after_or_equal:start_date',
-            'status'      => 'nullable|string|max:50', // or 'required|in:Pending,Active,Completed,Cancelled'
-
+            'course_id'  => 'required|exists:courses,id',
+            'college_id' => 'required|exists:colleges,id',
+            'start_date' => 'required|date',
+            'end_date'   => 'nullable|date|after_or_equal:start_date',
+            'cost'       => 'required|numeric|min:0',
         ]);
 
-        // Optionally update user_id to "last edited by"
-        $data['user_id'] = $user;
+        // Optionally track last edited by
+        $data['user_id'] = Auth::id();
 
         $training->update($data);
 
         return redirect()
-            ->route('trainings.index')
+            ->route('trainings.show', $training)
             ->with('success', 'Training updated successfully.');
     }
 
     /**
      * Remove the specified training from storage.
+     * HOD only Draft/Rejected; superadmin any.
      */
     public function destroy(Training $training)
     {
+        $user = Auth::user();
+
+        if (! $user->hasAnyRole(['hod', 'superadmin'])) {
+            abort(403);
+        }
+
+        if ($user->hasRole('hod') && ! $training->isEditableByHod()) {
+            return back()->with('error', 'You cannot delete this training once it has been submitted for approval.');
+        }
+
         $training->delete();
 
         return redirect()
@@ -162,29 +207,39 @@ class TrainingController extends Controller
             ->with('success', 'Training deleted successfully.');
     }
 
-    public function submitForApproval(Training $training)
+    /**
+     * HOD: send Draft/Rejected training for Registrar approval.
+     */
+    public function sendForApproval(Training $training)
     {
         $user = Auth::user();
 
-        // Only HOD can submit (adjust as you like)
-        if (! $user->hasRole('hod')) {
+        if (! $user->hasAnyRole(['hod', 'superadmin'])) {
             abort(403, 'Only HOD can submit trainings for approval.');
         }
 
-        // Only Draft trainings can be submitted
-        if ($training->status !== Training::STATUS_DRAFT) {
-            return back()->with('error', 'Only trainings in Draft status can be submitted for approval.');
+        if (! $training->isEditableByHod()) {
+            return back()->with('error', 'Only Draft or Rejected trainings can be submitted for approval.');
         }
 
         $training->status = Training::STATUS_PENDING_REGISTRAR;
-        // Optional tracking fields if you have them:
-        // $training->submitted_by = $user->id;
-        // $training->submitted_at = now();
         $training->save();
 
-        return back()->with('success', 'Training sent to Registrar for approval.');
+        return back()->with('success', 'Training sent to Campus Registrar for approval.');
     }
 
+    /**
+     * Backwards-compat: if you already wired a route to submitForApproval,
+     * we just forward to sendForApproval().
+     */
+    public function submitForApproval(Training $training)
+    {
+        return $this->sendForApproval($training);
+    }
+
+    /**
+     * Registrar inbox – list trainings waiting Registrar approval.
+     */
     public function registrarIndex(Request $request)
     {
         $user = auth()->user();
@@ -199,5 +254,149 @@ class TrainingController extends Controller
             ->paginate(15);
 
         return view('admin.trainings.registrar_index', compact('trainings'));
+    }
+
+    public function hqregistrarIndex(Request $request)
+    {
+        $user = auth()->user();
+
+        if (! $user->hasAnyRole(['kihbt_registrar', 'kihbt_registrar', 'superadmin'])) {
+            abort(403);
+        }
+
+        $trainings = Training::with(['course', 'college', 'user'])
+            ->where('status', Training::STATUS_REGISTRAR_APPROVED_HQ)
+            ->orderBy('start_date', 'asc')
+            ->paginate(15);
+
+        return view('admin.trainings.hqregistrar_index', compact('trainings'));
+    }
+
+    public function directorregistrarIndex(Request $request)
+    {
+        $user = auth()->user();
+
+        if (! $user->hasAnyRole(['director', 'superadmin'])) {
+            abort(403);
+        }
+
+        $trainings = Training::with(['course', 'college', 'user'])
+            ->where('status', Training::STATUS_HQ_REVIEWED)
+            ->orderBy('start_date', 'asc')
+            ->paginate(15);
+
+        return view('admin.trainings.drregistrar_index', compact('trainings'));
+    }
+
+    /**
+     * Campus Registrar: approve → send to HQ.
+     */
+    public function registrarApprove(Training $training)
+    {
+        $user = auth()->user();
+
+        if (! $user->hasAnyRole(['campus_registrar', 'superadmin'])) {
+            abort(403);
+        }
+
+        if ($training->status !== Training::STATUS_PENDING_REGISTRAR) {
+            return back()->with('error', 'Only trainings pending Registrar approval can be approved.');
+        }
+
+        $training->status = Training::STATUS_REGISTRAR_APPROVED_HQ;
+        $training->save();
+
+        return back()->with('success', 'Training approved and sent to HQ for review.');
+    }
+
+    /**
+     * Campus Registrar: reject back to HOD.
+     */
+    public function registrarReject(Request $request, Training $training)
+    {
+        $user = auth()->user();
+
+        if (! $user->hasAnyRole(['campus_registrar', 'superadmin'])) {
+            abort(403);
+        }
+
+        if ($training->status !== Training::STATUS_PENDING_REGISTRAR) {
+            return back()->with('error', 'Only trainings pending Registrar approval can be rejected.');
+        }
+
+        // If you later add a 'rejection_reason' column:
+        // $request->validate(['reason' => 'nullable|string|max:1000']);
+        // $training->rejection_reason = $request->input('reason');
+
+        $training->status = Training::STATUS_REJECTED;
+        $training->save();
+
+        return back()->with('success', 'Training rejected and returned to HOD.');
+    }
+
+    /**
+     * KIHBT Registrar (HQ): mark as HQ Reviewed.
+     */
+    public function hqReview(Training $training)
+    {
+        $user = auth()->user();
+
+        if (! $user->hasAnyRole(['kihbt_registrar', 'superadmin'])) {
+            abort(403);
+        }
+
+        if ($training->status !== Training::STATUS_REGISTRAR_APPROVED_HQ) {
+            return back()->with('error', 'Only Registrar-approved trainings can be reviewed by HQ.');
+        }
+
+        $training->status = Training::STATUS_HQ_REVIEWED;
+        $training->save();
+
+        return back()->with('success', 'Training marked as HQ Reviewed.');
+    }
+
+    /**
+     * Director: final approval after HQ review.
+     */
+    public function directorApprove(Training $training)
+    {
+        $user = auth()->user();
+
+        if (! $user->hasAnyRole(['director', 'superadmin'])) {
+            abort(403);
+        }
+
+        if ($training->status !== Training::STATUS_HQ_REVIEWED) {
+            return back()->with('error', 'Only HQ Reviewed trainings can be finally approved.');
+        }
+
+        $training->status = Training::STATUS_APPROVED;
+        $training->save();
+
+        return back()->with('success', 'Training finally approved.');
+    }
+
+    /**
+     * Director: final rejection (while under HQ review).
+     */
+    public function directorReject(Training $training)
+    {
+        $user = auth()->user();
+
+        if (! $user->hasAnyRole(['director', 'superadmin'])) {
+            abort(403);
+        }
+
+        if (! in_array($training->status, [
+            Training::STATUS_REGISTRAR_APPROVED_HQ,
+            Training::STATUS_HQ_REVIEWED,
+        ], true)) {
+            return back()->with('error', 'Only trainings under HQ review can be rejected by the Director.');
+        }
+
+        $training->status = Training::STATUS_REJECTED;
+        $training->save();
+
+        return back()->with('success', 'Training rejected by Director.');
     }
 }

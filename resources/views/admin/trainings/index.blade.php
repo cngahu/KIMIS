@@ -6,6 +6,12 @@
             color: #6B3A0E !important;
         }
     </style>
+    @php
+        $authUser = auth()->user();
+        $isHod    = $authUser->hasRole('hod');
+        $isSuper  = $authUser->hasRole('superadmin');
+        $isRegistrar = $authUser->hasAnyRole(['campus_registrar', 'kihbt_registrar']);
+    @endphp
 
     <div class="container">
 
@@ -146,22 +152,26 @@
                             </td>
 
                             {{-- Status with badge --}}
+                            {{-- Status with badge --}}
+                            {{-- Status with badge --}}
                             <td>
-                                @if($training->status)
-                                    @php
-                                        $statusClass = match($training->status) {
-                                            'Active'    => 'badge bg-success',
-                                            'Pending'   => 'badge bg-warning text-dark',
-                                            'Completed' => 'badge bg-primary',
-                                            'Cancelled' => 'badge bg-danger',
-                                            default     => 'badge bg-secondary',
-                                        };
-                                    @endphp
-                                    <span class="{{ $statusClass }}">{{ $training->status }}</span>
-                                @else
-                                    -
-                                @endif
+                                @php
+                                    $status = $training->status;
+
+                                    $badgeClass = match ($status) {
+                                        \App\Models\Training::STATUS_DRAFT                 => 'badge bg-secondary',
+                                        \App\Models\Training::STATUS_PENDING_REGISTRAR     => 'badge bg-warning text-dark',
+                                        \App\Models\Training::STATUS_REGISTRAR_APPROVED_HQ => 'badge bg-info text-dark',
+                                        \App\Models\Training::STATUS_HQ_REVIEWED           => 'badge bg-primary',
+                                        \App\Models\Training::STATUS_APPROVED              => 'badge bg-success',
+                                        \App\Models\Training::STATUS_REJECTED              => 'badge bg-danger',
+                                        default                                            => 'badge bg-secondary',
+                                    };
+                                @endphp
+
+                                <span class="{{ $badgeClass }}">{{ $status ?? '-' }}</span>
                             </td>
+
 
                             {{-- Cost --}}
 
@@ -176,43 +186,22 @@
                                 </a>
 
                                 @php
-                                    $isHod    = auth()->user()->hasRole('hod');
-                                    $isDraft  = $training->status === \App\Models\Training::STATUS_DRAFT;
+                                    $user = Auth::user();
+                                    $isHod      = $user->hasRole('hod');
+                                    $isCampus   = $user->hasRole('campus_registrar');
+                                    $isKihbt    = $user->hasRole('kihbt_registrar');
+                                    $isDirector = $user->hasRole('director');
+                                    $isSuper    = $user->hasRole('superadmin');
                                 @endphp
 
-                                {{-- Edit: allowed for:
-                                     - HOD only if Draft
-                                     - Superadmin (if you want) --}}
-                                @if($isHod && $isDraft || auth()->user()->hasRole('superadmin'))
+                                {{-- HOD: can edit / delete only Draft or Rejected --}}
+                                @if(($isHod && $training->isEditableByHod()) || $isSuper)
                                     <a href="{{ route('trainings.edit', $training) }}"
                                        class="btn btn-sm btn-outline-warning"
                                        title="Edit Training">
                                         <i class="fa-solid fa-pen-to-square icon-brown"></i>
                                     </a>
-                                @else
-                                    {{-- disabled edit button --}}
-                                    <button class="btn btn-sm btn-outline-secondary" type="button" disabled
-                                            title="Cannot edit once submitted for approval">
-                                        <i class="fa-solid fa-lock"></i>
-                                    </button>
-                                @endif
 
-                                {{-- HOD: Send for approval button, only when Draft --}}
-                                @if($isHod && $isDraft)
-                                    <form action="{{ route('trainings.submit', $training) }}"
-                                          method="POST"
-                                          class="d-inline">
-                                        @csrf
-                                        <button type="submit"
-                                                class="btn btn-sm btn-outline-primary"
-                                                title="Send to Registrar for approval">
-                                            <i class="fa-solid fa-paper-plane"></i> Submit
-                                        </button>
-                                    </form>
-                                @endif
-
-                                {{-- Delete maybe only when Draft; adjust as you like --}}
-                                @if($isDraft || auth()->user()->hasRole('superadmin'))
                                     <form action="{{ route('trainings.delete', $training) }}"
                                           method="POST"
                                           class="d-inline js-confirm-form"
@@ -228,7 +217,86 @@
                                         </button>
                                     </form>
                                 @endif
+
+                                {{-- HOD: Send for approval from Draft/Rejected --}}
+                                @if(($isHod || $isSuper) && $training->isEditableByHod())
+                                    <form action="{{ route('trainings.send_for_approval', $training) }}"
+                                          method="POST"
+                                          class="d-inline">
+                                        @csrf
+                                        <button type="submit"
+                                                class="btn btn-sm btn-outline-primary"
+                                                title="Send to Registrar for Approval">
+                                            <i class="fa-solid fa-paper-plane icon-brown"></i> Submit
+                                        </button>
+                                    </form>
+                                @endif
+
+                                {{-- Campus Registrar: Approve / Reject when Pending Registrar --}}
+                                @if(($isCampus || $isSuper) && $training->status === \App\Models\Training::STATUS_PENDING_REGISTRAR)
+                                    <form action="{{ route('trainings.registrar_approve', $training) }}"
+                                          method="POST"
+                                          class="d-inline">
+                                        @csrf
+                                        <button type="submit"
+                                                class="btn btn-sm btn-success"
+                                                title="Approve and send to HQ">
+                                            <i class="fa-solid fa-check"></i>
+                                        </button>
+                                    </form>
+
+                                    <form action="{{ route('trainings.registrar_reject', $training) }}"
+                                          method="POST"
+                                          class="d-inline">
+                                        @csrf
+                                        <button type="submit"
+                                                class="btn btn-sm btn-danger"
+                                                title="Reject training">
+                                            <i class="fa-solid fa-times"></i>
+                                        </button>
+                                    </form>
+                                @endif
+
+                                {{-- KIHBT Registrar (HQ): Mark HQ Reviewed --}}
+                                @if(($isKihbt || $isSuper) && $training->status === \App\Models\Training::STATUS_REGISTRAR_APPROVED_HQ)
+                                    <form action="{{ route('trainings.hq_review', $training) }}"
+                                          method="POST"
+                                          class="d-inline">
+                                        @csrf
+                                        <button type="submit"
+                                                class="btn btn-sm btn-primary"
+                                                title="Mark as HQ Reviewed">
+                                            <i class="fa-solid fa-search"></i> HQ Review
+                                        </button>
+                                    </form>
+                                @endif
+
+                                {{-- Director: Final Approve / Reject from HQ Reviewed --}}
+                                @if(($isDirector || $isSuper) && $training->status === \App\Models\Training::STATUS_HQ_REVIEWED)
+                                    <form action="{{ route('trainings.director_approve', $training) }}"
+                                          method="POST"
+                                          class="d-inline">
+                                        @csrf
+                                        <button type="submit"
+                                                class="btn btn-sm btn-success"
+                                                title="Final Approve">
+                                            <i class="fa-solid fa-check-double"></i>
+                                        </button>
+                                    </form>
+
+                                    <form action="{{ route('trainings.director_reject', $training) }}"
+                                          method="POST"
+                                          class="d-inline">
+                                        @csrf
+                                        <button type="submit"
+                                                class="btn btn-sm btn-danger"
+                                                title="Reject">
+                                            <i class="fa-solid fa-times-circle"></i>
+                                        </button>
+                                    </form>
+                                @endif
                             </td>
+
 
                         </tr>
                     @endforeach
