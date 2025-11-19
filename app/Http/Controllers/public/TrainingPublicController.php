@@ -10,10 +10,13 @@ class TrainingPublicController extends Controller
 {
     public function index(Request $request)
     {
-        $search     = $request->input('search');
-        $campusId   = $request->input('college_id');
+        $search   = $request->input('search');
+        $campusId = $request->input('college_id');
 
-        $trainings = Training::with(['course', 'college'])
+        $trainings = Training::with([
+            'course.requirements',  // 👈 load requirements via course
+            'college',
+        ])
             ->where('status', 'Approved')
             ->when($search, function ($q) use ($search) {
                 $q->whereHas('course', function ($courseQuery) use ($search) {
@@ -28,10 +31,10 @@ class TrainingPublicController extends Controller
             ->paginate(9)
             ->appends($request->query());
 
-        // You probably already have a College model
         $colleges = \App\Models\College::orderBy('name')->get();
 
         return view('training', compact('trainings', 'colleges', 'search', 'campusId'));
     }
+
 
 }

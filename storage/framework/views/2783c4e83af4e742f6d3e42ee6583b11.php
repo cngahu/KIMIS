@@ -162,6 +162,29 @@
             text-transform:uppercase;
         }
 
+        /* Requirements styling */
+        .requirements-wrap {
+            margin-top: 0.25rem;
+            font-size: 0.8rem;
+            color: var(--tertiary);
+        }
+
+        .requirements-label {
+            font-weight: 600;
+            color: var(--primary);
+            display: block;
+            margin-bottom: 0.1rem;
+        }
+
+        .requirements-list {
+            padding-left: 1rem;
+            margin-bottom: 0;
+        }
+
+        .requirements-list li {
+            margin-bottom: 0.1rem;
+        }
+
         /* Responsive table */
         @media (max-width: 768px) {
             .table-container {
@@ -285,23 +308,42 @@
                     <th>Start Date</th>
                     <th>End Date</th>
                     <th>Cost</th>
-
                     <th>Action</th>
                 </tr>
                 </thead>
                 <tbody>
                 <?php $__currentLoopData = $trainings; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $training): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                     <tr>
+                        
                         <td>
                             <div class="course-title">
                                 <?php echo e(optional($training->course)->course_name ?? 'Unnamed Course'); ?>
 
                             </div>
+
                             <div class="course-code">
                                 <?php echo e(optional($training->course)->course_code ?? 'N/A'); ?>
 
                             </div>
+
+                            
+                            <?php if(
+                                $training->course
+                                && $training->course->requirement
+                                && $training->course->requirements->count()
+                            ): ?>
+                                <div class="requirements-wrap">
+                                    <span class="requirements-label">Requirements:</span>
+                                    <ul class="requirements-list">
+                                        <?php $__currentLoopData = $training->course->requirements; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $req): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                            <li><?php echo nl2br(e($req->course_requirement)); ?></li>
+                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                    </ul>
+                                </div>
+                            <?php endif; ?>
                         </td>
+
+                        
                         <td>
                             <div class="campus-name">
                                 <i class="la la-map-marker-alt"></i>
@@ -309,6 +351,8 @@
 
                             </div>
                         </td>
+
+                        
                         <td class="date-cell">
                             <?php if($training->start_date): ?>
                                 <?php echo e(\Carbon\Carbon::parse($training->start_date)->format('d M Y')); ?>
@@ -317,6 +361,8 @@
                                 TBA
                             <?php endif; ?>
                         </td>
+
+                        
                         <td class="date-cell">
                             <?php if($training->end_date): ?>
                                 <?php echo e(\Carbon\Carbon::parse($training->end_date)->format('d M Y')); ?>
@@ -325,12 +371,15 @@
                                 TBA
                             <?php endif; ?>
                         </td>
+
+                        
                         <td class="cost-cell">
                             KSh <?php echo e(number_format($training->cost, 2)); ?>
 
                             <span>/ total</span>
                         </td>
 
+                        
                         <td>
                             <a href="<?php echo e(route('login', ['training_id' => $training->id])); ?>"
                                class="btn-primary-kihbt d-inline-flex align-items-center gap-1">

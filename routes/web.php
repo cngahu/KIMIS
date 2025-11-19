@@ -14,6 +14,7 @@ use App\Http\Controllers\public\TrainingPublicController;
 use App\Http\Controllers\Backend\CountyController;
 use App\Http\Controllers\Backend\SubcountyController;
 use App\Http\Controllers\Backend\PostalCodeController;
+use App\Http\Controllers\Backend\RequirementController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -112,8 +113,12 @@ Route::middleware(['auth','history','verified'])->group(function () {
         Route::get('/course/edit/{course}', 'edit')->name('courses.edit');     // Edit form
         Route::put('/course/update/{course}', 'update')->name('courses.update'); // Update course
         Route::delete('/course/delete/{course}', 'destroy')->name('courses.delete'); // Delete course
+    });
 
 
+    Route::controller(RequirementController::class)->group(function () {
+        Route::get('/courses/{course}/requirements/create', 'create')->name('courses.requirements.create');
+        Route::post('/courses/{course}/requirements', 'store')->name('courses.requirements.store');
     });
 
     Route::controller(TrainingController::class)->group(function() {

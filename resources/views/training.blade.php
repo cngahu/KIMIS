@@ -162,6 +162,29 @@
             text-transform:uppercase;
         }
 
+        /* Requirements styling */
+        .requirements-wrap {
+            margin-top: 0.25rem;
+            font-size: 0.8rem;
+            color: var(--tertiary);
+        }
+
+        .requirements-label {
+            font-weight: 600;
+            color: var(--primary);
+            display: block;
+            margin-bottom: 0.1rem;
+        }
+
+        .requirements-list {
+            padding-left: 1rem;
+            margin-bottom: 0;
+        }
+
+        .requirements-list li {
+            margin-bottom: 0.1rem;
+        }
+
         /* Responsive table */
         @media (max-width: 768px) {
             .table-container {
@@ -284,27 +307,48 @@
                     <th>Start Date</th>
                     <th>End Date</th>
                     <th>Cost</th>
-{{--                    <th>Status</th>--}}
                     <th>Action</th>
                 </tr>
                 </thead>
                 <tbody>
                 @foreach($trainings as $training)
                     <tr>
+                        {{-- Course + Code + Requirements --}}
                         <td>
                             <div class="course-title">
                                 {{ optional($training->course)->course_name ?? 'Unnamed Course' }}
                             </div>
+
                             <div class="course-code">
                                 {{ optional($training->course)->course_code ?? 'N/A' }}
                             </div>
+
+                            {{-- Requirements (if any) --}}
+                            @if(
+                                $training->course
+                                && $training->course->requirement
+                                && $training->course->requirements->count()
+                            )
+                                <div class="requirements-wrap">
+                                    <span class="requirements-label">Requirements:</span>
+                                    <ul class="requirements-list">
+                                        @foreach($training->course->requirements as $req)
+                                            <li>{!! nl2br(e($req->course_requirement)) !!}</li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            @endif
                         </td>
+
+                        {{-- Campus --}}
                         <td>
                             <div class="campus-name">
                                 <i class="la la-map-marker-alt"></i>
                                 {{ optional($training->college)->name ?? 'All Campuses' }}
                             </div>
                         </td>
+
+                        {{-- Start Date --}}
                         <td class="date-cell">
                             @if($training->start_date)
                                 {{ \Carbon\Carbon::parse($training->start_date)->format('d M Y') }}
@@ -312,6 +356,8 @@
                                 TBA
                             @endif
                         </td>
+
+                        {{-- End Date --}}
                         <td class="date-cell">
                             @if($training->end_date)
                                 {{ \Carbon\Carbon::parse($training->end_date)->format('d M Y') }}
@@ -319,11 +365,14 @@
                                 TBA
                             @endif
                         </td>
+
+                        {{-- Cost --}}
                         <td class="cost-cell">
                             KSh {{ number_format($training->cost, 2) }}
                             <span>/ total</span>
                         </td>
 
+                        {{-- Action --}}
                         <td>
                             <a href="{{ route('login', ['training_id' => $training->id]) }}"
                                class="btn-primary-kihbt d-inline-flex align-items-center gap-1">

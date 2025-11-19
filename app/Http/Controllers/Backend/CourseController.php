@@ -46,11 +46,18 @@ class CourseController extends Controller
             'requirement'     => 'required|boolean',
         ]);
 
-
         $data['user_id'] = auth()->id();
 
-        Course::create($data);
+        $course = Course::create($data);
 
+        // If requirement is "Yes" (1), go to requirement capture page
+        if ($course->requirement) {
+            return redirect()
+                ->route('courses.requirements.create', $course->id)
+                ->with('success', 'Course created. Please add the course requirements.');
+        }
+
+        // If requirement is "No" (0), go back to index as usual
         return redirect()->route('all.courses')
             ->with('success', 'Course created successfully.');
     }
@@ -58,6 +65,8 @@ class CourseController extends Controller
 
     public function show(Course $course)
     {
+        $course->load('requirements'); // eager load related requirements
+
         return view('admin.courses.show', compact('course'));
     }
 

@@ -79,12 +79,13 @@
                         <thead class="table-dark">
                         <tr>
                             <th width="5%">#</th>
-                            <th width="35%">Course Name</th>
+                            <th width="30%">Course Name</th>
                             <th width="12%">Category</th>
                             <th width="10%">Code</th>
                             <th width="10%">Mode</th>
                             <th width="8%">Duration</th>
-                            <th width="20%" class="text-center">Actions</th>
+                            <th width="6%">Req</th>   
+                            <th width="19%" class="text-center">Actions</th>
                         </tr>
                         </thead>
 
@@ -119,6 +120,14 @@
 
                                 <td class="text-center">
                                     <span class="fw-bold text-primary"><?php echo e($course->course_duration); ?> months</span>
+                                </td>
+                                
+                                <td class="text-center">
+                                    <?php if($course->requirement): ?>
+                                        <span class="badge bg-success">Yes</span>
+                                    <?php else: ?>
+                                        <span class="badge bg-secondary">No</span>
+                                    <?php endif; ?>
                                 </td>
 
                                 <td class="text-center">
