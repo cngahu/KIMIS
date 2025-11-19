@@ -1,0 +1,257 @@
+@extends('layouts.public')
+
+@section('content')
+
+    <div class="container py-5">
+
+        <h2 class="mb-4">Apply for: <strong>{{ $course->name }}</strong></h2>
+
+        <form action="{{ route('applications.store') }}" method="POST" enctype="multipart/form-data">
+            @csrf
+
+            <!-- HONEYPOT (anti-bot) -->
+            <input type="text" name="website" style="display:none">
+
+            <input type="hidden" name="course_id" value="{{ $course->id }}">
+
+            <div class="card mb-4">
+                <div class="card-header">Personal Information</div>
+                <div class="card-body">
+
+                    <div class="mb-3">
+                        <label class="form-label">Full Name *</label>
+                        <input type="text" name="full_name" value="{{ old('full_name') }}"
+                               class="form-control @error('full_name') is-invalid @enderror" required>
+                        @error('full_name') <span class="text-danger">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">ID Number</label>
+                        <input type="text" name="id_number" value="{{ old('id_number') }}"
+                               class="form-control @error('id_number') is-invalid @enderror">
+                        @error('id_number') <span class="text-danger">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Phone (+2547...)*</label>
+                        <input type="text" name="phone" value="{{ old('phone') }}"
+                               class="form-control @error('phone') is-invalid @enderror" required>
+                        @error('phone') <span class="text-danger">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Email (optional)</label>
+                        <input type="email" name="email" value="{{ old('email') }}"
+                               class="form-control @error('email') is-invalid @enderror">
+                        @error('email') <span class="text-danger">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Date of Birth</label>
+                        <input type="date" name="date_of_birth" value="{{ old('date_of_birth') }}"
+                               class="form-control @error('date_of_birth') is-invalid @enderror">
+                        @error('date_of_birth') <span class="text-danger">{{ $message }}</span> @enderror
+                    </div>
+
+                </div>
+            </div>
+
+
+            <!-- LOCATION -->
+            <div class="card mb-4">
+                <div class="card-header">Location</div>
+                <div class="card-body">
+
+                    <div class="mb-3">
+                        <label class="form-label">Home County *</label>
+                        <select name="home_county_id" class="form-select select2 @error('home_county_id') is-invalid @enderror" required>
+                            <option value="">Choose...</option>
+                            @foreach($counties as $county)
+                                <option value="{{ $county->id }}" {{ old('home_county_id') == $county->id ? 'selected':'' }}>
+                                    {{ $county->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('home_county_id') <span class="text-danger">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Current County *</label>
+                        <select id="currentCounty" name="current_county_id"
+                                class="form-select select2 @error('current_county_id') is-invalid @enderror" required>
+                            <option value="">Choose...</option>
+                            @foreach($counties as $county)
+                                <option value="{{ $county->id }}" {{ old('current_county_id') == $county->id ? 'selected':'' }}>
+                                    {{ $county->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('current_county_id') <span class="text-danger">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Current Subcounty *</label>
+                        <select id="currentSubcounty" name="current_subcounty_id"
+                                class="form-select select2 @error('current_subcounty_id') is-invalid @enderror" required>
+                            <option value="">Select county first</option>
+                        </select>
+                        @error('current_subcounty_id') <span class="text-danger">{{ $message }}</span> @enderror
+                    </div>
+
+                </div>
+            </div>
+
+
+            <!-- ADDRESS -->
+            <div class="card mb-4">
+                <div class="card-header">Address</div>
+                <div class="card-body">
+
+                    <div class="mb-3">
+                        <label class="form-label">Postal Address *</label>
+                        <input type="text" name="postal_address" value="{{ old('postal_address') }}"
+                               class="form-control @error('postal_address') is-invalid @enderror" required>
+                        @error('postal_address') <span class="text-danger">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Postal Code *</label>
+                        <select name="postal_code_id"
+                                class="form-select select2 @error('postal_code_id') is-invalid @enderror" required>
+                            <option value="">Choose...</option>
+                            @foreach($postalCodes as $pc)
+                                <option value="{{ $pc->id }}" {{ old('postal_code_id') == $pc->id ? 'selected':'' }}>
+                                    {{ $pc->code }} - {{ $pc->town }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('postal_code_id') <span class="text-danger">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">C/O (optional)</label>
+                        <input type="text" name="co" value="{{ old('co') }}"
+                               class="form-control @error('co') is-invalid @enderror">
+                        @error('co') <span class="text-danger">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Town (optional)</label>
+                        <input type="text" name="town" value="{{ old('town') }}"
+                               class="form-control @error('town') is-invalid @enderror">
+                        @error('town') <span class="text-danger">{{ $message }}</span> @enderror
+                    </div>
+
+                </div>
+            </div>
+
+
+            <!-- OTHER DETAILS -->
+            <div class="card mb-4">
+                <div class="card-header">Other Details</div>
+                <div class="card-body">
+
+                    <div class="mb-3">
+                        <label class="form-label">Financier *</label>
+                        <select name="financier" class="form-select @error('financier') is-invalid @enderror" required>
+                            <option value="self" {{ old('financier')=='self' ? 'selected':'' }}>Self</option>
+                            <option value="parent" {{ old('financier')=='parent' ? 'selected':'' }}>Parent</option>
+                        </select>
+                        @error('financier') <span class="text-danger">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">KCSE Mean Grade *</label>
+                        <input type="text" name="kcse_mean_grade" value="{{ old('kcse_mean_grade') }}"
+                               class="form-control @error('kcse_mean_grade') is-invalid @enderror" required>
+                        @error('kcse_mean_grade') <span class="text-danger">{{ $message }}</span> @enderror
+                    </div>
+
+                </div>
+            </div>
+
+
+            <!-- DYNAMIC REQUIREMENTS -->
+            <div class="card mb-4">
+                <div class="card-header">Required Documents</div>
+                <div class="card-body">
+
+                    <div id="requirementsContainer">
+                        <!-- Requirements loaded dynamically via AJAX -->
+                    </div>
+
+                </div>
+            </div>
+
+
+            <!-- DECLARATION -->
+            <div class="mb-4">
+                <label>
+                    <input type="checkbox" name="declaration" required>
+                    I confirm that the information provided is correct.
+                </label>
+                @error('declaration') <span class="text-danger">{{ $message }}</span> @enderror
+            </div>
+
+            <!-- SUBMIT -->
+            <button class="btn btn-primary btn-lg">Proceed to Payment</button>
+
+        </form>
+    </div>
+
+@endsection
+
+
+@push('scripts')
+    <script>
+        $(document).ready(function () {
+
+            $('.select2').select2();
+
+            // Load subcounties
+            $('#currentCounty').on('change', function () {
+                let countyId = $(this).val();
+                let url = '/api/counties/' + countyId + '/subcounties';
+
+                $('#currentSubcounty').html('<option>Loading...</option>');
+
+                $.get(url, function (data) {
+                    let options = '<option value="">Choose...</option>';
+                    data.forEach(sc => {
+                        options += `<option value="${sc.id}">${sc.name}</option>`;
+                    });
+                    $('#currentSubcounty').html(options);
+                });
+            });
+
+            // Load requirements
+            loadRequirements();
+
+            function loadRequirements() {
+                $.get("{{ route('applications.requirements', $course->id) }}", function (reqs) {
+                    let html = '';
+
+                    reqs.forEach(r => {
+                        if (r.type === 'upload') {
+                            html += `
+      <div class="mb-3">
+        <label class="form-label">${r.course_requirement} ${r.required ? '*' : ''}</label>
+        <input type="file" name="requirements[${r.id}]" class="form-control">
+      </div>`;
+                        } else {
+                            html += `
+      <div class="mb-3">
+        <label class="form-label">${r.course_requirement} ${r.required ? '*' : ''}</label>
+        <input type="text" name="requirements[${r.id}]" class="form-control">
+      </div>`;
+                        }
+
+                    });
+
+                    $('#requirementsContainer').html(html);
+                });
+            }
+
+        });
+    </script>
+@endpush

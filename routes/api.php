@@ -17,3 +17,13 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+Route::get('/counties/{county}/subcounties', function ($county) {
+    return \App\Models\Subcounty::where('county_id', $county)
+        ->orderBy('name')
+        ->select('id','name')
+        ->get();
+});
+
+Route::get('/apply/{course}/requirements',
+    [\App\Http\Controllers\Application\ApplicationController::class, 'requirements']
+)->name('applications.requirements');

@@ -1,0 +1,37 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('application_requirement_answers', function (Blueprint $table) {
+            $table->id();
+
+            $table->foreignId('application_id')->constrained('applications')->cascadeOnDelete();
+            $table->foreignId('requirement_id')->constrained('requirements')->cascadeOnDelete();
+
+            $table->text('value')->nullable(); // text or file path
+            $table->string('original_name')->nullable(); // if file
+
+            $table->timestamps();
+
+            $table->unique(['application_id','requirement_id'], 'app_req_unique');
+
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('application_requirement_answers');
+    }
+};
