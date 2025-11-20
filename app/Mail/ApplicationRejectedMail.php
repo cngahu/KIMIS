@@ -10,35 +10,26 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class OfficerAssignmentMail extends Mailable
+class ApplicationRejectedMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    /**
-     * Create a new message instance.
-     */
-    use Queueable, SerializesModels;
-
     public Application $application;
+    public string $comments;
 
-    /**
-     * Create a new message instance.
-     */
-    public function __construct(Application $application)
+    public function __construct(Application $application, string $comments)
     {
         $this->application = $application;
+        $this->comments   = $comments;
     }
 
-    /**
-     * Build the message.
-     */
     public function build()
     {
-        return $this->subject('New Application Assigned to You')
-            ->view('emails.officer_assignment')
+        return $this->subject('Your Application to KIHBT Was Not Successful')
+            ->view('emails.application_rejected')
             ->with([
                 'application' => $this->application,
+                'comments'    => $this->comments,
             ]);
     }
-
 }

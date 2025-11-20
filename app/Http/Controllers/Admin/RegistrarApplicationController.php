@@ -25,6 +25,47 @@ class RegistrarApplicationController extends Controller
     /**
      * List all submitted applications
      */
+
+    public function awaiting()
+    {
+        $apps = Application::where('status', 'submitted')
+            ->with(['course', 'reviewer'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(20);
+
+        $officers = User::whereHas('roles', function ($q) {
+            $q->whereIn('name', ['hod', 'campus_registrar']);
+        })->get();
+        $counts = [
+            'awaiting' => Application::where('status','submitted')->count(),
+            'assigned' => Application::where('status','under_review')->count(),
+            'completed' => Application::whereIn('status',['approved','rejected'])->count(),
+        ];
+        return view('admin.registrar.applications.awaiting', compact('apps','officers','counts'));
+
+//        return view('admin.registrar.applications.awaiting', compact('apps', 'officers'));
+    }
+
+    public function assigned()
+    {
+        $apps = Application::where('status', 'under_review')
+            ->with(['course', 'reviewer'])
+            ->orderBy('updated_at', 'desc')
+            ->paginate(20);
+
+        return view('admin.registrar.applications.assigned', compact('apps'));
+    }
+
+    public function completed()
+    {
+        $apps = Application::whereIn('status', ['approved', 'rejected'])
+            ->with(['course', 'reviewer'])
+            ->orderBy('updated_at', 'desc')
+            ->paginate(20);
+
+        return view('admin.registrar.applications.completed', compact('apps'));
+    }
+
     public function index(Request $request)
     {
 //        dd('here');
@@ -34,7 +75,11 @@ class RegistrarApplicationController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(20);
 
-        $officers = User::role('hod')->get(); // Spatie role
+        $officers = User::whereHas('roles', function ($q) {
+            $q->whereIn('name', ['hod', 'campus_registrar']);
+        })->get();
+
+
 
         return view('admin.registrar.applications.index', compact('apps', 'officers'));
     }
@@ -53,5 +98,11 @@ class RegistrarApplicationController extends Controller
         return back()->with('success', 'Application assigned successfully!');
     }
 
+    public function view(Application $application)
+    {
+        $application->load(['course', 'invoice', 'answers.requirement']);
+
+        return view('admin.registrar.applications.view', compact('application'));
+    }
 
 }

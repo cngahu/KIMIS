@@ -195,14 +195,102 @@
                 </a>
             </li>
         @endif
-        <li class="menu-label">Course Applications</li>
-        <li>
 
-            <a href="{{route('registrar.applications')}}">
-                <div class="parent-icon"><i class='bx bx-cookie'></i></div>
+        <li class="menu-label">Course Applications</li>
+
+        <li>
+            <a href="javascript:;" class="has-arrow">
+                <div class="parent-icon"><i class='bx bx-book-reader'></i></div>
                 <div class="menu-title">Course Applications</div>
             </a>
+            <ul>
+                <li>
+                    <a href="{{ route('registrar.dashboard') }}">
+                        <i class="bx bx-radio-circle"></i> Dashboard
+
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('registrar.applications.awaiting') }}">
+                        <i class="bx bx-radio-circle"></i> Awaiting Assignment
+                        @if(isset($counts) && $counts['awaiting'] > 0)
+                            <span class="badge bg-warning ms-2">{{ $counts['awaiting'] }}</span>
+                        @endif
+                    </a>
+                </li>
+
+                <li>
+                    <a href="{{ route('registrar.applications.assigned') }}">
+                        <i class="bx bx-radio-circle"></i> Assigned / Under Review
+                        @if(isset($counts) && $counts['assigned'] > 0)
+                            <span class="badge bg-info ms-2">{{ $counts['assigned'] }}</span>
+                        @endif
+                    </a>
+                </li>
+
+                <li>
+                    <a href="{{ route('registrar.applications.completed') }}">
+                        <i class="bx bx-radio-circle"></i> Completed
+                        @if(isset($counts) && $counts['completed'] > 0)
+                            <span class="badge bg-success ms-2">{{ $counts['completed'] }}</span>
+                        @endif
+                    </a>
+                </li>
+            </ul>
         </li>
+
+
+        <li class="menu-label">Reports</li>
+
+        <li>
+            <a href="javascript:;" class="has-arrow">
+                <div class="parent-icon"><i class='bx bx-file'></i></div>
+                <div class="menu-title">Reports</div>
+            </a>
+            <ul>
+                <li>
+                    <a href="{{ route('reports.applications') }}">
+                        <i class="bx bx-radio-circle"></i> All Applications
+                    </a>
+                </li>
+
+                <li>
+                    <a href="{{ route('reports.decisions') }}">
+                        <i class="bx bx-radio-circle"></i> Approved / Rejected
+                    </a>
+                </li>
+
+                <li>
+                    <a href="{{ route('reports.reviewers') }}">
+                        <i class="bx bx-radio-circle"></i> Reviewer Performance
+                    </a>
+                </li>
+            </ul>
+        </li>
+
+
+        <li class="menu-label">My Applications</li>
+
+        <li>
+            <a href="javascript:;" class="has-arrow">
+                <div class="parent-icon"><i class='bx bx-task'></i></div>
+                <div class="menu-title">My Applications</div>
+            </a>
+            <ul>
+                <li>
+                    <a href="{{ route('officer.applications.pending') }}">
+                        <i class="bx bx-radio-circle"></i> Pending Review
+                    </a>
+                </li>
+
+                <li>
+                    <a href="{{ route('officer.applications.completed') }}">
+                        <i class="bx bx-radio-circle"></i> Completed Reviews
+                    </a>
+                </li>
+            </ul>
+        </li>
+
         {{-- HOD MENU --}}
         @if(Auth::user()->hasRole('hod'))
             <li class="menu-label">Department</li>

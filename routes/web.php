@@ -16,6 +16,9 @@ use App\Http\Controllers\Backend\SubcountyController;
 use App\Http\Controllers\Backend\PostalCodeController;
 use App\Http\Controllers\Backend\RequirementController;
 use App\Http\Controllers\Admin\RegistrarApplicationController;
+use App\Http\Controllers\Admin\OfficerController;
+use App\Http\Controllers\Admin\RegistrarDashboardController;
+use App\Http\Controllers\Admin\ReportController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -55,28 +58,95 @@ Route::get('/resend-otp', [\App\Http\Controllers\Auth\AuthenticatedSessionContro
 
 ;
 Route::get('/logout', [AdminController::class, 'Logout'])->name('logout');
+
+Route::get('/admin/registrar/applications/{application}',
+    [RegistrarApplicationController::class, 'view'])
+    ->name('registrar.applications.view');
+
 Route::middleware(['auth','history','verified'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
 
+//    Route::prefix('admin/registrar')->group(function () {
+//
+//        Route::get('/applications',
+//            [RegistrarApplicationController::class, 'index'])
+//            ->name('registrar.applications');
+//
+//        Route::post('/applications/{application}/assign',
+//            [RegistrarApplicationController::class, 'assignReviewer'])
+//            ->name('registrar.assign');
+//
+//
+////        Route::get('/admin/registrar/applications/{application}',
+////            [RegistrarApplicationController::class, 'view'])
+////            ->name('registrar.applications.view');
+//
+//    });
+    Route::get('/applications/awaiting',
+        [RegistrarApplicationController::class, 'awaiting'])
+        ->name('registrar.applications.awaiting');
+
+    Route::get('/applications/assigned',
+        [RegistrarApplicationController::class, 'assigned'])
+        ->name('registrar.applications.assigned');
+
+    Route::get('/applications/completed',
+        [RegistrarApplicationController::class, 'completed'])
+        ->name('registrar.applications.completed');
+
+    Route::post('/applications/{application}/assign',
+        [RegistrarApplicationController::class, 'assignReviewer'])
+        ->name('registrar.assign');
     Route::prefix('admin/registrar')->group(function () {
 
-        Route::get('/applications',
-            [RegistrarApplicationController::class, 'index'])
-            ->name('registrar.applications');
 
-        Route::post('/applications/{application}/assign',
-            [RegistrarApplicationController::class, 'assignReviewer'])
-            ->name('registrar.assign');
 
+        Route::get('/applications/{application}',
+            [RegistrarApplicationController::class, 'view']);
+    });
+
+    Route::get('/registrar/dashboard', [RegistrarDashboardController::class, 'index'])
+        ->name('registrar.dashboard');
+
+
+    Route::prefix('admin/reports')->middleware(['auth','role:superadmin|hod|campus_registrar'])->group(function () {
+
+        Route::get('/applications', [ReportController::class, 'applicationsIndex'])
+            ->name('reports.applications');
+
+        Route::get('/applications/preview', [ReportController::class, 'applicationsPreview'])
+            ->name('reports.applications.preview');
+
+        Route::get('/applications/pdf', [ReportController::class, 'applicationsPdf'])
+            ->name('reports.applications.pdf');
+
+
+        Route::get('/decisions', [ReportController::class, 'decisionsIndex'])
+            ->name('reports.decisions');
+
+        Route::get('/decisions/preview', [ReportController::class, 'decisionsPreview'])
+            ->name('reports.decisions.preview');
+
+        Route::get('/decisions/pdf', [ReportController::class, 'decisionsPdf'])
+            ->name('reports.decisions.pdf');
+
+
+        Route::get('/reviewers', [ReportController::class, 'reviewerIndex'])
+            ->name('reports.reviewers');
+
+        Route::get('/reviewers/preview', [ReportController::class, 'reviewerPreview'])
+            ->name('reports.reviewers.preview');
+
+        Route::get('/reviewers/pdf', [ReportController::class, 'reviewerPdf'])
+            ->name('reports.reviewers.pdf');
     });
 
 
 
-
-        Route::controller(AdminController::class)->group(function (){
+    Route::controller(AdminController::class)->group(function (){
 
 //            Route::get('/admin/dashboard', 'AdminDashboard')->name('admin.dashobard');
             Route::get('/dashboard', 'AdminDashboard')->name('dashboard')->middleware('verified');
@@ -254,6 +324,28 @@ Route::middleware(['auth','history','verified'])->group(function () {
 
 });
 
+Route::prefix('officer')->middleware(['auth','role:hod|campus_registrar'])->group(function () {
+
+    Route::get('/applications/pending',
+        [OfficerController::class, 'pending'])
+        ->name('officer.applications.pending');
+
+    Route::get('/applications/completed',
+        [OfficerController::class, 'completed'])
+        ->name('officer.applications.completed');
+
+    Route::get('/applications/{application}/review',
+        [OfficerController::class, 'reviewPage'])
+        ->name('officer.applications.review');
+
+    Route::post('/applications/{application}/approve',
+        [OfficerController::class, 'approve'])
+        ->name('officer.applications.approve');
+
+    Route::post('/applications/{application}/reject',
+        [OfficerController::class, 'reject'])
+        ->name('officer.applications.reject');
+});
 
 Route::group(['middleware' => ['role:applicant','auth','history','verified']], function () {
     //

@@ -21,6 +21,20 @@ class Application extends Model
         'metadata' => 'array',
         'declaration' => 'boolean',
     ];
+    public function homeCounty()
+    {
+        return $this->belongsTo(County::class, 'home_county_id');
+    }
+
+    public function currentCounty()
+    {
+        return $this->belongsTo(County::class, 'current_county_id');
+    }
+
+    public function currentSubcounty()
+    {
+        return $this->belongsTo(SubCounty::class, 'current_sub_county_id');
+    }
 
     public function answers()
     {

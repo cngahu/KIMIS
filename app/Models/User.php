@@ -79,5 +79,9 @@ class User extends Authenticatable implements MustVerifyEmail
     public function cnation(){
         return $this->belongsTo(country::class,'nationality','id');
     }
+    public function getFullNameAttribute()
+    {
+        return trim("{$this->surname} {$this->first_name} {$this->last_name}");
+    }
 
 }
