@@ -59,13 +59,13 @@ class Application extends Model
         return $this->hasOne(Invoice::class);
     }
 
-    public function homeCounty(){
-        return $this->belongsTo(county::class);
-    }
-
-    public function currentSubcounty(){
-        return $this->belongsTo(subcounty::class);
-    }
+//    public function homeCounty(){
+//        return $this->belongsTo(county::class);
+//    }
+//
+//    public function currentSubcounty(){
+//        return $this->belongsTo(subcounty::class);
+//    }
 
 
 
