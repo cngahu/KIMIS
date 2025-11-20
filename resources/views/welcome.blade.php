@@ -140,9 +140,9 @@
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.75rem;max-width:1000px;margin:0 auto;">
             <div class="acct-card">
                 <span class="acct-icon"><i class="la la-calendar-check"></i></span>
-                <h3 class="acct-title">Scheduled Trainings</h3>
+                <h3 class="acct-title">Course Application</h3>
                 <p class="acct-desc">
-                    Browse and register for available training programs across all KIHBT campuses.
+                    Browse and  Apply for available training programs across all KIHBT campuses.
                 </p>
 
                 <a href="{{ route('public.trainings') }}" class="btn-primary d-inline-flex align-items-center gap-2">
