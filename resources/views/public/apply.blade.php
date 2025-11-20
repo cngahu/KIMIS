@@ -46,16 +46,16 @@
                                 </div>
 
                                 <div class="col-md-6">
-                                    <label class="form-label">Phone (+2547...) *</label>
+                                    <label class="form-label">Phone (+254...) *</label>
                                     <input type="text" name="phone" value="{{ old('phone') }}"
                                            class="form-control @error('phone') is-invalid @enderror" required>
                                     @error('phone') <span class="text-danger small">{{ $message }}</span> @enderror
                                 </div>
 
                                 <div class="col-md-6">
-                                    <label class="form-label">Email (optional)</label>
+                                    <label class="form-label">Email</label>
                                     <input type="email" name="email" value="{{ old('email') }}"
-                                           class="form-control @error('email') is-invalid @enderror">
+                                           class="form-control @error('email') is-invalid @enderror" required>
                                     @error('email') <span class="text-danger small">{{ $message }}</span> @enderror
                                 </div>
 
@@ -187,15 +187,85 @@
 
                                 <div class="col-md-6">
                                     <label class="form-label">KCSE Mean Grade *</label>
-                                    <input type="text" name="kcse_mean_grade" value="{{ old('kcse_mean_grade') }}"
-                                           class="form-control @error('kcse_mean_grade') is-invalid @enderror" required>
-                                    @error('kcse_mean_grade') <span class="text-danger small">{{ $message }}</span> @enderror
+                                    <select name="kcse_mean_grade"
+                                            class="form-select @error('kcse_mean_grade') is-invalid @enderror"
+                                            required>
+                                        <option value="">Select grade...</option>
+
+                                        @foreach([
+                                            'A ', 'A-',
+                                            'B+', 'B', 'B-',
+                                            'C+', 'C', 'C-',
+                                            'D+', 'D', 'D-',
+                                            'E'
+                                        ] as $grade)
+                                            <option value="{{ $grade }}" {{ old('kcse_mean_grade') === $grade ? 'selected' : '' }}>
+                                                {{ $grade }}
+                                            </option>
+                                        @endforeach
+
+                                    </select>
+
+                                    @error('kcse_mean_grade')
+                                    <span class="text-danger small">{{ $message }}</span>
+                                    @enderror
+                                </div>
+
+
+                            </div>
+
+                        </div>
+                    </div>
+                    {{-- FIXED UPLOAD DOCUMENTS --}}
+                    <div class="card public-card mb-4">
+                        <div class="card-header">Mandatory & Optional Uploads</div>
+                        <div class="card-body">
+
+                            <div class="row g-4">
+
+                                {{-- KCSE CERTIFICATE (required) --}}
+                                <div class="col-md-6">
+                                    <label class="form-label">KCSE Certificate *</label>
+                                    <input type="file"
+                                           name="kcse_certificate"
+                                           class="form-control @error('kcse_certificate') is-invalid @enderror"
+                                           required>
+                                    @error('kcse_certificate') <span class="text-danger small">{{ $message }}</span> @enderror
+                                </div>
+
+                                {{-- SCHOOL LEAVING CERT (optional) --}}
+                                <div class="col-md-6">
+                                    <label class="form-label">School Leaving Certificate (optional)</label>
+                                    <input type="file"
+                                           name="school_leaving_certificate"
+                                           class="form-control @error('school_leaving_certificate') is-invalid @enderror">
+                                    @error('school_leaving_certificate') <span class="text-danger small">{{ $message }}</span> @enderror
+                                </div>
+
+                                {{-- BIRTH CERTIFICATE (required) --}}
+                                <div class="col-md-6">
+                                    <label class="form-label">Birth Certificate </label>
+                                    <input type="file"
+                                           name="birth_certificate"
+                                           class="form-control @error('birth_certificate') is-invalid @enderror">
+                                    @error('birth_certificate') <span class="text-danger small">{{ $message }}</span> @enderror
+                                </div>
+
+                                {{-- NATIONAL ID (required) --}}
+                                <div class="col-md-6">
+                                    <label class="form-label">National ID *</label>
+                                    <input type="file"
+                                           name="national_id"
+                                           class="form-control @error('national_id') is-invalid @enderror"
+                                           required>
+                                    @error('national_id') <span class="text-danger small">{{ $message }}</span> @enderror
                                 </div>
 
                             </div>
 
                         </div>
                     </div>
+
 
                     {{-- REQUIREMENTS (Dynamic AJAX) --}}
                     <div class="card public-card mb-4">

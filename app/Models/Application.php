@@ -14,7 +14,11 @@ class Application extends Model
         'date_of_birth','home_county_id','current_county_id','current_subcounty_id',
         'postal_address','postal_code_id','co','town',
         'financier','kcse_mean_grade','declaration',
-        'status','payment_status','reference','reviewer_id','reviewer_comments','metadata'
+        'status','payment_status','reference','reviewer_id','reviewer_comments','metadata',
+         'kcse_certificate_path',
+        'school_leaving_certificate_path',
+        'birth_certificate_path',
+        'national_id_path',
     ];
 
     protected $casts = [
@@ -40,5 +44,17 @@ class Application extends Model
     {
         return $this->hasOne(Invoice::class);
     }
+
+    public function homeCounty(){
+        return $this->belongsTo(county::class);
+    }
+
+    public function currentSubcounty(){
+        return $this->belongsTo(subcounty::class);
+    }
+
+
+
+
 
 }
