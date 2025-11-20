@@ -29,8 +29,7 @@ Route::get('/apply/{application}/pay-now', [PaymentController::class, 'pay'])->n
 
 Route::post('/payment/callback', [PaymentController::class, 'callback'])->name('payment.callback');
 
-Route::get('/apply/{course}/requirements',
-    [ApplicationController::class, 'requirements']
+Route::get('/apply/{course}/requirements', [ApplicationController::class, 'requirements']
 )->name('applications.requirements');
 
 
