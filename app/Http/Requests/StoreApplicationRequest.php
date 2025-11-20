@@ -27,7 +27,7 @@ class StoreApplicationRequest extends FormRequest
             'full_name' => 'required|string|max:255',
             'id_number' => 'nullable|string|max:50',
             'phone' => 'required|regex:/^\+254[0-9]{9}$/',
-            'email' => 'nullable|email|max:255',
+            'email' => 'required|email|max:255',
 
             'date_of_birth' => 'nullable|date',
 
@@ -46,6 +46,13 @@ class StoreApplicationRequest extends FormRequest
 
             // Declaration
             'declaration' => 'required|accepted',
+
+            // 🔹 Fixed uploads
+            'kcse_certificate' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'school_leaving_certificate' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'birth_certificate' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'national_id' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+
 
             // Dynamic requirements array
             'requirements' => 'nullable|array',
@@ -72,7 +79,7 @@ class StoreApplicationRequest extends FormRequest
                 $file  = $this->file("requirements.{$req->id}");
 
                 if ($req->required) {
-                    if ($req->type === 'file' && !$file) {
+                    if ($req->type === 'upload' && !$file) {
                         $validator->errors()->add($field, "{$req->course_requirement} is required.");
                     }
 
@@ -81,7 +88,7 @@ class StoreApplicationRequest extends FormRequest
                     }
                 }
 
-                if ($req->type === 'file' && $file) {
+                if ($req->type === 'upload' && $file) {
                     if (!$file->isValid()) {
                         $validator->errors()->add($field, "Invalid file upload.");
                     }
@@ -89,4 +96,5 @@ class StoreApplicationRequest extends FormRequest
             }
         });
     }
+
 }
