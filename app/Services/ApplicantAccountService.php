@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Services;
+use App\Models\Admission;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -63,8 +64,13 @@ class ApplicantAccountService
         ]);
 
         // Assign applicant role
-        $user->assignRole('applicant');
-
+        $user->assignRole('student');
+// 2. Create admission record
+        Admission::create([
+            'application_id' => $application->id,
+            'user_id'        => $user->id,
+            'status'         => 'offer_sent'
+        ]);
         return [
             'user' => $user,
             'password' => $password

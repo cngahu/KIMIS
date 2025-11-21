@@ -177,6 +177,9 @@ class AuthenticatedSessionController extends Controller
         elseif($request->user()->hasRole('director')) {
             $url = '/dashboard';
         }
+        elseif($request->user()->hasRole('student')) {
+            $url = '/dashboard';
+        }
         abort(403);
     }
     public function resendOtp()
