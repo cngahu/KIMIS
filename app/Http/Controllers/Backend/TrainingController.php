@@ -101,7 +101,7 @@ class TrainingController extends Controller
             'college_id' => 'required|exists:colleges,id',
             'start_date' => 'required|date',
             'end_date'   => 'nullable|date|after_or_equal:start_date',
-            //'cost'       => 'required|numeric|min:0',
+            'cost'       => 'required|numeric|min:0',
         ]);
 
         $data['user_id'] = Auth::id();

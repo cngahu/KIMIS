@@ -62,6 +62,7 @@ class OfficerController extends Controller
             ->with('success', 'Application approved successfully!');
     }
 
+
     public function reject(Request $request, Application $application)
     {
         abort_if($application->reviewer_id !== Auth::id(), 403);

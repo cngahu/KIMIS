@@ -45,8 +45,8 @@ class ApplicationService
                 'declaration'           => true,
 
                 // 🔹 NEW: fixed upload paths from controller payload
-                'kcse_certificate_path'            => $data['kcse_certificate_path'] ?? null,
-                'school_leaving_certificate_path'  => $data['school_leaving_certificate_path'] ?? null,
+               // 'kcse_certificate_path'            => $data['kcse_certificate_path'] ?? null,
+              //  'school_leaving_certificate_path'  => $data['school_leaving_certificate_path'] ?? null,
                 'birth_certificate_path'           => $data['birth_certificate_path'] ?? null,
                 'national_id_path'                 => $data['national_id_path'] ?? null,
 

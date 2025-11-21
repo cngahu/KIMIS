@@ -225,10 +225,15 @@
                             {{ optional($training->college)->name ?? '-' }}
                         </p>
 
+
                         <p class="mb-1">
                             <strong>Cost:</strong><br>
-                            KSh {{ number_format($training->cost, 2) }}
+                            {{ $training->formatted_cost }}
                         </p>
+{{--                        <p class="mb-1">--}}
+{{--                            <strong>Cost:</strong><br>--}}
+{{--                            KSh {{ number_format($training->cost, 2) }}--}}
+{{--                        </p>--}}
                     </div>
 
                     <div class="col-md-6">

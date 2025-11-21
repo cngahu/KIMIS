@@ -108,13 +108,19 @@ class ApplicationReviewService
         $feeStructure = app(AdmissionPdfService::class)
             ->generateFeeStructure($application);
 
+        $medicalReport = app(AdmissionPdfService::class)
+            ->generatemedical($application);
+
+
         Mail::to($application->email)->send(
             new ApplicationApprovedMail(
                 $application,
                 $user,
                 $rawPassword,
                 $admissionLetter,
-                $feeStructure
+                $feeStructure,
+                $medicalReport,
+
             )
         );
 
