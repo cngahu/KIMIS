@@ -15,14 +15,19 @@ class ApplicationApprovedMail extends Mailable
     public ?string $password; // <-- FIXED HERE
     public string $admissionLetter;
     public string $feeStructure;
+    public string $medicalReport;
 
-    public function __construct($application, $user, $password, $admissionLetter, $feeStructure)
+
+    public function __construct($application, $user, $password, $admissionLetter, $feeStructure,$medicalReport)
     {
         $this->application = $application;
         $this->user = $user;
         $this->password = $password;  // can be null now
         $this->admissionLetter = $admissionLetter;
         $this->feeStructure = $feeStructure;
+        $this->medicalReport = $medicalReport;
+
+
     }
 
     public function build()
@@ -35,6 +40,10 @@ class ApplicationApprovedMail extends Mailable
             ->attachData($this->feeStructure, 'Fee_Structure.pdf', [
                 'mime' => 'application/pdf',
             ])
+            ->attachData($this->medicalReport, 'medical_report.pdf', [
+                'mime' => 'application/pdf',
+            ])
+
             ->with([
                 'application' => $this->application,
                 'user'        => $this->user,

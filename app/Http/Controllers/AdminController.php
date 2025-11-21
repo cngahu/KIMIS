@@ -27,16 +27,97 @@ class AdminController extends Controller
 
         if ($user->hasRole('superadmin') || $user->hasRole('hod') || $user->hasAnyRole(['campus_registrar', 'kihbt_registrar','director'])) {
 
+            // Global counts (for the right-hand summary card)
             $draftCount     = Training::where('status', Training::STATUS_DRAFT)->count();
             $pendingCount   = Training::where('status', Training::STATUS_PENDING_REGISTRAR)->count();
             $approvedCount  = Training::where('status', Training::STATUS_APPROVED)->count();
             $rejectedCount  = Training::where('status', Training::STATUS_REJECTED)->count();
 
+            // Role-based small stats (if you already added them before, keep them)
+            $hodDraftTrainings      = 0;
+            $hodPendingRegistrar    = 0;
+            $hodRejectedTrainings   = 0;
+            $registrarPendingTrainings = 0;
+            $registrarToHqTrainings    = 0;
+            $hqQueueTrainings          = 0;
+            $directorQueueTrainings    = 0;
+
+            // === ROLE-SPECIFIC RECENT TRAININGS ===
+            $recentQuery = Training::with(['course', 'college', 'user']);
+
+            if ($user->hasRole('hod')) {
+                // Only trainings created by this HOD
+                $recentQuery->where('user_id', $user->id);
+
+                $hodDraftTrainings    = Training::where('user_id', $user->id)
+                    ->where('status', Training::STATUS_DRAFT)->count();
+
+                $hodPendingRegistrar  = Training::where('user_id', $user->id)
+                    ->where('status', Training::STATUS_PENDING_REGISTRAR)->count();
+
+                $hodRejectedTrainings = Training::where('user_id', $user->id)
+                    ->where('status', Training::STATUS_REJECTED)->count();
+
+            } elseif ($user->hasRole('campus_registrar')) {
+                // Items relevant to campus registrar
+                $recentQuery->whereIn('status', [
+                    Training::STATUS_PENDING_REGISTRAR,
+                    Training::STATUS_REGISTRAR_APPROVED_HQ,
+                    Training::STATUS_REJECTED,
+                ]);
+
+                $registrarPendingTrainings = Training::where('status', Training::STATUS_PENDING_REGISTRAR)->count();
+                $registrarToHqTrainings    = Training::where('status', Training::STATUS_REGISTRAR_APPROVED_HQ)->count();
+
+            } elseif ($user->hasRole('kihbt_registrar')) {
+                // HQ registrar
+                $recentQuery->whereIn('status', [
+                    Training::STATUS_REGISTRAR_APPROVED_HQ,
+                    Training::STATUS_HQ_REVIEWED,
+                    Training::STATUS_REJECTED,
+                ]);
+
+                $hqQueueTrainings = Training::where('status', Training::STATUS_REGISTRAR_APPROVED_HQ)->count();
+
+            } elseif ($user->hasRole('director')) {
+                // Director – things at final stage
+                $recentQuery->whereIn('status', [
+                    Training::STATUS_HQ_REVIEWED,
+                    Training::STATUS_APPROVED,
+                    Training::STATUS_REJECTED,
+                ]);
+
+                $directorQueueTrainings = Training::where('status', Training::STATUS_HQ_REVIEWED)->count();
+
+            } else {
+                // Superadmin – sees everything
+                $recentQuery->whereNotNull('id');
+            }
+
+            // Finally, get the last 10 trainings for the dashboard table
+            $recentTrainings = $recentQuery
+                ->orderByDesc('created_at')
+                ->take(10)
+                ->get();
+
+            $userName    = $user->name ?? $user->email;
+            $primaryRole = $user->getRoleNames()->first();
+
             return view('admin.index', compact(
                 'draftCount',
                 'pendingCount',
                 'approvedCount',
-                'rejectedCount'
+                'rejectedCount',
+                'hodDraftTrainings',
+                'hodPendingRegistrar',
+                'hodRejectedTrainings',
+                'registrarPendingTrainings',
+                'registrarToHqTrainings',
+                'hqQueueTrainings',
+                'directorQueueTrainings',
+                'recentTrainings',
+                'userName',
+                'primaryRole'
             ));
         }
         elseif ($user->hasRole('applicant')) {

@@ -224,23 +224,23 @@
                             <div class="row g-4">
 
                                 {{-- KCSE CERTIFICATE (required) --}}
-                                <div class="col-md-6">
-                                    <label class="form-label">KCSE Certificate *</label>
-                                    <input type="file"
-                                           name="kcse_certificate"
-                                           class="form-control @error('kcse_certificate') is-invalid @enderror"
-                                           required>
-                                    @error('kcse_certificate') <span class="text-danger small">{{ $message }}</span> @enderror
-                                </div>
+{{--                                <div class="col-md-6">--}}
+{{--                                    <label class="form-label">KCSE Certificate *</label>--}}
+{{--                                    <input type="file"--}}
+{{--                                           name="kcse_certificate"--}}
+{{--                                           class="form-control @error('kcse_certificate') is-invalid @enderror"--}}
+{{--                                           required>--}}
+{{--                                    @error('kcse_certificate') <span class="text-danger small">{{ $message }}</span> @enderror--}}
+{{--                                </div>--}}
 
-                                {{-- SCHOOL LEAVING CERT (optional) --}}
-                                <div class="col-md-6">
-                                    <label class="form-label">School Leaving Certificate (optional)</label>
-                                    <input type="file"
-                                           name="school_leaving_certificate"
-                                           class="form-control @error('school_leaving_certificate') is-invalid @enderror">
-                                    @error('school_leaving_certificate') <span class="text-danger small">{{ $message }}</span> @enderror
-                                </div>
+{{--                                --}}{{-- SCHOOL LEAVING CERT (optional) --}}
+{{--                                <div class="col-md-6">--}}
+{{--                                    <label class="form-label">School Leaving Certificate (optional)</label>--}}
+{{--                                    <input type="file"--}}
+{{--                                           name="school_leaving_certificate"--}}
+{{--                                           class="form-control @error('school_leaving_certificate') is-invalid @enderror">--}}
+{{--                                    @error('school_leaving_certificate') <span class="text-danger small">{{ $message }}</span> @enderror--}}
+{{--                                </div>--}}
 
                                 {{-- BIRTH CERTIFICATE (required) --}}
                                 <div class="col-md-6">

@@ -114,10 +114,10 @@
                         <th style="width: 60px" class="text-center">#</th>
                         <th>Course</th>
                         <th>College</th>
+                        <th class="text-end">Cost (KSh)</th>
                         <th>Start Date</th>
                         <th>End Date</th>
                         <th>Status</th>
-{{--                        <th class="text-end">Cost (KSh)</th>--}}
                         <th style="width: 190px" class="text-center">Actions</th>
                     </tr>
                     </thead>
@@ -133,7 +133,7 @@
                             <td>{{ optional($training->course)->course_name ?? '-' }}</td>
                             <td>{{ optional($training->college)->name ?? '-' }}</td>
 
-                            {{-- Start date --}}
+                            <td>{{ $training->formatted_cost }}</td>
                             <td>
                                 @if($training->start_date)
                                     {{ \Carbon\Carbon::parse($training->start_date)->format('d M Y') }}
@@ -199,7 +199,7 @@
 
 
 
-                            {{-- Cost --}}
+
 
 
                             {{-- Actions --}}

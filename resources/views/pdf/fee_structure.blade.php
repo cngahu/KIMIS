@@ -2,56 +2,129 @@
 <html>
 <head>
     <style>
-        body { font-family: DejaVu Sans, sans-serif; font-size: 13px; }
-        .header { text-align: center; margin-bottom: 20px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #333; padding: 8px; }
-        th { background: #eee; }
+        body {
+            font-family: DejaVu Sans, sans-serif;
+            font-size: 13px;
+            line-height: 1.4;
+            color: #000;
+            margin: 25px 35px;
+        }
+
+        .title {
+            text-align: center;
+            font-weight: bold;
+            color: #0033A1; /* Deep blue like PDF */
+        }
+
+        .coat {
+            text-align: center;
+            margin-bottom: 5px;
+        }
+
+        .coat img {
+            height: 75px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        table, th, td {
+            border: 1px solid #000;
+        }
+
+        th {
+            font-weight: bold;
+            text-align: center;
+            font-size: 13px;
+            background: #f5f5f5;
+        }
+
+        td {
+            padding: 4px 6px;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .left {
+            text-align: left;
+        }
+
+        a {
+            color: #0033A1;
+            text-decoration: underline;
+        }
     </style>
 </head>
+
 <body>
 
-<div class="header">
-    <img src="{{ public_path('logo/kihbt_logo.png') }}" height="70"><br>
-    <h3>FEE STRUCTURE – {{ $application->course->course_name }}</h3>
+<div class="coat">
+    <img src="{{ public_path('upload/admin_images/coat.png') }}" alt="Coat of Arms">
 </div>
 
-<p>Date: {{ now()->format('d M Y') }}</p>
+<div class="title">
+    REPUBLIC OF KENYA<br><br>
+    KENYA INSTITUTE OF HIGHWAYS AND BUILDING TECHNOLOGY<br>
+    2024 FRESHERS’ INTAKE FEES STRUCTURE<br>
+    TERMLY DISTRIBUTION<br>
+    YEAR 1
+</div>
 
 <table>
     <thead>
     <tr>
-        <th>Item</th>
-        <th>Cost (KES)</th>
+        <th>S/N</th>
+        <th>CLASS</th>
+        <th>TERM 1</th>
+        <th>TERM 2</th>
+        <th>TERM 3</th>
+        <th>TOTAL</th>
     </tr>
     </thead>
+
     <tbody>
-    <tr>
-        <td>Tuition Fees</td>
-        <td>{{ number_format(25000) }}</td>
-    </tr>
-    <tr>
-        <td>Registration Fee</td>
-        <td>{{ number_format(1500) }}</td>
-    </tr>
-    <tr>
-        <td>Student ID</td>
-        <td>{{ number_format(500) }}</td>
-    </tr>
-    <tr>
-        <td>Library & Activity Fee</td>
-        <td>{{ number_format(2000) }}</td>
-    </tr>
-    <tr>
-        <th>Total Payable</th>
-        <th>{{ number_format(29000) }}</th>
-    </tr>
+
+    @php
+        $rows = [
+            ['DLS', 30210, 25210, 5000, 60420],
+            ['DHE', 30210, 25210, 5000, 60420],
+            ['DQS', 30210, 25210, 5000, 60420],
+            ['DCE', 32210, 27210, 5000, 64420],
+            ['ARCH',32210, 27210, 5000, 64420],
+            ['BLD', 32210, 27210, 5000, 64420],
+            ['DEP', 32210, 27210, 5000, 64420],
+            ['MEA', 32210, 27210, 5000, 64420],
+            ['MEC', 32210, 27210, 5000, 64420],
+            ['MEI', 32210, 27210, 5000, 64420],
+            ['ICT', 32210, 27210, 5000, 64420],
+            ['MVMC',31710, 26710, 5000, 63420],
+            ['BLDC',31710, 26710, 5000, 63420],
+            ['ELIC',31710, 26710, 5000, 63420],
+            ['PLMC',29710, 24710, 5000, 59420],
+            ['CCRC',29710, 24710, 5000, 59420],
+            ['HBCE',39650, 29000, 0,     68650],
+            ['CPM', 28420, 22500, 'ATTACHMENT', 50920],
+            ['PPF', 28420, 22500, 'ATTACHMENT', 50920],
+            ['RAC', 28420, 22500, 'ATTACHMENT', 50920],
+        ];
+    @endphp
+
+    @foreach($rows as $index => $row)
+        <tr>
+            <td><a href="#">{{ $index+1 }}</a></td>
+            <td class="left">{{ $row[0] }}</td>
+            <td>{{ is_numeric($row[1]) ? number_format($row[1]) : $row[1] }}</td>
+            <td>{{ is_numeric($row[2]) ? number_format($row[2]) : $row[2] }}</td>
+            <td>{{ is_numeric($row[3]) ? number_format($row[3]) : $row[3] }}</td>
+            <td>{{ number_format($row[4]) }}</td>
+        </tr>
+    @endforeach
+
     </tbody>
 </table>
-
-<p style="margin-top: 20px;">
-    Please ensure all fees are paid before reporting. Payments should be made through the official KIHBT payment channels.
-</p>
 
 </body>
 </html>

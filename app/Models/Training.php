@@ -31,7 +31,10 @@ class Training extends Model
         'created_at'    => 'datetime',
         'updated_at'    => 'datetime',
     ];
-
+    public function getFormattedCostAttribute()
+    {
+        return 'KSh ' . number_format($this->cost, 2);
+    }
     // -----------------------------
     // STATUS CONSTANTS
     // -----------------------------

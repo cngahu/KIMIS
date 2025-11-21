@@ -41,17 +41,17 @@ class ApplicationController extends Controller
         $uploadDisk = 'public';
 
         // 1. FIXED UPLOAD DOCUMENTS
-        $kcseCertificatePath = null;
-        if ($request->hasFile('kcse_certificate')) {
-            $kcseCertificatePath = $request->file('kcse_certificate')
-                ->store('applications/documents', $uploadDisk);
-        }
-
-        $schoolLeavingPath = null;
-        if ($request->hasFile('school_leaving_certificate')) {
-            $schoolLeavingPath = $request->file('school_leaving_certificate')
-                ->store('applications/documents', $uploadDisk);
-        }
+//        $kcseCertificatePath = null;
+//        if ($request->hasFile('kcse_certificate')) {
+//            $kcseCertificatePath = $request->file('kcse_certificate')
+//                ->store('applications/documents', $uploadDisk);
+//        }
+//
+//        $schoolLeavingPath = null;
+//        if ($request->hasFile('school_leaving_certificate')) {
+//            $schoolLeavingPath = $request->file('school_leaving_certificate')
+//                ->store('applications/documents', $uploadDisk);
+//        }
 
         $birthCertificatePath = null;
         if ($request->hasFile('birth_certificate')) {
@@ -85,14 +85,15 @@ class ApplicationController extends Controller
             'declaration'           => true,
 
             // NEW: fixed upload paths
-            'kcse_certificate_path'            => $kcseCertificatePath,
-            'school_leaving_certificate_path'  => $schoolLeavingPath,
+            //'kcse_certificate_path'            => $kcseCertificatePath,
+           // 'school_leaving_certificate_path'  => $schoolLeavingPath,
             'birth_certificate_path'           => $birthCertificatePath,
             'national_id_path'                 => $nationalIdPath,
 
             // REQUIREMENT ANSWERS (dynamic)
             'requirements'          => $this->mergeRequirements($request),
         ];
+
 
         $application = $this->service->create($payload);
 

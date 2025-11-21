@@ -48,8 +48,8 @@ class StoreApplicationRequest extends FormRequest
             'declaration' => 'required|accepted',
 
             // 🔹 Fixed uploads
-            'kcse_certificate' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
-            'school_leaving_certificate' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+//            'kcse_certificate' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+//            'school_leaving_certificate' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
             'birth_certificate' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
             'national_id' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
 
