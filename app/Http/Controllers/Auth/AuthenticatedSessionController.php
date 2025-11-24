@@ -58,7 +58,9 @@ class AuthenticatedSessionController extends Controller
         elseif($request->user()->hasRole('director')) {
             $url = '/dashboard';
         }
-
+        elseif($request->user()->hasRole('student')) {
+            return redirect('applicant/dashboard');
+        }
 
         else {
             abort(403);
@@ -178,7 +180,7 @@ class AuthenticatedSessionController extends Controller
             $url = '/dashboard';
         }
         elseif($request->user()->hasRole('student')) {
-            $url = '/dashboard';
+            return redirect('applicant/dashboard');
         }
         abort(403);
     }
