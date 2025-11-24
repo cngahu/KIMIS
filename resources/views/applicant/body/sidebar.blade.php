@@ -149,73 +149,73 @@
                         <div class="menu-title">My Applications</div>
                     </a>
                     <ul>
-                        <li><a href="{{ route('applicant.applications') }}"><i class="bx bx-right-arrow-alt"></i>View Applications</a></li>
-                        <li><a href="{{ route('applicant.apply') }}"><i class="bx bx-right-arrow-alt"></i>Apply for Training</a></li>
-                        <li><a href="{{ route('applicant.application.status') }}"><i class="bx bx-right-arrow-alt"></i>Application Status</a></li>
+                        <li><a href="#"><i class="bx bx-right-arrow-alt"></i>View Applications</a></li>
+{{--                        <li><a href="{{ route('applicant.apply') }}"><i class="bx bx-right-arrow-alt"></i>Apply for Training</a></li>--}}
+{{--                        <li><a href="{{ route('applicant.application.status') }}"><i class="bx bx-right-arrow-alt"></i>Application Status</a></li>--}}
                     </ul>
                 </li>
             @endif
 
-            <!-- Training & Courses -->
-            <li>
-                <a class="has-arrow" href="javascript:;">
-                    <div class="parent-icon"><i class="bx bx-book-reader"></i></div>
-                    <div class="menu-title">Training Programs</div>
-                </a>
-                <ul>
-                    <li><a href="{{ route('applicant.trainings') }}"><i class="bx bx-right-arrow-alt"></i>Available Trainings</a></li>
-                    <li><a href="{{ route('applicant.courses') }}"><i class="bx bx-right-arrow-alt"></i>Course Catalog</a></li>
-                    <li><a href="{{ route('applicant.enrolled') }}"><i class="bx bx-right-arrow-alt"></i>My Enrollments</a></li>
-                </ul>
-            </li>
+{{--            <!-- Training & Courses -->--}}
+{{--            <li>--}}
+{{--                <a class="has-arrow" href="javascript:;">--}}
+{{--                    <div class="parent-icon"><i class="bx bx-book-reader"></i></div>--}}
+{{--                    <div class="menu-title">Training Programs</div>--}}
+{{--                </a>--}}
+{{--                <ul>--}}
+{{--                    <li><a href="{{ route('applicant.trainings') }}"><i class="bx bx-right-arrow-alt"></i>Available Trainings</a></li>--}}
+{{--                    <li><a href="{{ route('applicant.courses') }}"><i class="bx bx-right-arrow-alt"></i>Course Catalog</a></li>--}}
+{{--                    <li><a href="{{ route('applicant.enrolled') }}"><i class="bx bx-right-arrow-alt"></i>My Enrollments</a></li>--}}
+{{--                </ul>--}}
+{{--            </li>--}}
 
-            <!-- Documents & Uploads -->
-            <li>
-                <a class="has-arrow" href="javascript:;">
-                    <div class="parent-icon"><i class="bx bx-folder"></i></div>
-                    <div class="menu-title">Documents</div>
-                </a>
-                <ul>
-                    <li><a href="{{ route('applicant.documents') }}"><i class="bx bx-right-arrow-alt"></i>My Documents</a></li>
-                    <li><a href="{{ route('applicant.uploads') }}"><i class="bx bx-right-arrow-alt"></i>Upload Documents</a></li>
-                    <li><a href="{{ route('applicant.certificates') }}"><i class="bx bx-right-arrow-alt"></i>Certificates</a></li>
-                </ul>
-            </li>
+{{--            <!-- Documents & Uploads -->--}}
+{{--            <li>--}}
+{{--                <a class="has-arrow" href="javascript:;">--}}
+{{--                    <div class="parent-icon"><i class="bx bx-folder"></i></div>--}}
+{{--                    <div class="menu-title">Documents</div>--}}
+{{--                </a>--}}
+{{--                <ul>--}}
+{{--                    <li><a href="{{ route('applicant.documents') }}"><i class="bx bx-right-arrow-alt"></i>My Documents</a></li>--}}
+{{--                    <li><a href="{{ route('applicant.uploads') }}"><i class="bx bx-right-arrow-alt"></i>Upload Documents</a></li>--}}
+{{--                    <li><a href="{{ route('applicant.certificates') }}"><i class="bx bx-right-arrow-alt"></i>Certificates</a></li>--}}
+{{--                </ul>--}}
+{{--            </li>--}}
 
-            <!-- Payments & Fees -->
-            <li>
-                <a class="has-arrow" href="javascript:;">
-                    <div class="parent-icon"><i class="bx bx-credit-card"></i></div>
-                    <div class="menu-title">Payments</div>
-                </a>
-                <ul>
-                    <li><a href="{{ route('applicant.invoices') }}"><i class="bx bx-right-arrow-alt"></i>Invoices</a></li>
-                    <li><a href="{{ route('applicant.payment.history') }}"><i class="bx bx-right-arrow-alt"></i>Payment History</a></li>
-                    <li><a href="{{ route('applicant.payment.methods') }}"><i class="bx bx-right-arrow-alt"></i>Payment Methods</a></li>
-                </ul>
-            </li>
+{{--            <!-- Payments & Fees -->--}}
+{{--            <li>--}}
+{{--                <a class="has-arrow" href="javascript:;">--}}
+{{--                    <div class="parent-icon"><i class="bx bx-credit-card"></i></div>--}}
+{{--                    <div class="menu-title">Payments</div>--}}
+{{--                </a>--}}
+{{--                <ul>--}}
+{{--                    <li><a href="{{ route('applicant.invoices') }}"><i class="bx bx-right-arrow-alt"></i>Invoices</a></li>--}}
+{{--                    <li><a href="{{ route('applicant.payment.history') }}"><i class="bx bx-right-arrow-alt"></i>Payment History</a></li>--}}
+{{--                    <li><a href="{{ route('applicant.payment.methods') }}"><i class="bx bx-right-arrow-alt"></i>Payment Methods</a></li>--}}
+{{--                </ul>--}}
+{{--            </li>--}}
 
-            <!-- Support & Help -->
-            <li class="menu-label">Support</li>
-            <li>
-                <a class="has-arrow" href="javascript:;">
-                    <div class="parent-icon"><i class="bx bx-support"></i></div>
-                    <div class="menu-title">Help Center</div>
-                </a>
-                <ul>
-                    <li><a href="{{ route('applicant.faq') }}"><i class="bx bx-right-arrow-alt"></i>FAQ</a></li>
-                    <li><a href="{{ route('applicant.contact') }}"><i class="bx bx-right-arrow-alt"></i>Contact Support</a></li>
-                    <li><a href="{{ route('applicant.guides') }}"><i class="bx bx-right-arrow-alt"></i>User Guides</a></li>
-                </ul>
-            </li>
+{{--            <!-- Support & Help -->--}}
+{{--            <li class="menu-label">Support</li>--}}
+{{--            <li>--}}
+{{--                <a class="has-arrow" href="javascript:;">--}}
+{{--                    <div class="parent-icon"><i class="bx bx-support"></i></div>--}}
+{{--                    <div class="menu-title">Help Center</div>--}}
+{{--                </a>--}}
+{{--                <ul>--}}
+{{--                    <li><a href="{{ route('applicant.faq') }}"><i class="bx bx-right-arrow-alt"></i>FAQ</a></li>--}}
+{{--                    <li><a href="{{ route('applicant.contact') }}"><i class="bx bx-right-arrow-alt"></i>Contact Support</a></li>--}}
+{{--                    <li><a href="{{ route('applicant.guides') }}"><i class="bx bx-right-arrow-alt"></i>User Guides</a></li>--}}
+{{--                </ul>--}}
+{{--            </li>--}}
 
-            <!-- Settings -->
-            <li>
-                <a href="{{ route('applicant.settings') }}">
-                    <div class="parent-icon"><i class="bx bx-cog"></i></div>
-                    <div class="menu-title">Settings</div>
-                </a>
-            </li>
+{{--            <!-- Settings -->--}}
+{{--            <li>--}}
+{{--                <a href="{{ route('applicant.settings') }}">--}}
+{{--                    <div class="parent-icon"><i class="bx bx-cog"></i></div>--}}
+{{--                    <div class="menu-title">Settings</div>--}}
+{{--                </a>--}}
+{{--            </li>--}}
         </ul>
     @endif
     <!--end navigation-->
