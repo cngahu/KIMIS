@@ -111,6 +111,9 @@ class ApplicationReviewService
         $medicalReport = app(AdmissionPdfService::class)
             ->generatemedical($application);
 
+        $requirement = app(AdmissionPdfService::class)
+            ->generaterequirement($application);
+
 
         Mail::to($application->email)->send(
             new ApplicationApprovedMail(
@@ -120,6 +123,7 @@ class ApplicationReviewService
                 $admissionLetter,
                 $feeStructure,
                 $medicalReport,
+                $requirement,
 
             )
         );
