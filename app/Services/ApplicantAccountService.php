@@ -24,7 +24,7 @@ class ApplicantAccountService
         ]);
 
         // Assign applicant role
-        $user->assignRole('student_applicant');
+        $user->assignRole('student');
 
         // Return both user and raw password so we can email it
         return [

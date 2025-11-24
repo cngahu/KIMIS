@@ -19,6 +19,7 @@ use App\Http\Controllers\Admin\RegistrarApplicationController;
 use App\Http\Controllers\Admin\OfficerController;
 use App\Http\Controllers\Admin\RegistrarDashboardController;
 use App\Http\Controllers\Admin\ReportController;
+use App\Http\Controllers\Admin\AdmissionDocumentTypeController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -85,6 +86,30 @@ Route::middleware(['auth','history','verified'])->group(function () {
 ////            ->name('registrar.applications.view');
 //
 //    });
+
+
+    Route::middleware(['role:superadmin|registrar'])->group(function () {
+
+        Route::get('admission-documents', [AdmissionDocumentTypeController::class, 'index'])
+            ->name('admin.admission.documents.index');
+
+        Route::get('admission-documents/create', [AdmissionDocumentTypeController::class, 'create'])
+            ->name('admin.admission.documents.create');
+
+        Route::post('admission-documents', [AdmissionDocumentTypeController::class, 'store'])
+            ->name('admin.admission.documents.store');
+
+        Route::get('admission-documents/{doc}/edit', [AdmissionDocumentTypeController::class, 'edit'])
+            ->name('admin.admission.documents.edit');
+
+        Route::post('admission-documents/{doc}', [AdmissionDocumentTypeController::class, 'update'])
+            ->name('admin.admission.documents.update');
+
+        Route::delete('admission-documents/{doc}', [AdmissionDocumentTypeController::class, 'destroy'])
+            ->name('admin.admission.documents.delete');
+    });
+
+
     Route::get('/applications/awaiting',
         [RegistrarApplicationController::class, 'awaiting'])
         ->name('registrar.applications.awaiting');
@@ -400,3 +425,4 @@ Route::group(['middleware' => ['role:applicant','auth','history','verified']], f
 
 require __DIR__.'/auth.php';
 require __DIR__.'/application.php';
+require __DIR__.'/student.php';

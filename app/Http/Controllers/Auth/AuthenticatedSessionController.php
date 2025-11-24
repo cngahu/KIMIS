@@ -59,7 +59,7 @@ class AuthenticatedSessionController extends Controller
             $url = '/dashboard';
         }
         elseif($request->user()->hasRole('student')) {
-            return redirect('applicant/dashboard');
+            return redirect('student/dashboard');
         }
 
         else {

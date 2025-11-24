@@ -97,7 +97,14 @@
 
     <!--navigation-->
     <ul class="metismenu" id="menu">
+        @php $user = \Illuminate\Support\Facades\Auth::user(); @endphp
 
+
+
+        {{-- STUDENT --}}
+        @if($user->hasRole('student'))
+            @include('admin.body.partials._student')
+        @endif
         {{-- Roles & Permissions (permission-based, not role-based) --}}
         @if(Auth::user()->can('roles.menu'))
             <li>
@@ -194,7 +201,7 @@
                     <div class="menu-title">Widgets</div>
                 </a>
             </li>
-        @endif
+
 
         <li class="menu-label">Course Applications</li>
 
@@ -269,27 +276,28 @@
         </li>
 
 
-        <li class="menu-label">My Applications</li>
 
-        <li>
-            <a href="javascript:;" class="has-arrow">
-                <div class="parent-icon"><i class='bx bx-task'></i></div>
-                <div class="menu-title">My Applications</div>
-            </a>
-            <ul>
-                <li>
-                    <a href="{{ route('officer.applications.pending') }}">
-                        <i class="bx bx-radio-circle"></i> Pending Review
-                    </a>
-                </li>
+            <li class="menu-label">Admission Documents</li>
 
-                <li>
-                    <a href="{{ route('officer.applications.completed') }}">
-                        <i class="bx bx-radio-circle"></i> Completed Reviews
-                    </a>
-                </li>
-            </ul>
-        </li>
+            <li>
+                <a href="javascript:;" class="has-arrow">
+                    <div class="parent-icon"><i class='bx bx-file'></i></div>
+                    <div class="menu-title">Upload Documents</div>
+                </a>
+                <ul>
+                    <li>
+                        <a href="{{ route('admin.admission.documents.index') }}">
+                            <i class="bx bx-radio-circle"></i> All Uploaded Documents
+                        </a>
+                    </li>
+
+
+                </ul>
+            </li>
+
+
+        @endif
+
 
         {{-- HOD MENU --}}
         @if(Auth::user()->hasRole('hod'))
@@ -309,6 +317,27 @@
                     <li>
                         <a href="{{ route('all.courses') }}">
                             <i class="bx bx-right-arrow-alt"></i>Courses
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+            <li class="menu-label">My Assigned Applications</li>
+            <li>
+                <a href="javascript:;" class="has-arrow">
+                    <div class="parent-icon"><i class='bx bx-task'></i></div>
+                    <div class="menu-title">My Applications</div>
+                </a>
+                <ul>
+                    <li>
+                        <a href="{{ route('officer.applications.pending') }}">
+                            <i class="bx bx-radio-circle"></i> Pending Review
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="{{ route('officer.applications.completed') }}">
+                            <i class="bx bx-radio-circle"></i> Completed Reviews
                         </a>
                     </li>
                 </ul>

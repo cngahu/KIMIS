@@ -15,6 +15,7 @@ class UsersController extends Controller
     //
     public function ApplicantDashboard()
     {
+        dd('AM IN DASHBOARD');
         $user=User::find(Auth::user()->id);
 //        if($user->must_change_password==1)
 //        {
@@ -28,6 +29,7 @@ class UsersController extends Controller
 
 
     }
+
 
     public function ApplicantLogout(Request $request){
         Auth::guard('web')->logout();
