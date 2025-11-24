@@ -150,14 +150,44 @@
                 </a>
             </div>
 
-            <div class="acct-card">
-                <span class="acct-icon"><i class="la la-credit-card"></i></span>
-                <h3 class="acct-title">Secure Payments</h3>
-                <p class="acct-desc">Pay fees online with instant confirmations and digital receipts.</p>
-                <a href="#" class="btn-primary d-inline-flex align-items-center gap-2">
-                    <i class="la la-file-invoice"></i> Get Started
+            <div class="acct-card p-4 text-center shadow-sm border rounded-3"
+                 style="background: #fff; border-color: #e5e7eb;">
+
+                {{-- Icon --}}
+                <div class="mb-3">
+        <span class="acct-icon d-inline-flex justify-content-center align-items-center"
+              style="width: 70px; height: 70px; border-radius: 50%;
+                     background: #09913910; color: #099139; font-size: 35px;">
+            <i class="la la-certificate"></i>
+        </span>
+                </div>
+
+                {{-- Title --}}
+                <h3 class="acct-title mb-2 fw-bold" style="color:#3B2818;">
+                    Certificate Verification
+                </h3>
+
+                {{-- Description --}}
+                <p class="acct-desc text-muted mb-3" style="font-size: 14px;">
+                    Enter your certificate number to verify its authenticity instantly.
+                    No login required.
+                </p>
+
+                {{-- Bullet points --}}
+                <ul class="list-unstyled small text-start mx-auto mb-4" style="max-width: 260px;">
+                    <li class="mb-1"><i class="la la-check-circle text-success"></i> Validate authenticity</li>
+                    <li class="mb-1"><i class="la la-check-circle text-success"></i> Retrieve trainee details</li>
+                    <li class=""><i class="la la-check-circle text-success"></i> Fast and secure</li>
+                </ul>
+
+                {{-- Button --}}
+                <a href="{{ route('certificates.verify') }}"
+                   class="btn d-inline-flex align-items-center gap-2 px-4 py-2 fw-semibold"
+                   style="background:#099139; color:#fff; border-radius: 6px;">
+                    <i class="la la-search"></i> Verify Certificate
                 </a>
             </div>
+
 
             <div class="acct-card">
                 <span class="acct-icon"><i class="la la-users-cog"></i></span>

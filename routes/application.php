@@ -3,6 +3,7 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Application\ApplicationController;
 use App\Http\Controllers\Application\PaymentController;
+use App\Http\Controllers\public\CertificateLookupController;
 
 //Route::get('/apply/{course}', [ApplicationController::class, 'showForm'])->name('applications.form');
 //Route::post('/apply/store', [ApplicationController::class, 'store'])->name('applications.store');
@@ -30,8 +31,11 @@ Route::get('/apply/{application}/pay-now', [PaymentController::class, 'pay'])->n
 Route::post('/payment/callback', [PaymentController::class, 'callback'])->name('payment.callback');
 
 Route::get('/apply/{course}/requirements', [ApplicationController::class, 'requirements']
-)->name('applications.requirements');
+)->name('applications.requirementss');
 
 
 Route::get('/payment/simulate/{invoice}', [PaymentController::class, 'simulate'])
     ->name('payment.simulate');
+
+Route::get('/certificates/verify', [CertificateLookupController::class, 'verify'])
+    ->name('certificates.verify');
