@@ -1,6 +1,7 @@
 <?php
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Student\AdmissionController;
+use App\Http\Controllers\Registrar\DocumentVerificationController;
 
 
 
@@ -10,3 +11,6 @@ Route::middleware(['auth', 'admission'])->group(function () {
 
 Route::post('/admission/accept-offer', [AdmissionController::class, 'acceptOffer'])
     ->name('admission.accept');
+
+
+

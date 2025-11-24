@@ -69,7 +69,8 @@ class ApplicantAccountService
         Admission::create([
             'application_id' => $application->id,
             'user_id'        => $user->id,
-            'status'         => 'offer_sent'
+            'status'         => 'offer_sent',
+            'required_fee'   => $application->course->cost,
         ]);
         return [
             'user' => $user,

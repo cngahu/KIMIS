@@ -35,5 +35,13 @@ class Admission extends Model
     {
         return $this->hasOne(\App\Models\AdmissionDetail::class, 'admission_id');
     }
+    public function isFullyPaid(): bool
+    {
+        return $this->total_fee <= $this->feePayments->sum('amount');
+    }
+    public function uploadedDocuments()
+    {
+        return $this->hasMany(\App\Models\AdmissionUploadedDocument::class);
+    }
 
 }

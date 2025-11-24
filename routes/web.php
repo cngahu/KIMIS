@@ -20,6 +20,7 @@ use App\Http\Controllers\Admin\OfficerController;
 use App\Http\Controllers\Admin\RegistrarDashboardController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\AdmissionDocumentTypeController;
+use App\Http\Controllers\Registrar\DocumentVerificationController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -87,6 +88,21 @@ Route::middleware(['auth','history','verified'])->group(function () {
 //
 //    });
 
+    Route::prefix('registrar')->middleware(['auth','role:registrar|hod|superadmin'])->group(function () {
+
+        Route::get('/verification', [DocumentVerificationController::class, 'index'])
+            ->name('registrar.verification.index');
+
+        Route::get('/verification/{admission}', [DocumentVerificationController::class, 'show'])
+            ->name('registrar.verification.show');
+
+        Route::post('/verification/{admission}/approve', [DocumentVerificationController::class, 'approve'])
+            ->name('registrar.verification.approve');
+
+        Route::post('/verification/{admission}/reject', [DocumentVerificationController::class, 'reject'])
+            ->name('registrar.verification.reject');
+
+    });
 
     Route::middleware(['role:superadmin|registrar'])->group(function () {
 

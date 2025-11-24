@@ -41,7 +41,9 @@ class StudentController extends Controller
             'form_submitted',
             'documents_uploaded',
             'fee_paid',
-            'docs_verified'
+            'docs_verified',
+            'awaiting_sponsor_verification',
+            'awaiting_fee_decision'
         ])) {
             return view('student.dashboard.in_admission', compact('admission'));
         }

@@ -1,3 +1,4 @@
+@php $user = \Illuminate\Support\Facades\Auth::user(); @endphp
 @if($admission->status === 'offer_sent')
 
     <li>
@@ -25,7 +26,7 @@
 
 @if(in_array($admission->status, [
     'offer_accepted', 'form_submitted',
-    'documents_uploaded', 'fee_paid', 'docs_verified'
+    'documents_uploaded', 'fee_paid', 'docs_verified','awaiting_sponsor_verification','awaiting_fee_decision'
 ]))
 
     <li>
