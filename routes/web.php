@@ -21,6 +21,7 @@ use App\Http\Controllers\Admin\RegistrarDashboardController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\AdmissionDocumentTypeController;
 use App\Http\Controllers\Registrar\DocumentVerificationController;
+use App\Http\Controllers\Registrar\AdmissionProcessingController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -71,6 +72,21 @@ Route::middleware(['auth','history','verified'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+
+    Route::prefix('admin/registrar')->middleware(['auth'])->group(function () {
+
+        // List of verified students waiting for admission
+        Route::get('/admissions/verified',
+            [AdmissionProcessingController::class, 'verifiedList']
+        )->name('admin.admissions.verified');
+
+        // Admit a verified student (assign admission number)
+        Route::post('/admissions/{admission}/admit',
+            [AdmissionProcessingController::class, 'admitStudent']
+        )->name('admin.admissions.admit');
+
+    });
 
 
 //    Route::prefix('admin/registrar')->group(function () {
@@ -135,6 +151,10 @@ Route::middleware(['auth','history','verified'])->group(function () {
 
         Route::delete('admission-documents/{doc}', [AdmissionDocumentTypeController::class, 'destroy'])
             ->name('admin.admission.documents.delete');
+
+
+
+
     });
 
 

@@ -16,6 +16,7 @@ class Invoice extends Model
     protected $casts = [
         'metadata' => 'array',
         'paid_at' => 'datetime',
+
     ];
 
     public function application()

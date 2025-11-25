@@ -6,7 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreApplicationRequest;
 use App\Models\Course;
-use App\Models\County;
+
+use App\Models\county;
 use App\Models\PostalCode;
 use App\Models\Training;
 use App\Models\Application;
@@ -66,7 +67,7 @@ class ApplicationController extends Controller
 
         // Whatever you previously had here:
         // e.g. load counties, postal codes, dynamic requirements etc.
-        $counties    = \App\Models\County::orderBy('name')->get();
+        $counties    = \App\Models\county::orderBy('name')->get();
         $postalCodes = \App\Models\PostalCode::orderBy('code')->get();
 
         // You may or may not care about training here for long courses

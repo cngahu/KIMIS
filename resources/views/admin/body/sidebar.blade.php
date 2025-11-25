@@ -312,6 +312,13 @@
                         </a>
                     </li>
 
+                    <li>
+                        <a href="{{ route('admin.admissions.verified') }}">
+                            <i class="bx bx-radio-circle"></i> Verified
+
+                        </a>
+                    </li>
+
                 </ul>
             </li>
 
