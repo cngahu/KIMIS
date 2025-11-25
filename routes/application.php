@@ -23,6 +23,9 @@ Route::get('/counties/{county}/subcounties', function ($county) {
 });
 
 Route::get('/apply/{course}', [ApplicationController::class, 'showForm'])->name('applications.form');
+Route::post('/short-trainings/{training}', [ApplicationController::class, 'storeShort'])
+    ->name('short_trainings.store');
+
 Route::post('/apply/store', [ApplicationController::class, 'store'])->name('applications.store');
 Route::get('/apply/{application}/payment', [ApplicationController::class, 'payment'])->name('applications.payment');
 

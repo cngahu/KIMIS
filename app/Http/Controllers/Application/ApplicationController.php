@@ -8,6 +8,9 @@ use App\Http\Requests\StoreApplicationRequest;
 use App\Models\Course;
 use App\Models\County;
 use App\Models\PostalCode;
+use App\Models\Training;
+use App\Models\Application;
+use App\Models\ShortTraining;
 use App\Services\ApplicationService;
 use Illuminate\Support\Facades\Storage;
 
@@ -19,19 +22,261 @@ class ApplicationController extends Controller
     {
         $this->service = $service;
 
-        // PUBLIC CONTROLLER — no auth needed
-        // But we will throttle routes to prevent spam
-        $this->middleware('throttle:10,1')->only(['store']); // 10 attempts per minute
+        // Throttle both long-term and short-term submissions
+        $this->middleware('throttle:10,1')->only(['store', 'storeShort']);
     }
 
-    public function showForm(Course $course)
+
+//    public function showForm(Course $course)
+//    {
+//        return view('public.apply', [
+//            'course'      => $course,
+//            'counties'    => County::orderBy('name')->get(),
+//            'postalCodes' => PostalCode::orderBy('code')->get(),
+//        ]);
+//    }
+
+
+    public function showForm(Request $request, Course $course)
     {
+        // Load related data you might need
+        $course->load('requirements');
+
+        // Check mode: 'Long Term' vs 'Short Term'
+        $mode = $course->course_mode;   // assuming this column exists on courses table
+
+        if (strcasecmp($mode, 'Short Term') === 0) {
+            // ---- SHORT TERM FLOW ----
+
+            // Find the specific training (by query param), or the first approved one for that course
+            $training = Training::with('college')
+                ->where('course_id', $course->id)
+                ->where('status', 'Approved')
+                ->when($request->query('training_id'), function ($q, $tid) {
+                    $q->where('id', $tid);
+                })
+                ->orderBy('start_date')
+                ->firstOrFail();
+
+            // Show the short-course multi-applicant form
+            return view('public.apply_shorttraining', compact('course', 'training'));
+        }
+
+        // ---- LONG TERM FLOW (existing) ----
+
+        // Whatever you previously had here:
+        // e.g. load counties, postal codes, dynamic requirements etc.
+        $counties    = \App\Models\County::orderBy('name')->get();
+        $postalCodes = \App\Models\PostalCode::orderBy('code')->get();
+
+        // You may or may not care about training here for long courses
+        $training = Training::with('college')
+            ->where('course_id', $course->id)
+            ->where('status', 'Approved')
+            ->when($request->query('training_id'), function ($q, $tid) {
+                $q->where('id', $tid);
+            })
+            ->orderBy('start_date')
+            ->first();
+
         return view('public.apply', [
             'course'      => $course,
-            'counties'    => County::orderBy('name')->get(),
-            'postalCodes' => PostalCode::orderBy('code')->get(),
+            'counties'    => $counties,
+            'postalCodes' => $postalCodes,
+            'training'    => $training,
         ]);
     }
+
+    /**
+     * Store SHORT-TERM applications (multiple applicants, same course/training),
+     * using the same ApplicationService logic as long-term.
+     */
+
+    public function storeShort(Request $request, Training $training)
+    {
+        // 1) Validate input
+        $validated = $request->validate([
+            'financier'      => 'required|in:self,employer',
+            'employer_name'  => 'nullable|string|max:255',
+
+            'applicants'                  => 'required|array|min:1',
+            'applicants.*.full_name'      => 'required|string|max:255',
+            'applicants.*.id_no'          => 'nullable|string|max:50',
+            'applicants.*.phone'          => 'required|string|max:50',
+            'applicants.*.email'          => 'nullable|email|max:255',
+            'applicants.*.national_id'    => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+        ]);
+
+        // If financier is employer, name is required
+        if ($validated['financier'] === 'employer' && empty($validated['employer_name'])) {
+            return back()
+                ->withErrors(['employer_name' => 'Employer / Institution name is required when financier is employer.'])
+                ->withInput();
+        }
+
+        $uploadDisk = 'public';
+        $shortRecords = [];
+
+        // 2) Save each applicant in short_trainings
+        foreach ($validated['applicants'] as $index => $applicant) {
+
+            // Handle National ID upload
+            $nationalIdPath = null;
+            $nationalIdOriginal = null;
+
+            if ($request->hasFile("applicants.$index.national_id")) {
+                $file = $request->file("applicants.$index.national_id");
+                $nationalIdOriginal = $file->getClientOriginalName();
+
+                $nationalIdPath = $file->store(
+                    'short_trainings/national_ids',
+                    $uploadDisk
+                );
+            }
+
+            $shortRecords[] = ShortTraining::create([
+                'training_id'              => $training->id,
+                'financier'                => $validated['financier'],
+                'employer_name'            => $validated['financier'] === 'employer'
+                    ? $validated['employer_name']
+                    : null,
+                'full_name'                => $applicant['full_name'],
+                'id_no'                    => $applicant['id_no'] ?? null,
+                'phone'                    => $applicant['phone'] ?? null,
+                'email'                    => $applicant['email'] ?? null,
+                'national_id_path'         => $nationalIdPath,
+                'national_id_original_name'=> $nationalIdOriginal,
+            ]);
+        }
+
+        // 3) Compute total amount to pay
+        $applicantCount = count($validated['applicants']);
+        $amountPerApplicant = $training->cost ?? 0;
+        $totalAmount = $amountPerApplicant * $applicantCount;
+
+        // 4) Create a "group" Application so we can reuse the existing payment flow
+        $firstApplicant = $validated['applicants'][0];
+
+        $groupFullName = $validated['financier'] === 'employer'
+            ? $validated['employer_name'].' ('.$applicantCount.' trainee(s))'
+            : $firstApplicant['full_name'];
+
+        // Build payload in the same style as the long-term ApplicationController@store()
+        // but much of the data is null for short courses.
+        $payload = [
+            'course_id'             => $training->course_id,
+            'full_name'             => $groupFullName,
+            'id_number'             => $firstApplicant['id_no'] ?? null,
+            'phone'                 => $firstApplicant['phone'],
+            'email'                 => $firstApplicant['email'] ?? null,
+            'date_of_birth'         => null,
+
+            'home_county_id'        => null,
+            'current_county_id'     => null,
+            'current_subcounty_id'  => null,
+            'postal_address'        => null,
+            'postal_code_id'        => null,
+            'co'                    => $validated['financier'] === 'employer'
+                ? $validated['employer_name']
+                : null,
+            'town'                  => null,
+
+            'financier'             => $validated['financier'],
+            'kcse_mean_grade'       => null,
+            'declaration'           => true,
+
+            'birth_certificate_path' => null,
+            'national_id_path'       => null,
+
+            // No dynamic requirements for short courses
+            'requirements'          => [],
+
+            // Extra info in metadata
+            'metadata'              => [
+                'short_term'         => true,
+                'training_id'        => $training->id,
+                'applicant_count'    => $applicantCount,
+                'amount_per_applicant' => $amountPerApplicant,
+                'employer_name'      => $validated['financier'] === 'employer'
+                    ? $validated['employer_name']
+                    : null,
+            ],
+
+            // 👇 we’ll use this to override the invoice amount in ApplicationService
+            'invoice_amount'        => $totalAmount,
+        ];
+
+        // 5) Create the Application + Invoice using the same service as long-term
+        $groupApplication = $this->service->create($payload);
+
+        // 6) Redirect to the normal payment page, like long-term applications
+        return redirect()
+            ->route('applications.payment', $groupApplication->id)
+            ->with('success', 'Application(s) captured successfully. Proceed to payment.')
+            ->with('total_amount', $totalAmount)
+            ->with('applicant_count', $applicantCount);
+    }
+
+
+//    public function storeShort(Request $request, Training $training)
+//    {
+//        // 1) Validate input
+//        $validated = $request->validate([
+//            'financier'      => 'required|in:self,employer',
+//            'employer_name'  => 'nullable|string|max:255',
+//
+//            'applicants'                         => 'required|array|min:1',
+//            'applicants.*.full_name'            => 'required|string|max:255',
+//            'applicants.*.id_no'            => 'nullable|string|max:50',
+//            'applicants.*.phone'                => 'required|string|max:50',
+//            'applicants.*.email'                => 'nullable|email|max:255',
+//            'applicants.*.national_id'          => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+//        ]);
+//
+//        // If financier is employer, name is required
+//        if ($validated['financier'] === 'employer' && empty($validated['employer_name'])) {
+//            return back()
+//                ->withErrors(['employer_name' => 'Employer / Institution name is required when financier is employer.'])
+//                ->withInput();
+//        }
+//
+//        $uploadDisk = 'public';
+//
+//        // 2) Loop through each applicant and save into short_trainings
+//        foreach ($validated['applicants'] as $index => $applicant) {
+//
+//            $nationalIdPath = null;
+//            $nationalIdOriginal = null;
+//
+//            if ($request->hasFile("applicants.$index.national_id")) {
+//                $file = $request->file("applicants.$index.national_id");
+//                $nationalIdOriginal = $file->getClientOriginalName();
+//
+//                $nationalIdPath = $file->store('short_trainings/national_ids', $uploadDisk);
+//            }
+//
+//            ShortTraining::create([
+//                'training_id'               => $training->id,
+//                'financier'                 => $validated['financier'],
+//                'employer_name'             => $validated['financier'] === 'employer'
+//                    ? $validated['employer_name']
+//                    : null,
+//
+//                'full_name'                 => $applicant['full_name'],
+//                'id_no'                     => $applicant['id_no'] ?? null,
+//                'phone'                     => $applicant['phone'],
+//                'email'                     => $applicant['email'] ?? null,
+//
+//                'national_id_path'          => $nationalIdPath,
+//                'national_id_original_name' => $nationalIdOriginal,
+//            ]);
+//        }
+//
+//        return redirect()
+//            ->route('applications.payment', $training)
+//            ->with('success', 'Short course application(s) submitted successfully.');
+//    }
+
 
     public function store(StoreApplicationRequest $request)
     {
@@ -126,13 +371,39 @@ class ApplicationController extends Controller
         return $answers;
     }
 
+//    public function payment($id)
+//    {
+//        $application = \App\Models\Application::findOrFail($id);
+//
+//        return view('public.payment', compact('application'));
+//    }
     public function payment($id)
     {
-        $application = \App\Models\Application::findOrFail($id);
+        $application = Application::findOrFail($id);
 
-        return view('public.payment', compact('application'));
+        $shortApplicants = collect();
+
+        $meta = $application->metadata ?? [];
+        $isShort = !empty($meta['short_term']) && !empty($meta['training_id']);
+
+        if ($isShort) {
+            $shortApplicants = ShortTraining::where('training_id', $meta['training_id'])
+                ->where('financier', $application->financier)
+                ->when(
+                    $application->financier === 'employer' && !empty($meta['employer_name']),
+                    function ($q) use ($meta) {
+                        $q->where('employer_name', $meta['employer_name']);
+                    }
+                )
+                ->orderBy('id')
+                ->get();
+        }
+
+        return view('public.payment', [
+            'application'     => $application,
+            'shortApplicants' => $shortApplicants,
+        ]);
     }
-
     public function requirements(Course $course)
     {
         return $course->requirements()

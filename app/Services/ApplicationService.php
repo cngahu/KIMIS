@@ -25,6 +25,10 @@ class ApplicationService
     {
         return DB::transaction(function () use ($data) {
 
+            // Allow custom invoice amount for special flows (e.g. short courses)
+            $invoiceAmount = $data['invoice_amount'] ?? null;
+            unset($data['invoice_amount']); // so it doesn't go into mass assignment
+
             // 1. Create application record
             $application = Application::create([
                 'course_id'             => $data['course_id'],
@@ -44,32 +48,80 @@ class ApplicationService
                 'kcse_mean_grade'       => $data['kcse_mean_grade'] ?? null,
                 'declaration'           => true,
 
-                // 🔹 NEW: fixed upload paths from controller payload
-               // 'kcse_certificate_path'            => $data['kcse_certificate_path'] ?? null,
-              //  'school_leaving_certificate_path'  => $data['school_leaving_certificate_path'] ?? null,
                 'birth_certificate_path'           => $data['birth_certificate_path'] ?? null,
                 'national_id_path'                 => $data['national_id_path'] ?? null,
 
                 'status'                => 'pending_payment',
                 'payment_status'        => 'pending',
                 'reference'             => $this->generateReference(),
+                'metadata'              => $data['metadata'] ?? null,
             ]);
 
-            // 2. Save requirement answers
+            // 2. Save requirement answers (same as before)
             if (!empty($data['requirements'])) {
                 $this->saveRequirementAnswers($application, $data['requirements']);
             }
 
             // 3. Create invoice
-            $amount = $this->getCourseFee($application->course_id);
+            $amount = $invoiceAmount ?? $this->getCourseFee($application->course_id);
             app(\App\Services\PaymentService::class)->generateInvoice($application, $amount);
 
-            // 4. Log audit
+            // 4. Audit log etc...
             $this->audit->log('application_created', $application);
 
             return $application;
         });
     }
+
+//    public function create(array $data): Application
+//    {
+//        return DB::transaction(function () use ($data) {
+//
+//            // 1. Create application record
+//            $application = Application::create([
+//                'course_id'             => $data['course_id'],
+//                'full_name'             => $data['full_name'],
+//                'id_number'             => $data['id_number'] ?? null,
+//                'phone'                 => $data['phone'],
+//                'email'                 => $data['email'] ?? null,
+//                'date_of_birth'         => $data['date_of_birth'] ?? null,
+//                'home_county_id'        => $data['home_county_id'] ?? null,
+//                'current_county_id'     => $data['current_county_id'] ?? null,
+//                'current_subcounty_id'  => $data['current_subcounty_id'] ?? null,
+//                'postal_address'        => $data['postal_address'] ?? null,
+//                'postal_code_id'        => $data['postal_code_id'] ?? null,
+//                'co'                    => $data['co'] ?? null,
+//                'town'                  => $data['town'] ?? null,
+//                'financier'             => $data['financier'],
+//                'kcse_mean_grade'       => $data['kcse_mean_grade'] ?? null,
+//                'declaration'           => true,
+//
+//                // 🔹 NEW: fixed upload paths from controller payload
+//               // 'kcse_certificate_path'            => $data['kcse_certificate_path'] ?? null,
+//              //  'school_leaving_certificate_path'  => $data['school_leaving_certificate_path'] ?? null,
+//                'birth_certificate_path'           => $data['birth_certificate_path'] ?? null,
+//                'national_id_path'                 => $data['national_id_path'] ?? null,
+//
+//                'status'                => 'pending_payment',
+//                'payment_status'        => 'pending',
+//                'reference'             => $this->generateReference(),
+//            ]);
+//
+//            // 2. Save requirement answers
+//            if (!empty($data['requirements'])) {
+//                $this->saveRequirementAnswers($application, $data['requirements']);
+//            }
+//
+//            // 3. Create invoice
+//            $amount = $this->getCourseFee($application->course_id);
+//            app(\App\Services\PaymentService::class)->generateInvoice($application, $amount);
+//
+//            // 4. Log audit
+//            $this->audit->log('application_created', $application);
+//
+//            return $application;
+//        });
+//    }
     protected function getCourseFee($courseId)
     {
         return 1000;

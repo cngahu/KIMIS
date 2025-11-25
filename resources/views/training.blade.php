@@ -322,6 +322,7 @@
                 <thead>
                 <tr>
                     <th>Course</th>
+                    <th>Course Mode</th>
                     <th>Campus</th>
                     <th>Start Date</th>
                     <th>End Date</th>
@@ -390,6 +391,15 @@
                             @endif
                         </td>
 
+
+                        {{-- Campus --}}
+                        <td>
+                            <div class="campus-name">
+                                <i class="la la-map-marker-alt"></i>
+                                {{ $course->course_mode }}
+                            </div>
+                        </td>
+
                         {{-- Campus --}}
                         <td>
                             <div class="campus-name">
@@ -425,10 +435,19 @@
                         {{-- Action --}}
                         <td>
 {{--                            href="{{ route('login', ['training_id' => $training->id]) }}"--}}
-                            <a href="{{ route('applications.form',  $training->course_id) }}"
+{{--                            <a href="{{ route('applications.form',  $training->course_id) }}"--}}
+{{--                               class="btn-primary-kihbt d-inline-flex align-items-center gap-1">--}}
+{{--                                <i class="la la-edit"></i> Apply--}}
+{{--                            </a>--}}
+
+                            <a href="{{ route('applications.form', [
+                                        'course'      => $training->course_id,
+                                        'training_id' => $training->id,
+                                    ]) }}"
                                class="btn-primary-kihbt d-inline-flex align-items-center gap-1">
                                 <i class="la la-edit"></i> Apply
                             </a>
+
                         </td>
                     </tr>
                 @endforeach
