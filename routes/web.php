@@ -51,6 +51,8 @@ Route::get('/counties/{county}/subcounties', function ($county) {
 Route::get('/training/scheduled', [TrainingPublicController::class, 'index'])
     ->name('public.trainings');
 
+
+
 Route::get('/verify-otp', [\App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'showOtpForm'])
     ->name('otp.verify.form');
 
