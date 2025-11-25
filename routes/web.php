@@ -102,6 +102,16 @@ Route::middleware(['auth','history','verified'])->group(function () {
         Route::post('/verification/{admission}/reject', [DocumentVerificationController::class, 'reject'])
             ->name('registrar.verification.reject');
 
+        Route::post('/admissions/{admission}/verify-documents',[DocumentVerificationController::class, 'verifyDocument'])
+            ->name('registrar.verify.documents');
+
+        Route::post('/verification/{admission}/finalize', [DocumentVerificationController::class,'finalize'])
+            ->name('admin.verify.finalize');
+
+        // Verify a specific uploaded document
+        Route::post('/verification/{admission}/document', [
+            DocumentVerificationController::class, 'verifyDocument'
+        ])->name('admin.verify.document');
     });
 
     Route::middleware(['role:superadmin|registrar'])->group(function () {
