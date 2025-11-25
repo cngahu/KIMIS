@@ -50,4 +50,31 @@ class DocumentVerificationController extends Controller
         return redirect()->back()
             ->with('error', 'Documents rejected. Student notified.');
     }
+
+    public function verifyDocuments0(Request $request, Admission $admission)
+    {
+        $this->svc->verifyDocuments($admission, $request);
+
+        return back()->with('success', 'Document verification saved successfully.');
+    }
+
+    public function verifyDocument(Request $request, Admission $admission)
+    {
+        $request->validate([
+            'doc_id' => 'required|integer',
+            'action' => 'required|in:approved,rejected,pending_fix',
+            'comment' => 'nullable|string'
+        ]);
+
+        $this->svc->verifyDocument($admission, $request->doc_id, $request->action, $request->comment);
+
+        return back()->with('success', 'Document verification updated.');
+    }
+
+    public function finalize(Admission $admission)
+    {
+        $result = $this->svc->finalizeVerification($admission);
+
+        return back()->with('success', "Verification outcome: $result");
+    }
 }

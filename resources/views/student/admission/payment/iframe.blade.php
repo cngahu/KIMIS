@@ -4,7 +4,7 @@
 
         $convenience=50;
        $Serviceid="";
-        $serviceID=48460;
+        $serviceID=234330;
        $total=50000 + $convenience;
            $curl = curl_init();
        $clientMSISDN = '0700123456';
