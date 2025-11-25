@@ -379,15 +379,35 @@ class ApplicationController extends Controller
 //    }
     public function payment($id)
     {
-        $application = Application::findOrFail($id);
+        // Load application + invoice + course
+        $application = Application::with(['invoice', 'course'])->findOrFail($id);
 
         $shortApplicants = collect();
 
-        $meta = $application->metadata ?? [];
+        $meta    = $application->metadata ?? [];
         $isShort = !empty($meta['short_term']) && !empty($meta['training_id']);
 
         if ($isShort) {
-            $shortApplicants = ShortTraining::where('training_id', $meta['training_id'])
+            // 1) Get the training so we know the unit cost
+            $training = Training::find($meta['training_id']);
+            $unitFee  = $training?->cost;
+
+            // 2) Work out how many applicants belong to THIS invoice
+            $invoice        = $application->invoice;
+            $applicantCount = null;
+
+            if ($invoice && $unitFee && $unitFee > 0) {
+                // e.g. invoice amount = unitFee * number_of_applicants
+                $applicantCount = (int) floor($invoice->amount / $unitFee);
+
+                if ($applicantCount < 1) {
+                    $applicantCount = 1;
+                }
+            }
+
+            // 3) Fetch short applicants for this training + financier (+ employer)
+            //    and only keep the MOST RECENT N (the current batch)
+            $query = ShortTraining::where('training_id', $meta['training_id'])
                 ->where('financier', $application->financier)
                 ->when(
                     $application->financier === 'employer' && !empty($meta['employer_name']),
@@ -395,8 +415,14 @@ class ApplicationController extends Controller
                         $q->where('employer_name', $meta['employer_name']);
                     }
                 )
-                ->orderBy('id')
-                ->get();
+                ->orderByDesc('id'); // newest first
+
+            if ($applicantCount) {
+                $query->take($applicantCount);
+            }
+
+            // Re-sort ascending for nicer display
+            $shortApplicants = $query->get()->sortBy('id')->values();
         }
 
         return view('public.payment', [
@@ -404,6 +430,7 @@ class ApplicationController extends Controller
             'shortApplicants' => $shortApplicants,
         ]);
     }
+
     public function requirements(Course $course)
     {
         return $course->requirements()
