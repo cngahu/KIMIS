@@ -20,6 +20,7 @@ class StudentController extends Controller
 
     public function dashboard()
     {
+
         $admission = Admission::with(['application.course'])
             ->where('user_id', auth()->id())
             ->first();

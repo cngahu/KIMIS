@@ -37,7 +37,7 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerate();
 
         if($request->user()->hasRole('applicant')){
-            $url='applicant/dashboard';
+            $url='student/dashboard';
         }
         elseif($request->user()->hasRole('superadmin')){
             $url='/dashboard';
@@ -180,7 +180,7 @@ class AuthenticatedSessionController extends Controller
             $url = '/dashboard';
         }
         elseif($request->user()->hasRole('student')) {
-            return redirect('applicant/dashboard');
+            return redirect('student/dashboard');
         }
         abort(403);
     }

@@ -11,18 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('student_profiles', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('admission_id')->unique();
-            $table->string('guardian_name')->nullable();
-            $table->string('guardian_phone')->nullable();
-            $table->string('guardian_relationship')->nullable();
-            $table->string('address')->nullable();
-            $table->string('nationality')->nullable();
-            $table->string('disability')->nullable();
-            $table->json('extra_data')->nullable();
-            $table->timestamps();
-        });
+//        Schema::create('student_profiles', function (Blueprint $table) {
+//            $table->id();
+//            $table->unsignedBigInteger('admission_id')->unique();
+//            $table->string('guardian_name')->nullable();
+//            $table->string('guardian_phone')->nullable();
+//            $table->string('guardian_relationship')->nullable();
+//            $table->string('address')->nullable();
+//            $table->string('nationality')->nullable();
+//            $table->string('disability')->nullable();
+//            $table->json('extra_data')->nullable();
+//            $table->timestamps();
+//        });
     }
 
     /**
@@ -30,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('student_profiles');
+//        Schema::dropIfExists('student_profiles');
     }
 };

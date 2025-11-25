@@ -19,6 +19,7 @@ class Admission extends Model
         'verified_at',
         'verified_by',
         'admission_number',
+        'admitted_at'
     ];
     // link back to the application
     public function application()

@@ -22,6 +22,8 @@ use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\AdmissionDocumentTypeController;
 use App\Http\Controllers\Registrar\DocumentVerificationController;
 use App\Http\Controllers\Admin\UserManagementController;
+use App\Http\Controllers\Registrar\AdmissionProcessingController;
+use App\Http\Controllers\Admin\AccountsController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -91,6 +93,38 @@ Route::middleware(['auth','history','verified'])->group(function () {
 //
 //    });
 
+    Route::prefix('admin/accounts')->name('accounts.')->middleware(['role:superadmin'])->group(function () {
+
+        Route::get('/dashboard', [AccountsController::class, 'dashboard'])
+            ->name('dashboard');
+
+        Route::get('/invoices', [\App\Http\Controllers\Admin\AccountsController::class, 'invoices'])
+            ->name('invoices');
+
+        Route::post('/verify-sponsor/{payment}', [\App\Http\Controllers\Admin\AccountsController::class, 'verifySponsor'])
+            ->name('verify.sponsor');
+
+        Route::post('/offline-payment/{payment}', [\App\Http\Controllers\Admin\AccountsController::class, 'markOfflinePayment'])
+            ->name('offline.mark');
+
+        Route::post('/clear/{admission}', [\App\Http\Controllers\Admin\AccountsController::class, 'clearForAdmission'])
+            ->name('clear.admission');
+    });
+
+
+    Route::prefix('admin/registrar')->middleware(['auth'])->group(function () {
+
+        // List of verified students waiting for admission
+        Route::get('/admissions/verified',
+            [AdmissionProcessingController::class, 'verifiedList']
+        )->name('admin.admissions.verified');
+
+        // Admit a verified student (assign admission number)
+        Route::post('/admissions/{admission}/admit',
+            [AdmissionProcessingController::class, 'admitStudent']
+        )->name('admin.admissions.admit');
+
+    });
     Route::prefix('registrar')->middleware(['auth','role:registrar|hod|superadmin'])->group(function () {
 
         Route::get('/verification', [DocumentVerificationController::class, 'index'])

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Registrar;
 
 use App\Http\Controllers\Controller;
 use App\Models\AdmissionFeePayment;
+use App\Services\Admin\StudentAdmissionService;
 use Illuminate\Http\Request;
 
 use App\Models\Admission;
@@ -88,7 +89,7 @@ class AdmissionProcessingController extends Controller
         return back()->with('success', 'Student admitted successfully!');
     }
 
-    public function admitStudent(Admission $admission)
+    public function admitStudent1(Admission $admission)
     {
         // Prevent double admission
         if ($admission->status === 'admitted') {
@@ -122,6 +123,10 @@ class AdmissionProcessingController extends Controller
         ]);
 
         return back()->with('success', 'Student admitted successfully!');
+    }
+    public function admitStudent(Admission $admission)
+    {
+        return app(StudentAdmissionService::class)->admit($admission);
     }
 
 }
