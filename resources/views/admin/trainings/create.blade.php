@@ -11,7 +11,10 @@
         @endif
 
         <form action="{{ route('trainings.store') }}" method="POST">
-            @include('admin.trainings._form', ['buttonText' => 'Create'])
+            @include('admin.trainings._form', [
+                'buttonText' => 'Create',
+                'training'   => $training ?? null,
+            ])
         </form>
     </div>
 @endsection

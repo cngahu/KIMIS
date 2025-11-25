@@ -33,27 +33,7 @@
                     @enderror
             </div>
 
-            {{-- College --}}
-            <div class="col-md-6">
-                <label class="form-label fw-bold">College <span class="text-danger">*</span></label>
-                <select
-                    name="college_id"
-                    class="form-select @error('college_id') is-invalid @enderror"
-                >
-                    <option value="">-- Select College --</option>
-                    @foreach($colleges as $collegeItem)
-                        <option value="{{ $collegeItem->id }}"
-                            {{ (int) old('college_id', $training->college_id ?? 0) === $collegeItem->id ? 'selected' : '' }}>
-                            {{ $collegeItem->name }}
-                        </option>
-                    @endforeach
-                </select>
-                @error('college_id')
-                <div class="invalid-feedback">{{ $message }}</div>
-                @else
-                    <small class="text-muted">Select the college offering this training.</small>
-                    @enderror
-            </div>
+            {{-- 👇 College field removed – college is now taken from logged-in user --}}
 
             {{-- Start date --}}
             <div class="col-md-6">

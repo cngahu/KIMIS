@@ -21,10 +21,11 @@ class TrainingController extends Controller
      */
     public function index(Request $request)
     {
-        $search  = $request->input('search');
-        $status  = $request->input('status');
-        $course  = $request->input('course_id');
-        $college = $request->input('college_id');
+        $user     = Auth::user();
+        $search   = $request->input('search');
+        $status   = $request->input('status');
+        $courseId = $request->input('course_id');
+        $collegeId = $request->input('college_id'); // campus filter (only for superadmin)
 
         $trainings = Training::with(['course', 'college', 'user'])
             ->when($search, function ($q) use ($search) {
@@ -36,18 +37,27 @@ class TrainingController extends Controller
             ->when($status, function ($q) use ($status) {
                 $q->where('status', $status);
             })
-            ->when($course, function ($q) use ($course) {
-                $q->where('course_id', $course);
+            ->when($courseId, function ($q) use ($courseId) {
+                $q->where('course_id', $courseId);
             })
-            ->when($college, function ($q) use ($college) {
-                $q->where('college_id', $college);
+            // 🔹 Superadmin: optional campus filter from request
+            ->when($user->hasRole('superadmin') && $collegeId, function ($q) use ($collegeId) {
+                $q->where('college_id', $collegeId);
+            })
+            // 🔹 Non-super: force to own campus
+            ->when(!$user->hasRole('superadmin') && $user->campus_id, function ($q) use ($user) {
+                $q->where('college_id', $user->campus_id);
             })
             ->latest()
             ->paginate(10)
             ->appends($request->query());
 
-        $courses  = Course::orderBy('course_name')->get();
-        $colleges = College::orderBy('name')->get();
+        $courses = Course::orderBy('course_name')->get();
+
+        // 🔹 Campus list only really needed for superadmin filter
+        $colleges = $user->hasRole('superadmin')
+            ? College::orderBy('name')->get()
+            : College::where('id', $user->campus_id)->get();
 
         $statuses = [
             Training::STATUS_DRAFT,
@@ -65,8 +75,8 @@ class TrainingController extends Controller
             'statuses',
             'search',
             'status',
-            'course',
-            'college'
+            'courseId',
+            'collegeId'
         ));
     }
 
@@ -76,15 +86,26 @@ class TrainingController extends Controller
      */
     public function create()
     {
-        if (! Auth::user()->hasAnyRole(['hod', 'superadmin'])) {
+        $user = Auth::user();
+
+        if (! $user->hasAnyRole(['hod', 'superadmin'])) {
             abort(403);
         }
 
-        $courses  = Course::orderBy('course_name')->get();
-        $colleges = College::orderBy('name')->get();
+        // If SUPERADMIN → see all courses
+        if ($user->hasRole('superadmin')) {
+            $courses = Course::orderBy('course_name')->get();
+        } else {
+            // HOD / others → only courses for their campus
+            $courses = Course::where('college_id', $user->campus_id)
+                ->orderBy('course_name')
+                ->get();
+        }
 
-        return view('admin.trainings.create', compact('courses', 'colleges'));
+        // no need for $colleges anymore here
+        return view('admin.trainings.create', compact('courses'));
     }
+
 
     /**
      * Store a newly created training in storage.
@@ -97,22 +118,33 @@ class TrainingController extends Controller
         }
 
         $data = $request->validate([
-            'course_id'  => 'required|exists:courses,id',
-            'college_id' => 'required|exists:colleges,id',
-            'start_date' => 'required|date',
-            'end_date'   => 'nullable|date|after_or_equal:start_date',
-            'cost'       => 'required|numeric|min:0',
+            'course_id'   => 'required|exists:courses,id',
+            'start_date'  => 'required|date',
+            'end_date'    => 'nullable|date|after_or_equal:start_date',
+            'cost'        => 'required|numeric|min:0',
+            // ❌ REMOVE validation for college_id
         ]);
 
-        $data['user_id'] = Auth::id();
-        $data['status']  = Training::STATUS_DRAFT;
+        $user = Auth::user();
+
+        // Ensure user has campus_id set
+        if (! $user->campus_id) {
+            return back()
+                ->withErrors(['campus_id' => 'Your account is not linked to any campus. Contact the system administrator.'])
+                ->withInput();
+        }
+
+        $data['user_id']    = $user->id;
+        $data['college_id'] = $user->campus_id;   // 👈 auto assign campus of logged-in user
+        $data['status']     = Training::STATUS_DRAFT;
 
         Training::create($data);
 
         return redirect()
-            ->route('all.trainings')  // 👈 Redirect to index
+            ->route('all.trainings')
             ->with('success', 'Training created as Draft.');
     }
+
 
 
     /**
@@ -137,16 +169,15 @@ class TrainingController extends Controller
             abort(403);
         }
 
-        if ($user->hasRole('hod') && ! $training->isEditableByHod()) {
-            return redirect()
-                ->route('trainings.show', $training)
-                ->with('error', 'You cannot edit this training once it has been submitted for approval.');
+        if ($user->hasRole('superadmin')) {
+            $courses = Course::orderBy('course_name')->get();
+        } else {
+            $courses = Course::where('college_id', $user->campus_id)
+                ->orderBy('course_name')
+                ->get();
         }
 
-        $courses  = Course::orderBy('course_name')->get();
-        $colleges = College::orderBy('name')->get();
-
-        return view('admin.trainings.edit', compact('training', 'courses', 'colleges'));
+        return view('admin.trainings.edit', compact('training', 'courses'));
     }
 
     /**

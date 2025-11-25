@@ -6,17 +6,17 @@
             color: #6B3A0E !important;
         }
     </style>
+
     @php
-        $authUser = auth()->user();
-        $isHod    = $authUser->hasRole('hod');
-        $isSuper  = $authUser->hasRole('superadmin');
+        $authUser    = auth()->user();
+        $isHod       = $authUser->hasRole('hod');
+        $isSuper     = $authUser->hasRole('superadmin');
         $isRegistrar = $authUser->hasAnyRole(['campus_registrar', 'kihbt_registrar']);
     @endphp
 
     <div class="container">
 
-        {{-- Header + filters + create button --}}
-        {{-- Header Row --}}
+        {{-- Header + create button --}}
         <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
             <h1 class="mb-0">Trainings</h1>
 
@@ -41,7 +41,7 @@
                 </div>
 
                 {{-- Course Filter --}}
-                <div class="col-md-2">
+                <div class="col-md-3">
                     <select name="course_id" class="form-select form-select-sm">
                         <option value="">All Courses</option>
                         @foreach($courses as $courseItem)
@@ -53,18 +53,20 @@
                     </select>
                 </div>
 
-                {{-- College Filter --}}
-                <div class="col-md-2">
-                    <select name="college_id" class="form-select form-select-sm">
-                        <option value="">All Colleges</option>
-                        @foreach($colleges as $collegeItem)
-                            <option value="{{ $collegeItem->id }}"
-                                {{ (int) request('college_id') === $collegeItem->id ? 'selected' : '' }}>
-                                {{ $collegeItem->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
+                {{-- Campus Filter (SUPERADMIN ONLY) --}}
+                @if($isSuper)
+                    <div class="col-md-3">
+                        <select name="college_id" class="form-select form-select-sm">
+                            <option value="">All Campuses</option>
+                            @foreach($colleges as $collegeItem)
+                                <option value="{{ $collegeItem->id }}"
+                                    {{ (int) request('college_id') === $collegeItem->id ? 'selected' : '' }}>
+                                    {{ $collegeItem->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                @endif
 
                 {{-- Status Filter --}}
                 <div class="col-md-2">
@@ -78,28 +80,31 @@
                     </select>
                 </div>
 
-                {{-- Buttons --}}
-                <div class="col-md-3 d-flex gap-2">
-
+                {{-- Filter button --}}
+                <div class="col-md-1 d-flex gap-2">
                     <button class="btn btn-sm text-white px-3 flex-fill"
                             style="background-color: #6B3A0E;"
                             type="submit">
                         Filter
                     </button>
-
-                    @if(request('search') || request('status') || request('course_id') || request('college_id'))
-                        <a href="{{ route('all.trainings') }}"
-                           class="btn btn-sm btn-outline-secondary px-3 flex-fill">
-                            Reset
-                        </a>
-                    @endif
-
                 </div>
-
             </div>
+
+            {{-- Reset link (only shows if any filter is active) --}}
+            @if(
+                request('search') ||
+                request('status') ||
+                request('course_id') ||
+                ($isSuper && request('college_id'))
+            )
+                <div class="mt-2">
+                    <a href="{{ route('all.trainings') }}"
+                       class="btn btn-sm btn-outline-secondary px-3">
+                        Reset
+                    </a>
+                </div>
+            @endif
         </form>
-
-
 
         {{-- Flash success --}}
         @if(session('success'))
@@ -133,7 +138,12 @@
                             <td>{{ optional($training->course)->course_name ?? '-' }}</td>
                             <td>{{ optional($training->college)->name ?? '-' }}</td>
 
-                            <td>{{ $training->formatted_cost }}</td>
+                            {{-- Cost --}}
+                            <td class="text-end">
+                                {{ $training->formatted_cost }}
+                            </td>
+
+                            {{-- Start date --}}
                             <td>
                                 @if($training->start_date)
                                     {{ \Carbon\Carbon::parse($training->start_date)->format('d M Y') }}
@@ -153,10 +163,7 @@
 
                             {{-- Status with badge --}}
                             <td>
-
                                 @php
-
-
                                     $status = $training->status;
 
                                     $badgeClass = match ($status) {
@@ -166,45 +173,38 @@
                                         \App\Models\Training::STATUS_HQ_REVIEWED           => 'badge bg-primary',
                                         \App\Models\Training::STATUS_APPROVED              => 'badge bg-success',
                                         \App\Models\Training::STATUS_REJECTED              => 'badge bg-danger',
-                                        default                                => 'badge bg-secondary',
+                                        default                                            => 'badge bg-secondary',
                                     };
                                 @endphp
 
-                                {{-- Status badge --}}
                                 <span class="{{ $badgeClass }}">
-        {{ $status }}
-    </span>
+                                    {{ $status }}
+                                </span>
 
-                                {{-- 🔶 Rejection popup indicator --}}
-                                @if($training->status ===  \App\Models\Training::STATUS_REJECTED && $training->rejection_comment)
+                                {{-- Rejection tooltip --}}
+                                @if($training->status === \App\Models\Training::STATUS_REJECTED && $training->rejection_comment)
                                     <span
                                         class="ms-1 text-warning"
                                         style="cursor: pointer;"
                                         data-bs-toggle="tooltip"
                                         data-bs-html="true"
                                         title="
-                <strong>Returned with comments</strong><br>
-                Stage: {{ ucfirst(str_replace('_',' ', $training->rejection_stage)) }}<br>
-                {{ $training->rejection_comment }}<br>
-                @if($training->rejected_at)
-                    <small class='text-muted'>On {{ $training->rejected_at->format('d M Y H:i') }}</small>
-                @endif
-            "
+                                            <strong>Returned with comments</strong><br>
+                                            Stage: {{ ucfirst(str_replace('_',' ', $training->rejection_stage)) }}<br>
+                                            {{ $training->rejection_comment }}<br>
+                                            @if($training->rejected_at)
+                                                <small class='text-muted'>On {{ $training->rejected_at->format('d M Y H:i') }}</small>
+                                            @endif
+                                        "
                                     >
-            <i class="fa-solid fa-circle-exclamation"></i>
-        </span>
+                                        <i class="fa-solid fa-circle-exclamation"></i>
+                                    </span>
                                 @endif
-
                             </td>
-
-
-
-
-
 
                             {{-- Actions --}}
                             <td class="text-center">
-                                {{-- View always allowed --}}
+                                {{-- View --}}
                                 <a href="{{ route('trainings.show', $training) }}"
                                    class="btn btn-sm btn-outline-info"
                                    title="View Training">
@@ -212,15 +212,15 @@
                                 </a>
 
                                 @php
-                                    $user = Auth::user();
-                                    $isHod      = $user->hasRole('hod');
-                                    $isCampus   = $user->hasRole('campus_registrar');
-                                    $isKihbt    = $user->hasRole('kihbt_registrar');
-                                    $isDirector = $user->hasRole('director');
-                                    $isSuper    = $user->hasRole('superadmin');
+                                    $user      = Auth::user();
+                                    $isHod     = $user->hasRole('hod');
+                                    $isCampus  = $user->hasRole('campus_registrar');
+                                    $isKihbt   = $user->hasRole('kihbt_registrar');
+                                    $isDirector= $user->hasRole('director');
+                                    $isSuper   = $user->hasRole('superadmin');
                                 @endphp
 
-                                {{-- HOD: can edit / delete only Draft or Rejected --}}
+                                {{-- HOD & Superadmin: Edit/Delete Draft or Rejected --}}
                                 @if(($isHod && $training->isEditableByHod()) || $isSuper)
                                     <a href="{{ route('trainings.edit', $training) }}"
                                        class="btn btn-sm btn-outline-warning"
@@ -244,7 +244,7 @@
                                     </form>
                                 @endif
 
-                                {{-- HOD: Send for approval from Draft/Rejected --}}
+                                {{-- HOD & Superadmin: Send for approval --}}
                                 @if(($isHod || $isSuper) && $training->isEditableByHod())
                                     <form action="{{ route('trainings.send_for_approval', $training) }}"
                                           method="POST"
@@ -258,7 +258,7 @@
                                     </form>
                                 @endif
 
-                                {{-- Campus Registrar: Approve / Reject when Pending Registrar --}}
+                                {{-- Campus Registrar: Approve/Reject when Pending Registrar --}}
                                 @if(($isCampus || $isSuper) && $training->status === \App\Models\Training::STATUS_PENDING_REGISTRAR)
                                     <form action="{{ route('trainings.registrar_approve', $training) }}"
                                           method="POST"
@@ -283,7 +283,7 @@
                                     </form>
                                 @endif
 
-                                {{-- KIHBT Registrar (HQ): Mark HQ Reviewed --}}
+                                {{-- KIHBT Registrar (HQ): HQ Review --}}
                                 @if(($isKihbt || $isSuper) && $training->status === \App\Models\Training::STATUS_REGISTRAR_APPROVED_HQ)
                                     <form action="{{ route('trainings.hq_review', $training) }}"
                                           method="POST"
@@ -297,7 +297,7 @@
                                     </form>
                                 @endif
 
-                                {{-- Director: Final Approve / Reject from HQ Reviewed --}}
+                                {{-- Director: Final Approve/Reject --}}
                                 @if(($isDirector || $isSuper) && $training->status === \App\Models\Training::STATUS_HQ_REVIEWED)
                                     <form action="{{ route('trainings.director_approve', $training) }}"
                                           method="POST"
@@ -322,8 +322,6 @@
                                     </form>
                                 @endif
                             </td>
-
-
                         </tr>
                     @endforeach
                     </tbody>
@@ -350,7 +348,7 @@
             </div>
         @else
             <div class="alert alert-info">
-                @if(request('search') || request('status') || request('course_id') || request('college_id'))
+                @if(request('search') || request('status') || request('course_id') || ($isSuper && request('college_id')))
                     No trainings found for the current filters.
                     <a href="{{ route('all.trainings') }}">Clear filters</a>
                 @else
