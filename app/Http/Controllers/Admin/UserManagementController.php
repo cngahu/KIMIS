@@ -1,0 +1,141 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
+use Illuminate\Support\Str;
+use App\Models\College;
+
+class UserManagementController extends Controller
+{
+    public function index()
+    {
+        $users = User::with(['roles', 'campus']) // campus() relation -> colleges
+        ->latest()
+            ->paginate(20);
+
+        return view('admin.users.index', compact('users'));
+    }
+
+    public function create()
+    {
+        $roles    = Role::orderBy('name')->get();
+        $campuses = College::orderBy('name')->get();
+
+        return view('admin.users.create', compact('roles', 'campuses'));
+    }
+
+    public function store(Request $request)
+    {
+        $data = $request->validate([
+            'surname'     => 'required|string|max:255',
+            'firstname'   => 'required|string|max:255',
+            'othername'   => 'nullable|string|max:255',
+            'email'       => 'nullable|email|max:255|unique:users,email',
+            'phone'       => 'nullable|string|max:50',
+            'address'     => 'nullable|string|max:255',
+            'city'        => 'nullable|string|max:255',
+            'nationalid'  => 'nullable|string|max:100',
+            'national_id' => 'nullable|string|max:100',
+            'campus_id'   => 'nullable|exists:colleges,id',
+
+            'code'        => 'nullable|string|max:50|unique:users,code',
+
+            'status'      => 'required|in:active,inactive',
+
+            // roles are passed as NAMES from the form
+            'roles'       => 'array',
+            'roles.*'     => 'exists:roles,name',
+        ]);
+
+        // Generate code if not provided
+        $code = $data['code'] ?? strtoupper(Str::random(8));
+
+        $user = new User();
+        $user->surname     = $data['surname'];
+        $user->firstname   = $data['firstname'];
+        $user->othername   = $data['othername'] ?? null;
+        $user->email       = $data['email'] ?? null;
+        $user->phone       = $data['phone'] ?? null;
+        $user->address     = $data['address'] ?? null;
+        $user->city        = $data['city'] ?? null;
+        $user->code        = $code;
+        $user->status      = $data['status'];
+        $user->nationalid  = $data['nationalid'] ?? null;
+        $user->national_id = $data['national_id'] ?? null;
+        $user->campus_id   = $data['campus_id'] ?? null;
+
+        $user->must_change_password = 1;
+        $user->password             = Hash::make($code); // login using code as first password
+
+        $user->save();
+
+        // Attach roles by NAME (Spatie will give all permissions from those roles)
+        if (!empty($data['roles'])) {
+            $user->syncRoles($data['roles']); // already names
+        }
+
+        return redirect()
+            ->route('admin.users.index')
+            ->with('success', 'User created successfully. Login code: '.$code);
+    }
+    public function edit(User $user)
+    {
+        $roles    = \Spatie\Permission\Models\Role::orderBy('name')->get();
+        $campuses = College::orderBy('name')->get();
+
+        return view('admin.users.edit', compact('user', 'roles', 'campuses'));
+    }
+
+    public function update(Request $request, User $user)
+    {
+        $data = $request->validate([
+            'surname'    => 'required|string|max:255',
+            'firstname'  => 'required|string|max:255',
+            'othername'  => 'nullable|string|max:255',
+            'email'      => 'nullable|email|max:255|unique:users,email,'.$user->id,
+            'phone'      => 'nullable|string|max:50',
+            'address'    => 'nullable|string|max:255',
+            'city'       => 'nullable|string|max:255',
+            'nationalid' => 'nullable|string|max:100',
+            'national_id'=> 'nullable|string|max:100',
+            'campus_id'  => 'nullable|exists:colleges,id',
+
+            'status'     => 'required|in:active,inactive',
+            'roles'      => 'array',
+            'roles.*'    => 'exists:roles,id',
+        ]);
+
+        $user->surname     = $data['surname'];
+        $user->firstname   = $data['firstname'];
+        $user->othername   = $data['othername'] ?? null;
+        $user->email       = $data['email'] ?? null;
+        $user->phone       = $data['phone'] ?? null;
+        $user->address     = $data['address'] ?? null;
+        $user->city        = $data['city'] ?? null;
+        $user->status      = $data['status'];
+        $user->nationalid  = $data['nationalid'] ?? null;
+        $user->national_id = $data['national_id'] ?? null;
+        $user->campus_id   = $data['campus_id'] ?? null;
+
+        $user->save();
+
+        if (!empty($data['roles'])) {
+            $roleNames = \Spatie\Permission\Models\Role::whereIn('id', $data['roles'])
+                ->pluck('name')
+                ->toArray();
+            $user->syncRoles($roleNames);
+        } else {
+            $user->syncRoles([]);
+        }
+
+        return redirect()
+            ->route('admin.users.index')
+            ->with('success', 'User updated successfully.');
+    }
+}

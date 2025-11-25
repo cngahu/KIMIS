@@ -11,6 +11,7 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\DB;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
+use App\Models\College;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -82,6 +83,12 @@ class User extends Authenticatable implements MustVerifyEmail
     public function getFullNameAttribute()
     {
         return trim("{$this->surname} {$this->first_name} {$this->last_name}");
+    }
+
+    public function campus()
+    {
+        // “campus” is actually a college row
+        return $this->belongsTo(College::class, 'campus_id');
     }
 
 }

@@ -21,6 +21,7 @@ use App\Http\Controllers\Admin\RegistrarDashboardController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\AdmissionDocumentTypeController;
 use App\Http\Controllers\Registrar\DocumentVerificationController;
+use App\Http\Controllers\Admin\UserManagementController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -196,6 +197,22 @@ Route::middleware(['auth','history','verified'])->group(function () {
         Route::get('/reviewers/pdf', [ReportController::class, 'reviewerPdf'])
             ->name('reports.reviewers.pdf');
     });
+
+    Route::middleware(['auth', 'role:superadmin|admin'])
+        ->prefix('admin')
+        ->group(function () {
+
+            Route::controller(UserManagementController::class)->group(function () {
+
+                Route::get('/users', 'index')->name('admin.users.index');
+                Route::get('/users/create', 'create')->name('admin.users.create');
+                Route::post('/users/store', 'store')->name('admin.users.store');
+                Route::get('/users/edit/{user}', 'edit')->name('admin.users.edit');
+                Route::post('/users/update/{user}', 'update')->name('admin.users.update');
+                Route::get('/users/delete/{user}', 'destroy')->name('admin.users.destroy');
+            });
+
+        });
 
 
 

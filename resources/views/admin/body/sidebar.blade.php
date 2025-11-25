@@ -191,14 +191,16 @@
                             <i class="bx bx-right-arrow-alt"></i>Postal Codes
                         </a>
                     </li>
+
+
                 </ul>
             </li>
 
-            <li class="menu-label">UI Elements</li>
+
+            <li class="menu-label">User Management</li>
             <li>
-                <a href="widgets.html">
-                    <div class="parent-icon"><i class='bx bx-cookie'></i></div>
-                    <div class="menu-title">Widgets</div>
+                <a href="{{ route('admin.users.index') }}">
+                    <i class="bx bx-right-arrow-alt"></i>Manage Users
                 </a>
             </li>
 

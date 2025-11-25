@@ -44,7 +44,7 @@ class ApplicationService
                 'postal_code_id'        => $data['postal_code_id'] ?? null,
                 'co'                    => $data['co'] ?? null,
                 'town'                  => $data['town'] ?? null,
-                'financier'             => $data['financier'],
+                'financier'             => $data['financier'],null,
                 'kcse_mean_grade'       => $data['kcse_mean_grade'] ?? null,
                 'declaration'           => true,
 

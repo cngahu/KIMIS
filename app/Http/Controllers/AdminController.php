@@ -23,111 +23,129 @@ class AdminController extends Controller
 
     public function AdminDashboard()
     {
-        $user = User::find(Auth::user()->id);
+        $user = Auth::user();
 
-        if ($user->hasRole('superadmin') || $user->hasRole('hod') || $user->hasAnyRole(['campus_registrar', 'kihbt_registrar','director'])) {
-
-            // Global counts (for the right-hand summary card)
-            $draftCount     = Training::where('status', Training::STATUS_DRAFT)->count();
-            $pendingCount   = Training::where('status', Training::STATUS_PENDING_REGISTRAR)->count();
-            $approvedCount  = Training::where('status', Training::STATUS_APPROVED)->count();
-            $rejectedCount  = Training::where('status', Training::STATUS_REJECTED)->count();
-
-            // Role-based small stats (if you already added them before, keep them)
-            $hodDraftTrainings      = 0;
-            $hodPendingRegistrar    = 0;
-            $hodRejectedTrainings   = 0;
-            $registrarPendingTrainings = 0;
-            $registrarToHqTrainings    = 0;
-            $hqQueueTrainings          = 0;
-            $directorQueueTrainings    = 0;
-
-            // === ROLE-SPECIFIC RECENT TRAININGS ===
-            $recentQuery = Training::with(['course', 'college', 'user']);
-
-            if ($user->hasRole('hod')) {
-                // Only trainings created by this HOD
-                $recentQuery->where('user_id', $user->id);
-
-                $hodDraftTrainings    = Training::where('user_id', $user->id)
-                    ->where('status', Training::STATUS_DRAFT)->count();
-
-                $hodPendingRegistrar  = Training::where('user_id', $user->id)
-                    ->where('status', Training::STATUS_PENDING_REGISTRAR)->count();
-
-                $hodRejectedTrainings = Training::where('user_id', $user->id)
-                    ->where('status', Training::STATUS_REJECTED)->count();
-
-            } elseif ($user->hasRole('campus_registrar')) {
-                // Items relevant to campus registrar
-                $recentQuery->whereIn('status', [
-                    Training::STATUS_PENDING_REGISTRAR,
-                    Training::STATUS_REGISTRAR_APPROVED_HQ,
-                    Training::STATUS_REJECTED,
-                ]);
-
-                $registrarPendingTrainings = Training::where('status', Training::STATUS_PENDING_REGISTRAR)->count();
-                $registrarToHqTrainings    = Training::where('status', Training::STATUS_REGISTRAR_APPROVED_HQ)->count();
-
-            } elseif ($user->hasRole('kihbt_registrar')) {
-                // HQ registrar
-                $recentQuery->whereIn('status', [
-                    Training::STATUS_REGISTRAR_APPROVED_HQ,
-                    Training::STATUS_HQ_REVIEWED,
-                    Training::STATUS_REJECTED,
-                ]);
-
-                $hqQueueTrainings = Training::where('status', Training::STATUS_REGISTRAR_APPROVED_HQ)->count();
-
-            } elseif ($user->hasRole('director')) {
-                // Director – things at final stage
-                $recentQuery->whereIn('status', [
-                    Training::STATUS_HQ_REVIEWED,
-                    Training::STATUS_APPROVED,
-                    Training::STATUS_REJECTED,
-                ]);
-
-                $directorQueueTrainings = Training::where('status', Training::STATUS_HQ_REVIEWED)->count();
-
-            } else {
-                // Superadmin – sees everything
-                $recentQuery->whereNotNull('id');
+        if (! $user->hasAnyRole(['superadmin', 'hod', 'campus_registrar', 'kihbt_registrar', 'director'])) {
+            if ($user->hasRole('applicant')) {
+                return redirect()->route('applicant.dashboard');
             }
-
-            // Finally, get the last 10 trainings for the dashboard table
-            $recentTrainings = $recentQuery
-                ->orderByDesc('created_at')
-                ->take(10)
-                ->get();
-
-            $userName    = $user->name ?? $user->email;
-            $primaryRole = $user->getRoleNames()->first();
-
-            return view('admin.index', compact(
-                'draftCount',
-                'pendingCount',
-                'approvedCount',
-                'rejectedCount',
-                'hodDraftTrainings',
-                'hodPendingRegistrar',
-                'hodRejectedTrainings',
-                'registrarPendingTrainings',
-                'registrarToHqTrainings',
-                'hqQueueTrainings',
-                'directorQueueTrainings',
-                'recentTrainings',
-                'userName',
-                'primaryRole'
-            ));
-        }
-        elseif ($user->hasRole('applicant')) {
-            return redirect()->route('applicant.dashboard');
-        }
-        else {
             abort(404);
         }
-    }
 
+        $campusId = $user->campus_id; // 👈 from users table
+
+        // Base query for trainings visible to this user
+        $baseQuery = Training::with(['course', 'college', 'user']);
+
+        // Superadmin sees ALL colleges, others see only their own campus/college
+        if (! $user->hasRole('superadmin')) {
+            $baseQuery->where('college_id', $campusId);
+        }
+
+        // === GLOBAL COUNTS (still obey campus filter for non-superadmin) ===
+        $draftCount    = (clone $baseQuery)->where('status', Training::STATUS_DRAFT)->count();
+        $pendingCount  = (clone $baseQuery)->where('status', Training::STATUS_PENDING_REGISTRAR)->count();
+        $approvedCount = (clone $baseQuery)->where('status', Training::STATUS_APPROVED)->count();
+        $rejectedCount = (clone $baseQuery)->where('status', Training::STATUS_REJECTED)->count();
+
+        // Init role-specific counters
+        $hodDraftTrainings        = 0;
+        $hodPendingRegistrar      = 0;
+        $hodRejectedTrainings     = 0;
+        $registrarPendingTrainings = 0;
+        $registrarToHqTrainings    = 0;
+        $hqQueueTrainings          = 0;
+        $directorQueueTrainings    = 0;
+
+        // Start from the same base for "recent" list
+        $recentQuery = (clone $baseQuery);
+
+        // === ROLE-SPECIFIC SCOPE ON TOP OF CAMPUS FILTER ===
+        if ($user->hasRole('hod')) {
+
+            // HOD: only trainings created by this HOD, within their campus
+            $hodBase = (clone $baseQuery)->where('user_id', $user->id);
+
+            $hodDraftTrainings    = (clone $hodBase)->where('status', Training::STATUS_DRAFT)->count();
+            $hodPendingRegistrar  = (clone $hodBase)->where('status', Training::STATUS_PENDING_REGISTRAR)->count();
+            $hodRejectedTrainings = (clone $hodBase)->where('status', Training::STATUS_REJECTED)->count();
+
+            $recentQuery = $hodBase;
+
+        } elseif ($user->hasRole('campus_registrar')) {
+
+            // Campus registrar: trainings at registrar stages, but only in their campus
+            $recentQuery->whereIn('status', [
+                Training::STATUS_PENDING_REGISTRAR,
+                Training::STATUS_REGISTRAR_APPROVED_HQ,
+                Training::STATUS_REJECTED,
+            ]);
+
+            $registrarPendingTrainings = (clone $baseQuery)
+                ->where('status', Training::STATUS_PENDING_REGISTRAR)
+                ->count();
+
+            $registrarToHqTrainings = (clone $baseQuery)
+                ->where('status', Training::STATUS_REGISTRAR_APPROVED_HQ)
+                ->count();
+
+        } elseif ($user->hasRole('kihbt_registrar')) {
+
+            // HQ registrar: anything that reached HQ, but still obeys campus filter for non-super (you can remove this if HQ should see all)
+            $recentQuery->whereIn('status', [
+                Training::STATUS_REGISTRAR_APPROVED_HQ,
+                Training::STATUS_HQ_REVIEWED,
+                Training::STATUS_REJECTED,
+            ]);
+
+            $hqQueueTrainings = (clone $baseQuery)
+                ->where('status', Training::STATUS_REGISTRAR_APPROVED_HQ)
+                ->count();
+
+        } elseif ($user->hasRole('director')) {
+
+            // Director: final approval stage, campus-scoped unless superadmin
+            $recentQuery->whereIn('status', [
+                Training::STATUS_HQ_REVIEWED,
+                Training::STATUS_APPROVED,
+                Training::STATUS_REJECTED,
+            ]);
+
+            $directorQueueTrainings = (clone $baseQuery)
+                ->where('status', Training::STATUS_HQ_REVIEWED)
+                ->count();
+
+        } else {
+            // superadmin: already sees all campuses; no extra filter
+            $recentQuery->whereNotNull('id');
+        }
+
+        // Last 10 trainings for the dashboard table
+        $recentTrainings = $recentQuery
+            ->orderByDesc('created_at')
+            ->take(10)
+            ->get();
+
+        $userName    = $user->name ?? $user->email;
+        $primaryRole = $user->getRoleNames()->first();
+
+        return view('admin.index', compact(
+            'draftCount',
+            'pendingCount',
+            'approvedCount',
+            'rejectedCount',
+            'hodDraftTrainings',
+            'hodPendingRegistrar',
+            'hodRejectedTrainings',
+            'registrarPendingTrainings',
+            'registrarToHqTrainings',
+            'hqQueueTrainings',
+            'directorQueueTrainings',
+            'recentTrainings',
+            'userName',
+            'primaryRole'
+        ));
+    }
 
 
     public function Logout(Request $request){
