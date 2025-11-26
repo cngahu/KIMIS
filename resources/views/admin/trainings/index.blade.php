@@ -20,9 +20,12 @@
         <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
             <h1 class="mb-0">Trainings</h1>
 
-            <a href="{{ route('trainings.create') }}" class="btn btn-primary btn-sm">
-                Add Training
-            </a>
+            {{-- 👇 Only HOD can add trainings --}}
+            @if($isHod)
+                <a href="{{ route('trainings.create') }}" class="btn btn-primary btn-sm">
+                    Add Training
+                </a>
+            @endif
         </div>
 
         {{-- Filters & search --}}
@@ -204,24 +207,24 @@
 
                             {{-- Actions --}}
                             <td class="text-center">
-                                {{-- View --}}
+                                @php
+                                    $user       = Auth::user();
+                                    $isHod      = $user->hasRole('hod');
+                                    $isCampus   = $user->hasRole('campus_registrar');
+                                    $isKihbt    = $user->hasRole('kihbt_registrar');
+                                    $isDirector = $user->hasRole('director');
+                                    $isSuper    = $user->hasRole('superadmin');
+                                @endphp
+
+                                {{-- View: everyone who can see the list can view --}}
                                 <a href="{{ route('trainings.show', $training) }}"
                                    class="btn btn-sm btn-outline-info"
                                    title="View Training">
                                     <i class="fa-solid fa-eye icon-brown"></i>
                                 </a>
 
-                                @php
-                                    $user      = Auth::user();
-                                    $isHod     = $user->hasRole('hod');
-                                    $isCampus  = $user->hasRole('campus_registrar');
-                                    $isKihbt   = $user->hasRole('kihbt_registrar');
-                                    $isDirector= $user->hasRole('director');
-                                    $isSuper   = $user->hasRole('superadmin');
-                                @endphp
-
-                                {{-- HOD & Superadmin: Edit/Delete Draft or Rejected --}}
-                                @if(($isHod && $training->isEditableByHod()) || $isSuper)
+                                {{-- ✅ ONLY HOD can Edit/Delete Draft or Rejected (no more superadmin) --}}
+                                @if($isHod && $training->isEditableByHod())
                                     <a href="{{ route('trainings.edit', $training) }}"
                                        class="btn btn-sm btn-outline-warning"
                                        title="Edit Training">
@@ -244,8 +247,8 @@
                                     </form>
                                 @endif
 
-                                {{-- HOD & Superadmin: Send for approval --}}
-                                @if(($isHod || $isSuper) && $training->isEditableByHod())
+                                {{-- ✅ ONLY HOD can Send for approval --}}
+                                @if($isHod && $training->isEditableByHod())
                                     <form action="{{ route('trainings.send_for_approval', $training) }}"
                                           method="POST"
                                           class="d-inline">
@@ -258,7 +261,7 @@
                                     </form>
                                 @endif
 
-                                {{-- Campus Registrar: Approve/Reject when Pending Registrar --}}
+                                {{-- Campus Registrar: Approve/Reject when Pending Registrar (still allowed) --}}
                                 @if(($isCampus || $isSuper) && $training->status === \App\Models\Training::STATUS_PENDING_REGISTRAR)
                                     <form action="{{ route('trainings.registrar_approve', $training) }}"
                                           method="POST"

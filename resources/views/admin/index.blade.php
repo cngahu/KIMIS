@@ -75,6 +75,8 @@
                             <p class="mb-1 kpi-label">Approved Trainings</p>
                             <small class="text-white-50">Fully cleared through HQ & Director</small>
                         </div>
+                        <a href="{{ route('all.trainings', ['status' => \App\Models\Training::STATUS_APPROVED]) }}"
+                           class="stretched-link"></a>
                     </div>
                 </div>
 
@@ -87,6 +89,8 @@
                             </div>
                             <p class="mb-1 kpi-label">Rejected / Returned</p>
                             <small class="text-white-50">Sent back with comments</small>
+                            <a href="{{ route('all.trainings', ['status' => \App\Models\Training::STATUS_REJECTED]) }}"
+                               class="stretched-link"></a>
                         </div>
                     </div>
                 </div>
@@ -94,45 +98,61 @@
 
             {{-- HOD: MY OWN TRAININGS --}}
             @if(Auth::user()->hasRole('hod'))
+                {{-- DRAFT --}}
                 <div class="col">
-                    <div class="card radius-10 card-role" style="background:linear-gradient(135deg,#3b2818,#5a3b23);">
-                        <div class="card-body text-white">
-                            <div class="d-flex align-items-center">
-                                <h5 class="mb-0 kpi-value">{{ $hodDraftTrainings }}</h5>
-                                <div class="ms-auto"><i class='bx bx-edit fs-3 text-white'></i></div>
+                    <a href="{{ route('all.trainings', ['status' => \App\Models\Training::STATUS_DRAFT]) }}"
+                       class="text-decoration-none">
+                        <div class="card radius-10 card-role"
+                             style="background:linear-gradient(135deg,#3b2818,#5a3b23);">
+                            <div class="card-body text-white">
+                                <div class="d-flex align-items-center">
+                                    <h5 class="mb-0 kpi-value">{{ $hodDraftTrainings }}</h5>
+                                    <div class="ms-auto"><i class='bx bx-edit fs-3 text-white'></i></div>
+                                </div>
+                                <p class="mb-1 kpi-label">My Draft Trainings</p>
+                                <small class="text-white-50">You can still edit these</small>
                             </div>
-                            <p class="mb-1 kpi-label">My Draft Trainings</p>
-                            <small class="text-white-50">You can still edit these</small>
                         </div>
-                    </div>
+                    </a>
                 </div>
 
+                {{-- PENDING REGISTRAR --}}
                 <div class="col">
-                    <div class="card radius-10 card-role" style="background:linear-gradient(135deg,#f9a90f,#ffcc4d);">
-                        <div class="card-body text-white">
-                            <div class="d-flex align-items-center">
-                                <h5 class="mb-0 kpi-value">{{ $hodPendingRegistrar }}</h5>
-                                <div class="ms-auto"><i class='bx bx-time-five fs-3 text-white'></i></div>
+                    <a href="{{ route('all.trainings', ['status' => \App\Models\Training::STATUS_PENDING_REGISTRAR]) }}"
+                       class="text-decoration-none">
+                        <div class="card radius-10 card-role"
+                             style="background:linear-gradient(135deg,#f9a90f,#ffcc4d);">
+                            <div class="card-body text-white">
+                                <div class="d-flex align-items-center">
+                                    <h5 class="mb-0 kpi-value">{{ $hodPendingRegistrar }}</h5>
+                                    <div class="ms-auto"><i class='bx bx-time-five fs-3 text-white'></i></div>
+                                </div>
+                                <p class="mb-1 kpi-label">Awaiting Registrar</p>
+                                <small class="text-white-50">Submitted and locked for editing</small>
                             </div>
-                            <p class="mb-1 kpi-label">Awaiting Registrar</p>
-                            <small class="text-white-50">Submitted and locked for editing</small>
                         </div>
-                    </div>
+                    </a>
                 </div>
 
+                {{-- REJECTED --}}
                 <div class="col">
-                    <div class="card radius-10 card-role" style="background:linear-gradient(135deg,#c0392b,#e74c3c);">
-                        <div class="card-body text-white">
-                            <div class="d-flex align-items-center">
-                                <h5 class="mb-0 kpi-value">{{ $hodRejectedTrainings }}</h5>
-                                <div class="ms-auto"><i class='bx bx-message-x fs-3 text-white'></i></div>
+                    <a href="{{ route('all.trainings', ['status' => \App\Models\Training::STATUS_REJECTED]) }}"
+                       class="text-decoration-none">
+                        <div class="card radius-10 card-role"
+                             style="background:linear-gradient(135deg,#c0392b,#e74c3c);">
+                            <div class="card-body text-white">
+                                <div class="d-flex align-items-center">
+                                    <h5 class="mb-0 kpi-value">{{ $hodRejectedTrainings }}</h5>
+                                    <div class="ms-auto"><i class='bx bx-message-x fs-3 text-white'></i></div>
+                                </div>
+                                <p class="mb-1 kpi-label">Returned / Rejected</p>
+                                <small class="text-white-50">Review comments & resubmit</small>
                             </div>
-                            <p class="mb-1 kpi-label">Returned / Rejected</p>
-                            <small class="text-white-50">Review comments & resubmit</small>
                         </div>
-                    </div>
+                    </a>
                 </div>
             @endif
+
 
             {{-- CAMPUS REGISTRAR --}}
             @if(Auth::user()->hasRole('campus_registrar'))
@@ -164,7 +184,45 @@
             @endif
 
             {{-- HQ REGISTRAR --}}
+            {{-- HQ REGISTRAR --}}
             @if(Auth::user()->hasRole('kihbt_registrar'))
+                {{-- Global Approved --}}
+                <div class="col">
+                    <div class="card radius-10 card-role position-relative"
+                         style="background:linear-gradient(135deg,#2b9348,#4bb368);">
+                        <div class="card-body text-white">
+                            <div class="d-flex align-items-center">
+                                <h5 class="mb-0 kpi-value">{{ $globalApprovedTrainings }}</h5>
+                                <div class="ms-auto"><i class='bx bx-check-circle fs-3 text-white'></i></div>
+                            </div>
+                            <p class="mb-1 kpi-label">All Approved Trainings</p>
+                            <small class="text-white-50">Across all campuses</small>
+                        </div>
+                        {{-- Link to list of all approved trainings --}}
+                        <a href="{{ route('all.trainings', ['status' => \App\Models\Training::STATUS_APPROVED]) }}"
+                           class="stretched-link"></a>
+                    </div>
+                </div>
+
+                {{-- Global Rejected --}}
+                <div class="col">
+                    <div class="card radius-10 card-role position-relative"
+                         style="background:linear-gradient(135deg,#c0392b,#e74c3c);">
+                        <div class="card-body text-white">
+                            <div class="d-flex align-items-center">
+                                <h5 class="mb-0 kpi-value">{{ $globalRejectedTrainings }}</h5>
+                                <div class="ms-auto"><i class='bx bx-x-circle fs-3 text-white'></i></div>
+                            </div>
+                            <p class="mb-1 kpi-label">All Rejected Trainings</p>
+                            <small class="text-white-50">Across all campuses</small>
+                        </div>
+                        {{-- Link to list of all rejected trainings --}}
+                        <a href="{{ route('all.trainings', ['status' => \App\Models\Training::STATUS_REJECTED]) }}"
+                           class="stretched-link"></a>
+                    </div>
+                </div>
+
+                {{-- Existing HQ queue card --}}
                 <div class="col">
                     <div class="card radius-10 card-role" style="background:linear-gradient(135deg,#3b5998,#5e7ec4);">
                         <div class="card-body text-white">
@@ -179,8 +237,45 @@
                 </div>
             @endif
 
+
+            {{-- DIRECTOR --}}
             {{-- DIRECTOR --}}
             @if(Auth::user()->hasRole('director'))
+                {{-- Global Approved --}}
+                <div class="col">
+                    <div class="card radius-10 card-role position-relative"
+                         style="background:linear-gradient(135deg,#2b9348,#4bb368);">
+                        <div class="card-body text-white">
+                            <div class="d-flex align-items-center">
+                                <h5 class="mb-0 kpi-value">{{ $globalApprovedTrainings }}</h5>
+                                <div class="ms-auto"><i class='bx bx-check-circle fs-3 text-white'></i></div>
+                            </div>
+                            <p class="mb-1 kpi-label">All Approved Trainings</p>
+                            <small class="text-white-50">Across all campuses</small>
+                        </div>
+                        <a href="{{ route('all.trainings', ['status' => \App\Models\Training::STATUS_APPROVED]) }}"
+                           class="stretched-link"></a>
+                    </div>
+                </div>
+
+                {{-- Global Rejected --}}
+                <div class="col">
+                    <div class="card radius-10 card-role position-relative"
+                         style="background:linear-gradient(135deg,#c0392b,#e74c3c);">
+                        <div class="card-body text-white">
+                            <div class="d-flex align-items-center">
+                                <h5 class="mb-0 kpi-value">{{ $globalRejectedTrainings }}</h5>
+                                <div class="ms-auto"><i class='bx bx-x-circle fs-3 text-white'></i></div>
+                            </div>
+                            <p class="mb-1 kpi-label">All Rejected Trainings</p>
+                            <small class="text-white-50">Across all campuses</small>
+                        </div>
+                        <a href="{{ route('all.trainings', ['status' => \App\Models\Training::STATUS_REJECTED]) }}"
+                           class="stretched-link"></a>
+                    </div>
+                </div>
+
+                {{-- Existing Director queue card --}}
                 <div class="col">
                     <div class="card radius-10 card-role" style="background:linear-gradient(135deg,#6c5ce7,#a29bfe);">
                         <div class="card-body text-white">
@@ -194,6 +289,7 @@
                     </div>
                 </div>
             @endif
+
 
         </div><!-- end role KPIs row -->
 

@@ -407,7 +407,11 @@
                             <i class="bx bx-right-arrow-alt"></i>  HQ Registrar Approval Queue
                         </a>
                     </li>
-
+                    <li>
+                        <a href="{{ route('registrar.applications.completed') }}">
+                            <i class="bx bx-radio-circle"></i> Completed Reviews
+                        </a>
+                    </li>
                     <li>
                         <a href="{{ route('all.courses') }}">
                             <i class="bx bx-right-arrow-alt"></i>Courses
@@ -434,7 +438,11 @@
                             <i class="bx bx-right-arrow-alt"></i>  Director Approval Queue
                         </a>
                     </li>
-
+                    <li>
+                        <a href="{{ route('registrar.applications.completed') }}">
+                            <i class="bx bx-radio-circle"></i> Completed Reviews
+                        </a>
+                    </li>
                     <li>
                         <a href="{{ route('all.courses') }}">
                             <i class="bx bx-right-arrow-alt"></i>Courses

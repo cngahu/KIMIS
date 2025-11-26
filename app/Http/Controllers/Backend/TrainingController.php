@@ -19,33 +19,41 @@ class TrainingController extends Controller
     /**
      * Display a listing of the trainings.
      */
+
+
     public function index(Request $request)
     {
-        $user     = Auth::user();
-        $search   = $request->input('search');
-        $status   = $request->input('status');
-        $courseId = $request->input('course_id');
-        $collegeId = $request->input('college_id'); // campus filter (only for superadmin)
+        $user      = Auth::user();
+        $search    = $request->input('search');
+        $status    = $request->input('status');
+        $courseId  = $request->input('course_id');
+        $collegeId = $request->input('college_id'); // campus filter (for superadmin & kihbt_registrar)
+
+        $isSuper = $user->hasRole('superadmin');
+        $isHq    = $user->hasRole('kihbt_registrar'); // HQ registrar sees ALL campuses
 
         $trainings = Training::with(['course', 'college', 'user'])
+            // 🔎 Search by course name/code
             ->when($search, function ($q) use ($search) {
                 $q->whereHas('course', function ($cq) use ($search) {
                     $cq->where('course_name', 'like', "%{$search}%")
                         ->orWhere('course_code', 'like', "%{$search}%");
                 });
             })
+            // 📌 Status filter
             ->when($status, function ($q) use ($status) {
                 $q->where('status', $status);
             })
+            // 📌 Course filter
             ->when($courseId, function ($q) use ($courseId) {
                 $q->where('course_id', $courseId);
             })
-            // 🔹 Superadmin: optional campus filter from request
-            ->when($user->hasRole('superadmin') && $collegeId, function ($q) use ($collegeId) {
+            // 🏫 Superadmin & KIHBT registrar: optional campus filter from request
+            ->when(($isSuper || $isHq) && $collegeId, function ($q) use ($collegeId) {
                 $q->where('college_id', $collegeId);
             })
-            // 🔹 Non-super: force to own campus
-            ->when(!$user->hasRole('superadmin') && $user->campus_id, function ($q) use ($user) {
+            // 🏫 All other roles: force to own campus
+            ->when(!$isSuper && !$isHq && $user->campus_id, function ($q) use ($user) {
                 $q->where('college_id', $user->campus_id);
             })
             ->latest()
@@ -54,10 +62,14 @@ class TrainingController extends Controller
 
         $courses = Course::orderBy('course_name')->get();
 
-        // 🔹 Campus list only really needed for superadmin filter
-        $colleges = $user->hasRole('superadmin')
-            ? College::orderBy('name')->get()
-            : College::where('id', $user->campus_id)->get();
+        // 🔹 Campus list:
+        //     - Superadmin & KIHBT Registrar: all campuses + campus filter dropdown
+        //     - Others: only their own campus, and no real filter visual effect
+        if ($isSuper || $isHq) {
+            $colleges = College::orderBy('name')->get();
+        } else {
+            $colleges = College::where('id', $user->campus_id)->get();
+        }
 
         $statuses = [
             Training::STATUS_DRAFT,
@@ -79,6 +91,7 @@ class TrainingController extends Controller
             'collegeId'
         ));
     }
+
 
     /**
      * Show the form for creating a new training.

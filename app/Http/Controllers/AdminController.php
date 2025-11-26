@@ -32,26 +32,30 @@ class AdminController extends Controller
             abort(404);
         }
 
-        $campusId = $user->campus_id; // 👈 from users table
+        $campusId = $user->campus_id; // from users table
 
-        // Base query for trainings visible to this user
+        // Base query for trainings visible to this user (scoped by campus for some roles)
         $baseQuery = Training::with(['course', 'college', 'user']);
 
-        // Superadmin sees ALL colleges, others see only their own campus/college
-        if (! $user->hasRole('superadmin')) {
+        // Superadmin and KIHBT Registrar see ALL colleges, others see only their own campus/college
+        if (! $user->hasRole('superadmin') && ! $user->hasRole('kihbt_registrar')) {
             $baseQuery->where('college_id', $campusId);
         }
 
-        // === GLOBAL COUNTS (still obey campus filter for non-superadmin) ===
+        // === GLOBAL COUNTS (campus-scoped for non-super/non-kihbt_registrar) ===
         $draftCount    = (clone $baseQuery)->where('status', Training::STATUS_DRAFT)->count();
         $pendingCount  = (clone $baseQuery)->where('status', Training::STATUS_PENDING_REGISTRAR)->count();
         $approvedCount = (clone $baseQuery)->where('status', Training::STATUS_APPROVED)->count();
         $rejectedCount = (clone $baseQuery)->where('status', Training::STATUS_REJECTED)->count();
 
+        // ✅ NEW: Truly global counts (all campuses) for KIHBT Registrar & Director summary cards
+        $globalApprovedTrainings = Training::where('status', Training::STATUS_APPROVED)->count();
+        $globalRejectedTrainings = Training::where('status', Training::STATUS_REJECTED)->count();
+
         // Init role-specific counters
-        $hodDraftTrainings        = 0;
-        $hodPendingRegistrar      = 0;
-        $hodRejectedTrainings     = 0;
+        $hodDraftTrainings         = 0;
+        $hodPendingRegistrar       = 0;
+        $hodRejectedTrainings      = 0;
         $registrarPendingTrainings = 0;
         $registrarToHqTrainings    = 0;
         $hqQueueTrainings          = 0;
@@ -63,7 +67,6 @@ class AdminController extends Controller
         // === ROLE-SPECIFIC SCOPE ON TOP OF CAMPUS FILTER ===
         if ($user->hasRole('hod')) {
 
-            // HOD: only trainings created by this HOD, within their campus
             $hodBase = (clone $baseQuery)->where('user_id', $user->id);
 
             $hodDraftTrainings    = (clone $hodBase)->where('status', Training::STATUS_DRAFT)->count();
@@ -74,7 +77,6 @@ class AdminController extends Controller
 
         } elseif ($user->hasRole('campus_registrar')) {
 
-            // Campus registrar: trainings at registrar stages, but only in their campus
             $recentQuery->whereIn('status', [
                 Training::STATUS_PENDING_REGISTRAR,
                 Training::STATUS_REGISTRAR_APPROVED_HQ,
@@ -91,7 +93,7 @@ class AdminController extends Controller
 
         } elseif ($user->hasRole('kihbt_registrar')) {
 
-            // HQ registrar: anything that reached HQ, but still obeys campus filter for non-super (you can remove this if HQ should see all)
+            // HQ registrar: sees all campuses already
             $recentQuery->whereIn('status', [
                 Training::STATUS_REGISTRAR_APPROVED_HQ,
                 Training::STATUS_HQ_REVIEWED,
@@ -104,7 +106,6 @@ class AdminController extends Controller
 
         } elseif ($user->hasRole('director')) {
 
-            // Director: final approval stage, campus-scoped unless superadmin
             $recentQuery->whereIn('status', [
                 Training::STATUS_HQ_REVIEWED,
                 Training::STATUS_APPROVED,
@@ -116,7 +117,7 @@ class AdminController extends Controller
                 ->count();
 
         } else {
-            // superadmin: already sees all campuses; no extra filter
+            // superadmin
             $recentQuery->whereNotNull('id');
         }
 
@@ -143,9 +144,13 @@ class AdminController extends Controller
             'directorQueueTrainings',
             'recentTrainings',
             'userName',
-            'primaryRole'
+            'primaryRole',
+            // 👇 NEW
+            'globalApprovedTrainings',
+            'globalRejectedTrainings',
         ));
     }
+
 
 
     public function Logout(Request $request){
