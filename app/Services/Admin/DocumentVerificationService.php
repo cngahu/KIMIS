@@ -2,11 +2,13 @@
 
 namespace App\Services\Admin;
 use App\Models\Admission;
+use App\Models\AdmissionDocumentType;
 use App\Services\Audit\AuditLogService;
 use Illuminate\Support\Facades\Mail;
 use App\Models\AdmissionUploadedDocument;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+
 class DocumentVerificationService
 {
     protected AuditLogService $audit;
@@ -60,8 +62,72 @@ class DocumentVerificationService
         // Send rejection email (optional)
     }
 
+    public function verifyDocuments(Admission $admission, $request)
+    {
+        $verify   = $request->input('verify', []);
+        $comments = $request->input('comments', []);
+        $issues   = []; // for tracking missing or corrections
 
-    public function verifyDocuments0(Admission $admission, $request)
+        foreach ($verify as $docId => $status) {
+
+            $doc = AdmissionUploadedDocument::find($docId);
+
+            if ($doc) {
+
+                $old = $doc->getOriginal();
+
+                $doc->verified     = ($status == "1") ? 1 : 0;
+                $doc->verified_by  = Auth::id();
+                $doc->verified_at  = now();
+                $doc->comment      = $comments[$docId] ?? null;
+                $doc->save();
+
+                // Log doc verification
+                $this->audit->log('admission_document_verified', $doc, [
+                    'old' => $old,
+                    'new' => $doc->getChanges(),
+                ]);
+
+                // Track issues
+                if (!$doc->verified) {
+                    $issues[] = [
+                        'document_type_id' => $doc->document_type_id,
+                        'name' => optional($doc->type)->name,
+                        'comment' => $doc->comment,
+                    ];
+                }
+
+            } else {
+
+                // Missing upload for required document
+                $requiredDoc = AdmissionDocumentType::find($docId);
+                if ($requiredDoc && $requiredDoc->is_mandatory) {
+                    $issues[] = [
+                        'document_type_id' => $requiredDoc->id,
+                        'name' => $requiredDoc->name,
+                        'comment' => 'Missing document',
+                    ];
+                }
+            }
+        }
+
+        // Save issues report (JSON)
+        $old = $admission->getOriginal();
+
+        $admission->verification_issues = $issues; // a JSON column
+        $admission->status = 'docs_verified';      // always verified
+        $admission->save();
+
+        // Log status change
+        $this->audit->log('admission_documents_verified', $admission, [
+            'old' => $old,
+            'new' => $admission->getChanges(),
+        ]);
+
+        return redirect()->route('registrar.verification.index');
+    }
+
+    public function verifyDocumentsdefault(Admission $admission, $request)
     {
         $verify = $request->input('verify', []);
         $comments = $request->input('comments', []);
@@ -99,7 +165,7 @@ class DocumentVerificationService
         $admission->save();
     }
 
-    public function verifyDocument(Admission $admission, $docId, $action, $comment = null)
+    public function verifyDocument1(Admission $admission, $docId, $action, $comment = null)
     {
         $doc = AdmissionUploadedDocument::where('admission_id', $admission->id)
             ->where('id', $docId)

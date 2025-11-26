@@ -4,7 +4,7 @@
 
         $convenience=50;
        $Serviceid="";
-        $serviceID=234330;
+        $serviceID=48460;
        $total=50000 + $convenience;
            $curl = curl_init();
        $clientMSISDN = '0700123456';
@@ -15,7 +15,7 @@
        $callBackURLOnSuccess = 'https://portal.pck.go.ke/applicant/dashboard';
        $notificationURL = "https://portal.pck.go.ke/api/pesaflow/confirm";
 
-       $apiClientID = '580';
+       $apiClientID = '35';
        //$apiClientID = '317';
        //$amountExpected = $total;
             $amountExpected = 1;

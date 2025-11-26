@@ -314,9 +314,42 @@
                         </a>
                     </li>
 
+                    <li>
+                        <a href="{{ route('admin.admissions.verified') }}">
+                            <i class="bx bx-radio-circle"></i> Verified
+
+                        </a>
+                    </li>
+
                 </ul>
             </li>
 
+
+
+            <li class="menu-label">Accounts</li>
+
+            <li>
+                <a href="javascript:;" class="has-arrow">
+                    <div class="parent-icon"><i class='bx bx-book-reader'></i></div>
+                    <div class="menu-title">Accounts</div>
+                </a>
+                <ul>
+                    <li>
+                        <a href="{{ route('accounts.dashboard') }}">
+                            <i class="bx bx-radio-circle"></i> Dashboard
+
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="{{ route('accounts.invoices') }}">
+                            <i class="bx bx-radio-circle"></i> Invoices
+
+                        </a>
+                    </li>
+
+                </ul>
+            </li>
         @endif
 
 

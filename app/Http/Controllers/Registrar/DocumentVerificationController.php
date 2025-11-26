@@ -51,14 +51,14 @@ class DocumentVerificationController extends Controller
             ->with('error', 'Documents rejected. Student notified.');
     }
 
-    public function verifyDocuments0(Request $request, Admission $admission)
+    public function verifyDocument(Request $request, Admission $admission)
     {
         $this->svc->verifyDocuments($admission, $request);
 
         return back()->with('success', 'Document verification saved successfully.');
     }
 
-    public function verifyDocument(Request $request, Admission $admission)
+    public function verifyDocument1(Request $request, Admission $admission)
     {
         $request->validate([
             'doc_id' => 'required|integer',

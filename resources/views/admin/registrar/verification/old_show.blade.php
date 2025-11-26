@@ -244,19 +244,36 @@
                                         $uploaded = $documents->firstWhere('document_type_id', $req->id);
                                     @endphp
 
-                                    <tr>
-                                        <td>
+                                    <div class="d-flex justify-content-between align-items-start border rounded p-3 mb-3">
+
+                                        {{-- Requirement info --}}
+                                        <div style="width: 30%">
                                             <strong>{{ $req->name }}</strong><br>
                                             <small class="text-muted">{{ $req->description }}</small>
-                                        </td>
+                                        </div>
 
-                                        <td>
+                                        {{-- File + Status --}}
+                                        <div style="width: 30%">
                                             @if($uploaded)
-                                                <button class="btn btn-sm btn-primary"
+
+                                                {{-- MODAL TRIGGER --}}
+                                                <button class="btn btn-sm btn-outline-primary mb-1"
                                                         data-bs-toggle="modal"
                                                         data-bs-target="#docModal{{ $uploaded->id }}">
-                                                    View
+                                                    View File
                                                 </button>
+
+                                                {{-- STATUS BADGE --}}
+                                                <br>
+                                                <span class="badge
+                    @if($uploaded->verified_status=='approved') bg-success
+                    @elseif($uploaded->verified_status=='pending_fix') bg-warning text-dark
+                    @elseif($uploaded->verified_status=='rejected') bg-danger
+                    @else bg-secondary
+                    @endif
+                ">
+                    {{ ucfirst($uploaded->verified_status) }}
+                </span>
 
                                                 {{-- MODAL --}}
                                                 <div class="modal fade" id="docModal{{ $uploaded->id }}" tabindex="-1">
@@ -269,53 +286,140 @@
                                                             <div class="modal-body">
                                                                 <iframe src="{{ asset('storage/'.$uploaded->file_path) }}"
                                                                         width="100%"
-                                                                        height="600px"></iframe>
+                                                                        height="600px"
+                                                                        style="border: none;">
+                                                                </iframe>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
+
                                             @else
                                                 <span class="badge bg-danger">Missing</span>
                                             @endif
-                                        </td>
+                                        </div>
 
-                                        <td>
+                                        {{-- Verification Panel --}}
+                                        <div style="width: 35%">
                                             @if($uploaded)
-                                                <div class="d-flex align-items-center gap-2">
+                                                <form method="POST" action="{{ route('admin.verify.document', $admission->id) }}">
+                                                    @csrf
 
-                                                    {{-- APPROVE --}}
-                                                    <label class="me-2">
-                                                        <input type="radio"
-                                                               name="verify[{{ $uploaded->id }}]"
-                                                               value="1"
-                                                            {{ $uploaded->verified ? 'checked' : '' }}>
-                                                        ✔ Verified
-                                                    </label>
+                                                    <input type="hidden" name="doc_id" value="{{ $uploaded->id }}">
 
-                                                    {{-- REJECT --}}
-                                                    <label class="me-2">
-                                                        <input type="radio"
-                                                               name="verify[{{ $uploaded->id }}]"
-                                                               value="0"
-                                                            {{ !$uploaded->verified ? 'checked' : '' }}>
-                                                        ✘ Reject
-                                                    </label>
+                                                    {{-- Action Select --}}
+                                                    <select name="action" class="form-select form-select-sm mb-1" required>
+                                                        <option value="approved"
+                                                            {{ $uploaded->verified_status=='approved' ? 'selected' : '' }}>
+                                                            Approve
+                                                        </option>
 
-                                                    {{-- COMMENT --}}
-                                                    <input type="text"
-                                                           name="comments[{{ $uploaded->id }}]"
-                                                           class="form-control form-control-sm"
-                                                           placeholder="Comment"
-                                                           style="max-width:200px;"
-                                                           value="{{ $uploaded->comment ?? '' }}">
-                                                </div>
+                                                        <option value="pending_fix"
+                                                            {{ $uploaded->verified_status=='pending_fix' ? 'selected' : '' }}>
+                                                            Approve with Fix Needed
+                                                        </option>
+
+                                                        <option value="rejected"
+                                                            {{ $uploaded->verified_status=='rejected' ? 'selected' : '' }}>
+                                                            Reject
+                                                        </option>
+                                                    </select>
+
+                                                    {{-- Comment --}}
+                                                    <input
+                                                        name="comment"
+                                                        class="form-control form-control-sm mb-1"
+                                                        placeholder="Comment (optional)"
+                                                        value="{{ $uploaded->comment ?? '' }}"
+                                                    >
+
+                                                    <button class="btn btn-sm btn-primary">Save</button>
+                                                </form>
                                             @else
-                                                <span class="badge bg-danger">Not Uploaded</span>
+                                                <span class="text-muted">No actions available</span>
                                             @endif
-                                        </td>
-                                    </tr>
+                                        </div>
 
+                                    </div>
                                 @endforeach
+
+                                {{--                                @foreach($requirements as $req)--}}
+                                {{--                                    @php--}}
+                                {{--                                        $uploaded = $documents->firstWhere('document_type_id', $req->id);--}}
+                                {{--                                    @endphp--}}
+
+                                {{--                                    <tr>--}}
+                                {{--                                        <td>--}}
+                                {{--                                            <strong>{{ $req->name }}</strong><br>--}}
+                                {{--                                            <small class="text-muted">{{ $req->description }}</small>--}}
+                                {{--                                        </td>--}}
+
+                                {{--                                        <td>--}}
+                                {{--                                            @if($uploaded)--}}
+                                {{--                                                <button class="btn btn-sm btn-primary"--}}
+                                {{--                                                        data-bs-toggle="modal"--}}
+                                {{--                                                        data-bs-target="#docModal{{ $uploaded->id }}">--}}
+                                {{--                                                    View--}}
+                                {{--                                                </button>--}}
+
+                                {{--                                                --}}{{-- MODAL --}}
+                                {{--                                                <div class="modal fade" id="docModal{{ $uploaded->id }}" tabindex="-1">--}}
+                                {{--                                                    <div class="modal-dialog modal-xl">--}}
+                                {{--                                                        <div class="modal-content">--}}
+                                {{--                                                            <div class="modal-header">--}}
+                                {{--                                                                <h5 class="modal-title">{{ $req->name }}</h5>--}}
+                                {{--                                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>--}}
+                                {{--                                                            </div>--}}
+                                {{--                                                            <div class="modal-body">--}}
+                                {{--                                                                <iframe src="{{ asset('storage/'.$uploaded->file_path) }}"--}}
+                                {{--                                                                        width="100%"--}}
+                                {{--                                                                        height="600px"></iframe>--}}
+                                {{--                                                            </div>--}}
+                                {{--                                                        </div>--}}
+                                {{--                                                    </div>--}}
+                                {{--                                                </div>--}}
+                                {{--                                            @else--}}
+                                {{--                                                <span class="badge bg-danger">Missing</span>--}}
+                                {{--                                            @endif--}}
+                                {{--                                        </td>--}}
+
+                                {{--                                        <td>--}}
+                                {{--                                            @if($uploaded)--}}
+                                {{--                                                <div class="d-flex align-items-center gap-2">--}}
+
+                                {{--                                                    --}}{{-- APPROVE --}}
+                                {{--                                                    <label class="me-2">--}}
+                                {{--                                                        <input type="radio"--}}
+                                {{--                                                               name="verify[{{ $uploaded->id }}]"--}}
+                                {{--                                                               value="1"--}}
+                                {{--                                                            {{ $uploaded->verified ? 'checked' : '' }}>--}}
+                                {{--                                                        ✔ Verified--}}
+                                {{--                                                    </label>--}}
+
+                                {{--                                                    --}}{{-- REJECT --}}
+                                {{--                                                    <label class="me-2">--}}
+                                {{--                                                        <input type="radio"--}}
+                                {{--                                                               name="verify[{{ $uploaded->id }}]"--}}
+                                {{--                                                               value="0"--}}
+                                {{--                                                            {{ !$uploaded->verified ? 'checked' : '' }}>--}}
+                                {{--                                                        ✘ Reject--}}
+                                {{--                                                    </label>--}}
+
+                                {{--                                                    --}}{{-- COMMENT --}}
+                                {{--                                                    <input type="text"--}}
+                                {{--                                                           name="comments[{{ $uploaded->id }}]"--}}
+                                {{--                                                           class="form-control form-control-sm"--}}
+                                {{--                                                           placeholder="Comment"--}}
+                                {{--                                                           style="max-width:200px;"--}}
+                                {{--                                                           value="{{ $uploaded->comment ?? '' }}">--}}
+                                {{--                                                </div>--}}
+                                {{--                                            @else--}}
+                                {{--                                                <span class="badge bg-danger">Not Uploaded</span>--}}
+                                {{--                                            @endif--}}
+                                {{--                                        </td>--}}
+                                {{--                                    </tr>--}}
+
+                                {{--                                @endforeach--}}
                                 </tbody>
 
                             </table>
@@ -327,6 +431,12 @@
                         </div>
                     </div>
 
+                </form>
+                <form method="POST" action="{{ route('admin.verify.finalize', $admission->id) }}">
+                    @csrf
+                    <button class="btn btn-success btn-lg">
+                        Finalize Verification
+                    </button>
                 </form>
 
             </div>

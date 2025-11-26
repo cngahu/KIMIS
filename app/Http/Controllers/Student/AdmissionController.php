@@ -229,13 +229,27 @@ class AdmissionController extends Controller
     /**
      * Show payment iframe (use your ecitizen blade)
      */
-    public function paymentIframe(Invoice $invoice)
+    public function paymentIframe0(Invoice $invoice)
     {
 //        dd('Payment iframe page - integrate your payment gateway here.');
         $admission = Admission::where('id', $invoice->metadata ? data_get(json_decode($invoice->metadata,true),'admission_id') : $invoice->application->id)->first();
         // load view that contains the iframe form (see below)
         return view('student.admission.payment.iframe', compact('invoice','admission'));
     }
+    public function paymentIframe(Invoice $invoice)
+    {
+        // metadata is already an array because of $casts
+        $meta = $invoice->metadata ?? [];
+
+        $admissionId = $meta['admission_id']
+            ?? optional($invoice->application)->admission->id
+            ?? null;
+
+        $admission = Admission::findOrFail($admissionId);
+
+        return view('student.admission.payment.iframe', compact('invoice','admission'));
+    }
+
 
     /**
      * Sponsor form (GET)

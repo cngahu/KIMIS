@@ -16,15 +16,28 @@ class Invoice extends Model
     protected $casts = [
         'metadata' => 'array',
         'paid_at' => 'datetime',
+
     ];
 
     public function application()
     {
         return $this->belongsTo(Application::class);
     }
-    public function invoice()
+    public function admissionPayment()
     {
-        return $this->hasOne(Invoice::class);
+        return $this->hasOne(AdmissionFeePayment::class, 'invoice_id');
+    }
+
+    public function admission()
+    {
+        return $this->hasOneThrough(
+            Admission::class,           // final model we want
+            AdmissionFeePayment::class, // intermediate
+            'invoice_id',               // foreign key on AFP
+            'id',                        // foreign key on Admission
+            'id',                        // local key on Invoice
+            'admission_id'               // local key on AFP
+        );
     }
 
 }
