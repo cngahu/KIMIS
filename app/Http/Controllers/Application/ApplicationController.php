@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use App\Http\Requests\StoreApplicationRequest;
 use App\Models\Course;
 
-use App\Models\county;
+use App\Models\County;
 use App\Models\PostalCode;
 use App\Models\Training;
 use App\Models\Application;
@@ -48,7 +48,7 @@ class ApplicationController extends Controller
 
         if (strcasecmp($mode, 'Short Term') === 0) {
             // ---- SHORT TERM FLOW ----
-            $counties    = \App\Models\county::orderBy('name')->get();
+            $counties    = \App\Models\County::orderBy('name')->get();
             $postalCodes = \App\Models\PostalCode::orderBy('code')->get();
             // Find the specific training (by query param), or the first approved one for that course
             $training = Training::with('college')
@@ -68,7 +68,7 @@ class ApplicationController extends Controller
 
         // Whatever you previously had here:
         // e.g. load counties, postal codes, dynamic requirements etc.
-        $counties    = \App\Models\county::orderBy('name')->get();
+        $counties    = \App\Models\County::orderBy('name')->get();
         $postalCodes = \App\Models\PostalCode::orderBy('code')->get();
 
         // You may or may not care about training here for long courses
@@ -304,21 +304,7 @@ class ApplicationController extends Controller
     {
         $validated = $request->validated();
 
-        // Disk to store on (make sure 'public' exists in config/filesystems.php)
         $uploadDisk = 'public';
-
-        // 1. FIXED UPLOAD DOCUMENTS
-//        $kcseCertificatePath = null;
-//        if ($request->hasFile('kcse_certificate')) {
-//            $kcseCertificatePath = $request->file('kcse_certificate')
-//                ->store('applications/documents', $uploadDisk);
-//        }
-//
-//        $schoolLeavingPath = null;
-//        if ($request->hasFile('school_leaving_certificate')) {
-//            $schoolLeavingPath = $request->file('school_leaving_certificate')
-//                ->store('applications/documents', $uploadDisk);
-//        }
 
         $birthCertificatePath = null;
         if ($request->hasFile('birth_certificate')) {
@@ -332,7 +318,6 @@ class ApplicationController extends Controller
                 ->store('applications/documents', $uploadDisk);
         }
 
-        // 2. BUILD PAYLOAD FOR SERVICE
         $payload = [
             'course_id'             => $validated['course_id'],
             'full_name'             => $validated['full_name'],
@@ -351,16 +336,11 @@ class ApplicationController extends Controller
             'kcse_mean_grade'       => $validated['kcse_mean_grade'],
             'declaration'           => true,
 
-            // NEW: fixed upload paths
-            //'kcse_certificate_path'            => $kcseCertificatePath,
-           // 'school_leaving_certificate_path'  => $schoolLeavingPath,
-            'birth_certificate_path'           => $birthCertificatePath,
-            'national_id_path'                 => $nationalIdPath,
+            'birth_certificate_path' => $birthCertificatePath,
+            'national_id_path'       => $nationalIdPath,
 
-            // REQUIREMENT ANSWERS (dynamic)
             'requirements'          => $this->mergeRequirements($request),
         ];
-
 
         $application = $this->service->create($payload);
 
@@ -368,6 +348,7 @@ class ApplicationController extends Controller
             ->route('applications.payment', $application->id)
             ->with('success', 'Proceed to payment to complete your application.');
     }
+
 
 
     protected function mergeRequirements(Request $request): array

@@ -1,4 +1,3 @@
-{{-- resources/views/applications/form.blade.php (for example) --}}
 @extends('layouts.public')
 
 @section('content')
@@ -39,8 +38,11 @@
                                 </div>
 
                                 <div class="col-md-6">
-                                    <label class="form-label">ID Number</label>
-                                    <input type="text" name="id_number" value="{{ old('id_number') }}"
+                                    <label class="form-label">ID Number <span class="text-danger" id="idNumberRequiredMark" style="display:none">*</span></label>
+                                    <input type="text"
+                                           id="idNumberInput"
+                                           name="id_number"
+                                           value="{{ old('id_number') }}"
                                            class="form-control @error('id_number') is-invalid @enderror">
                                     @error('id_number') <span class="text-danger small">{{ $message }}</span> @enderror
                                 </div>
@@ -53,16 +55,23 @@
                                 </div>
 
                                 <div class="col-md-6">
-                                    <label class="form-label">Email</label>
+                                    <label class="form-label">Email *</label>
                                     <input type="email" name="email" value="{{ old('email') }}"
                                            class="form-control @error('email') is-invalid @enderror" required>
                                     @error('email') <span class="text-danger small">{{ $message }}</span> @enderror
                                 </div>
 
                                 <div class="col-md-6">
-                                    <label class="form-label">Date of Birth</label>
-                                    <input type="date" name="date_of_birth" value="{{ old('date_of_birth') }}"
-                                           class="form-control @error('date_of_birth') is-invalid @enderror">
+                                    <label class="form-label">
+                                        Date of Birth *
+                                        <small class="text-muted d-block" id="ageHint"></small>
+                                    </label>
+                                    <input type="date"
+                                           id="dobInput"
+                                           name="date_of_birth"
+                                           value="{{ old('date_of_birth') }}"
+                                           class="form-control @error('date_of_birth') is-invalid @enderror"
+                                           required>
                                     @error('date_of_birth') <span class="text-danger small">{{ $message }}</span> @enderror
                                 </div>
 
@@ -216,6 +225,7 @@
 
                         </div>
                     </div>
+
                     {{-- FIXED UPLOAD DOCUMENTS --}}
                     <div class="card public-card mb-4">
                         <div class="card-header">Mandatory & Optional Uploads</div>
@@ -223,41 +233,29 @@
 
                             <div class="row g-4">
 
-                                {{-- KCSE CERTIFICATE (required) --}}
-{{--                                <div class="col-md-6">--}}
-{{--                                    <label class="form-label">KCSE Certificate *</label>--}}
-{{--                                    <input type="file"--}}
-{{--                                           name="kcse_certificate"--}}
-{{--                                           class="form-control @error('kcse_certificate') is-invalid @enderror"--}}
-{{--                                           required>--}}
-{{--                                    @error('kcse_certificate') <span class="text-danger small">{{ $message }}</span> @enderror--}}
-{{--                                </div>--}}
-
-{{--                                --}}{{-- SCHOOL LEAVING CERT (optional) --}}
-{{--                                <div class="col-md-6">--}}
-{{--                                    <label class="form-label">School Leaving Certificate (optional)</label>--}}
-{{--                                    <input type="file"--}}
-{{--                                           name="school_leaving_certificate"--}}
-{{--                                           class="form-control @error('school_leaving_certificate') is-invalid @enderror">--}}
-{{--                                    @error('school_leaving_certificate') <span class="text-danger small">{{ $message }}</span> @enderror--}}
-{{--                                </div>--}}
-
-                                {{-- BIRTH CERTIFICATE (required) --}}
+                                {{-- Birth Certificate (required if < 18) --}}
                                 <div class="col-md-6">
-                                    <label class="form-label">Birth Certificate </label>
+                                    <label class="form-label">
+                                        Birth Certificate
+                                        <span class="text-danger" id="birthCertRequiredMark" style="display:none">*</span>
+                                    </label>
                                     <input type="file"
+                                           id="birthCertInput"
                                            name="birth_certificate"
                                            class="form-control @error('birth_certificate') is-invalid @enderror">
                                     @error('birth_certificate') <span class="text-danger small">{{ $message }}</span> @enderror
                                 </div>
 
-                                {{-- NATIONAL ID (required) --}}
+                                {{-- National ID (required if >= 18) --}}
                                 <div class="col-md-6">
-                                    <label class="form-label">National ID *</label>
+                                    <label class="form-label">
+                                        National ID
+                                        <span class="text-danger" id="nationalIdRequiredMark" style="display:none">*</span>
+                                    </label>
                                     <input type="file"
+                                           id="nationalIdInput"
                                            name="national_id"
-                                           class="form-control @error('national_id') is-invalid @enderror"
-                                           required>
+                                           class="form-control @error('national_id') is-invalid @enderror">
                                     @error('national_id') <span class="text-danger small">{{ $message }}</span> @enderror
                                 </div>
 
@@ -326,7 +324,6 @@
                 });
             });
 
-            // If user had selected a county before validation failed, optionally re-trigger:
             @if(old('current_county_id'))
             $('#currentCounty').trigger('change');
             @endif
@@ -357,6 +354,70 @@
                     $('#requirementsContainer').html(html);
                 });
             }
+
+            // === AGE-BASED REQUIREMENTS ===
+            const dobInput      = document.getElementById('dobInput');
+            const idNumberInput = document.getElementById('idNumberInput');
+            const nationalIdInput = document.getElementById('nationalIdInput');
+            const birthCertInput  = document.getElementById('birthCertInput');
+
+            const idNumberMark      = document.getElementById('idNumberRequiredMark');
+            const nationalIdMark    = document.getElementById('nationalIdRequiredMark');
+            const birthCertMark     = document.getElementById('birthCertRequiredMark');
+            const ageHint           = document.getElementById('ageHint');
+
+            function calculateAge(dobStr) {
+                if (!dobStr) return null;
+                const dob = new Date(dobStr);
+                if (isNaN(dob.getTime())) return null;
+
+                const today = new Date();
+                let age = today.getFullYear() - dob.getFullYear();
+                const m = today.getMonth() - dob.getMonth();
+                if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+                    age--;
+                }
+                return age;
+            }
+
+            function updateAgeRequirements() {
+                const dobVal = dobInput.value;
+                const age = calculateAge(dobVal);
+
+                // reset hints + required flags
+                idNumberInput.removeAttribute('required');
+                nationalIdInput.removeAttribute('required');
+                birthCertInput.removeAttribute('required');
+
+                idNumberMark.style.display   = 'none';
+                nationalIdMark.style.display = 'none';
+                birthCertMark.style.display  = 'none';
+                ageHint.textContent          = '';
+
+                if (age === null) return;
+
+                if (age >= 18) {
+                    // Adult: require ID number & National ID
+                    idNumberInput.setAttribute('required', 'required');
+                    nationalIdInput.setAttribute('required', 'required');
+
+                    idNumberMark.style.display   = 'inline';
+                    nationalIdMark.style.display = 'inline';
+
+                    ageHint.textContent = `(Age: ${age}) Please provide ID Number and National ID.`;
+                } else {
+                    // Minor: require Birth Certificate
+                    birthCertInput.setAttribute('required', 'required');
+                    birthCertMark.style.display = 'inline';
+
+                    ageHint.textContent = `(Age: ${age}) Please upload Birth Certificate.`;
+                }
+            }
+
+            dobInput.addEventListener('change', updateAgeRequirements);
+
+            // Trigger once on load (in case old value exists)
+            updateAgeRequirements();
 
         });
     </script>
