@@ -1,5 +1,5 @@
 @extends('admin.admin_dashboard')
-
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 @section('admin')
     <div class="container">
 
@@ -19,7 +19,7 @@
                 </a>
 
                 @php
-                    $user = Auth::user();
+                    $user         = Auth::user();
                     $isHod        = $user->hasRole('hod');
                     $isSuperAdmin = $user->hasRole('superadmin');
                     $isCampusReg  = $user->hasRole('campus_registrar');
@@ -79,11 +79,13 @@
                         </button>
                     </form>
 
+                    {{-- 👇 Reject WITH reason prompt --}}
                     <form action="{{ route('trainings.registrar_reject', $training) }}"
                           method="POST"
                           class="d-inline"
-                          onsubmit="return confirm('Reject this training and return to HOD?');">
+                          onsubmit="return registrarRejectPrompt(this);">
                         @csrf
+                        <input type="hidden" name="reason" value="">
                         <button type="submit" class="btn btn-outline-danger">
                             <i class="fas fa-times me-1"></i> Reject
                         </button>
@@ -117,11 +119,13 @@
                         </button>
                     </form>
 
+                    {{-- Director reject WITH reason prompt --}}
                     <form action="{{ route('trainings.director_reject', $training) }}"
                           method="POST"
                           class="d-inline"
-                          onsubmit="return confirm('Reject this training?');">
+                          onsubmit="return directorRejectPrompt(this);">
                         @csrf
+                        <input type="hidden" name="reason" value="">
                         <button type="submit" class="btn btn-outline-danger">
                             <i class="fas fa-ban me-1"></i> Reject
                         </button>
@@ -189,7 +193,7 @@
                     </div>
                 </div>
 
-                {{-- 🔶 Rejection info (when returned with comments) --}}
+                {{-- Latest rejection info (from trainings table) --}}
                 @if($training->status === \App\Models\Training::STATUS_REJECTED && $training->rejection_comment)
                     <div class="alert alert-warning mt-2">
                         <strong>
@@ -225,15 +229,10 @@
                             {{ optional($training->college)->name ?? '-' }}
                         </p>
 
-
                         <p class="mb-1">
                             <strong>Cost:</strong><br>
                             {{ $training->formatted_cost }}
                         </p>
-{{--                        <p class="mb-1">--}}
-{{--                            <strong>Cost:</strong><br>--}}
-{{--                            KSh {{ number_format($training->cost, 2) }}--}}
-{{--                        </p>--}}
                     </div>
 
                     <div class="col-md-6">
@@ -290,5 +289,129 @@
             </div>
         </div>
 
+        {{-- 🔁 Rejection History (from training_rejections table) --}}
+        @if($training->rejections && $training->rejections->count())
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Rejection History</h5>
+                    <small class="text-muted">
+                        All times this training was rejected, with reasons and stages.
+                    </small>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table mb-0 align-middle">
+                            <thead class="table-light">
+                            <tr>
+                                <th style="width: 180px;">Date</th>
+                                <th style="width: 160px;">Stage</th>
+                                <th style="width: 180px;">Rejected By</th>
+                                <th>Reason</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            @foreach($training->rejections as $rej)
+                                <tr>
+                                    <td>
+                                        {{ $rej->rejected_at?->format('d M Y H:i') ?? '-' }}
+                                    </td>
+                                    <td>
+                                        {{ ucfirst(str_replace('_', ' ', $rej->stage)) }}
+                                    </td>
+                                    <td>
+                                        {{ $rej->rejectedByUser->full_name ?? 'N/A' }}
+                                    </td>
+                                    <td>
+                                        {{ $rej->reason }}
+                                    </td>
+                                </tr>
+                            @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        @endif
+
     </div>
+    <script>
+        function registrarRejectPrompt(form) {
+            Swal.fire({
+                title: 'Reject Training',
+                input: 'textarea',
+                inputLabel: 'Reason for Rejection',
+                inputPlaceholder: 'Type the rejection comments here...',
+                inputAttributes: {
+                    'aria-label': 'Rejection reason'
+                },
+                confirmButtonText: 'Submit Rejection',
+                confirmButtonColor: '#d33',
+                showCancelButton: true,
+                cancelButtonText: 'Cancel',
+                inputValidator: (value) => {
+                    if (!value || !value.trim()) {
+                        return 'Please enter a rejection reason.';
+                    }
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.querySelector('input[name="reason"]').value = result.value.trim();
+                    form.submit();
+                }
+            });
+
+            return false; // prevent normal submit
+        }
+
+
+        function directorRejectPrompt(form) {
+            Swal.fire({
+                title: 'Director Rejection',
+                input: 'textarea',
+                inputLabel: 'Reason for Rejection',
+                inputPlaceholder: 'Type the director’s rejection reason...',
+                inputAttributes: {
+                    'aria-label': 'Rejection reason'
+                },
+                confirmButtonText: 'Submit Rejection',
+                confirmButtonColor: '#d33',
+                showCancelButton: true,
+                cancelButtonText: 'Cancel',
+                inputValidator: (value) => {
+                    if (!value || !value.trim()) {
+                        return 'Please enter a rejection reason.';
+                    }
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.querySelector('input[name="reason"]').value = result.value.trim();
+                    form.submit();
+                }
+            });
+
+            return false;
+        }
+    </script>
+
+
+    {{-- ✅ Put JS directly in this view so the functions are always defined --}}
+    <script>
+        function registrarRejectPrompt(form) {
+            const reason = prompt('Please enter reason for rejecting this training:');
+            if (!reason || !reason.trim()) {
+                return false; // cancel submit
+            }
+            form.querySelector('input[name="reason"]').value = reason.trim();
+            return true;
+        }
+
+        function directorRejectPrompt(form) {
+            const reason = prompt('Please enter reason for director rejection:');
+            if (!reason || !reason.trim()) {
+                return false; // cancel submit
+            }
+            form.querySelector('input[name="reason"]').value = reason.trim();
+            return true;
+        }
+    </script>
 @endsection

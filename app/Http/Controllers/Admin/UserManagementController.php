@@ -13,13 +13,48 @@ use App\Models\College;
 
 class UserManagementController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::with(['roles', 'campus']) // campus() relation -> colleges
-        ->latest()
-            ->paginate(20);
+        $search   = $request->input('search');
+        $status   = $request->input('status');
+        $roleName = $request->input('role');
 
-        return view('admin.users.index', compact('users'));
+        $query = User::with('roles');
+
+        // 🔍 Search by name, email, phone, or code
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('surname', 'like', "%{$search}%")
+                    ->orWhere('firstname', 'like', "%{$search}%")
+                    ->orWhere('othername', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%")
+                    ->orWhere('code', 'like', "%{$search}%");
+            });
+        }
+
+        // 🟢 Status filter
+        if ($status) {
+            $query->where('status', $status);
+        }
+
+        // 🎭 Role filter
+        if ($roleName) {
+            $query->whereHas('roles', function ($q) use ($roleName) {
+                $q->where('name', $roleName);
+            });
+        }
+
+        $users = $query
+            ->orderBy('surname')
+            ->orderBy('firstname')
+            ->paginate(10)
+            ->appends($request->query()); // keep filters when paginating
+
+        // For role dropdown
+        $roles = Role::orderBy('name')->get();
+
+        return view('admin.users.index', compact('users', 'roles', 'search', 'status', 'roleName'));
     }
 
     public function create()

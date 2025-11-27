@@ -48,7 +48,8 @@ class ApplicationController extends Controller
 
         if (strcasecmp($mode, 'Short Term') === 0) {
             // ---- SHORT TERM FLOW ----
-
+            $counties    = \App\Models\county::orderBy('name')->get();
+            $postalCodes = \App\Models\PostalCode::orderBy('code')->get();
             // Find the specific training (by query param), or the first approved one for that course
             $training = Training::with('college')
                 ->where('course_id', $course->id)
@@ -60,7 +61,7 @@ class ApplicationController extends Controller
                 ->firstOrFail();
 
             // Show the short-course multi-applicant form
-            return view('public.apply_shorttraining', compact('course', 'training'));
+            return view('public.apply_shorttraining', compact('course', 'postalCodes','counties','training'));
         }
 
         // ---- LONG TERM FLOW (existing) ----
@@ -106,6 +107,15 @@ class ApplicationController extends Controller
             'applicants.*.phone'          => 'required|string|max:50',
             'applicants.*.email'          => 'nullable|email|max:255',
             'applicants.*.national_id'    => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+
+            // Location fields for each applicant
+            'applicants.*.home_county_id'        => 'required|exists:counties,id',
+            'applicants.*.current_county_id'     => 'required|exists:counties,id',
+            'applicants.*.current_subcounty_id'  => 'required|exists:subcounties,id',
+            'applicants.*.postal_address'        => 'required|string|max:255',
+            'applicants.*.postal_code_id'        => 'required|exists:postal_codes,id',
+            'applicants.*.co'                    => 'nullable|string|max:255',
+            'applicants.*.town'                  => 'nullable|string|max:255',
         ]);
 
         // If financier is employer, name is required
@@ -118,7 +128,7 @@ class ApplicationController extends Controller
         $uploadDisk = 'public';
         $shortRecords = [];
 
-        // 2) Save each applicant in short_trainings
+        // 2) Save each applicant in short_trainings with their individual location data
         foreach ($validated['applicants'] as $index => $applicant) {
 
             // Handle National ID upload
@@ -147,6 +157,15 @@ class ApplicationController extends Controller
                 'email'                    => $applicant['email'] ?? null,
                 'national_id_path'         => $nationalIdPath,
                 'national_id_original_name'=> $nationalIdOriginal,
+
+                // Individual location fields for each applicant
+                'home_county_id'           => $applicant['home_county_id'],
+                'current_county_id'        => $applicant['current_county_id'],
+                'current_subcounty_id'     => $applicant['current_subcounty_id'],
+                'postal_address'           => $applicant['postal_address'],
+                'postal_code_id'           => $applicant['postal_code_id'],
+                'co'                       => $applicant['co'] ?? null,
+                'town'                     => $applicant['town'] ?? null,
             ]);
         }
 
@@ -163,7 +182,7 @@ class ApplicationController extends Controller
             : $firstApplicant['full_name'];
 
         // Build payload in the same style as the long-term ApplicationController@store()
-        // but much of the data is null for short courses.
+        // Use first applicant's location for the group application
         $payload = [
             'course_id'             => $training->course_id,
             'full_name'             => $groupFullName,
@@ -172,15 +191,16 @@ class ApplicationController extends Controller
             'email'                 => $firstApplicant['email'] ?? null,
             'date_of_birth'         => null,
 
-            'home_county_id'        => null,
-            'current_county_id'     => null,
-            'current_subcounty_id'  => null,
-            'postal_address'        => null,
-            'postal_code_id'        => null,
+            // Use first applicant's location for the group application record
+            'home_county_id'        => $firstApplicant['home_county_id'],
+            'current_county_id'     => $firstApplicant['current_county_id'],
+            'current_subcounty_id'  => $firstApplicant['current_subcounty_id'],
+            'postal_address'        => $firstApplicant['postal_address'],
+            'postal_code_id'        => $firstApplicant['postal_code_id'],
             'co'                    => $validated['financier'] === 'employer'
                 ? $validated['employer_name']
-                : null,
-            'town'                  => null,
+                : ($firstApplicant['co'] ?? null),
+            'town'                  => $firstApplicant['town'] ?? null,
 
             'financier'             => $validated['financier'],
             'kcse_mean_grade'       => null,
@@ -201,9 +221,10 @@ class ApplicationController extends Controller
                 'employer_name'      => $validated['financier'] === 'employer'
                     ? $validated['employer_name']
                     : null,
+                'individual_locations' => true, // Flag to indicate locations are stored per applicant
             ],
 
-            // 👇 we’ll use this to override the invoice amount in ApplicationService
+            // 👇 we'll use this to override the invoice amount in ApplicationService
             'invoice_amount'        => $totalAmount,
         ];
 

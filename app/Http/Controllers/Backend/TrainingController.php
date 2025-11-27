@@ -8,6 +8,8 @@ use App\Models\Course;
 use App\Models\College;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\TrainingRejection;
+use Illuminate\Support\Facades\DB;
 
 class TrainingController extends Controller
 {
@@ -163,12 +165,27 @@ class TrainingController extends Controller
     /**
      * Display the specified training.
      */
+
     public function show(Training $training)
     {
-        $training->load(['course', 'college', 'user']);
+        $training->load([
+            'course',
+            'college',
+            'user',
+            'rejections.rejectedByUser',
+        ]);
 
         return view('admin.trainings.show', compact('training'));
     }
+
+
+
+//    public function show(Training $training)
+//    {
+//        $training->load(['course', 'college', 'user']);
+//
+//        return view('admin.trainings.show', compact('training'));
+//    }
 
     /**
      * Show the form for editing the specified training.
@@ -212,13 +229,13 @@ class TrainingController extends Controller
 
         $data = $request->validate([
             'course_id'  => 'required|exists:courses,id',
-            'college_id' => 'required|exists:colleges,id',
             'start_date' => 'required|date',
             'end_date'   => 'nullable|date|after_or_equal:start_date',
            // 'cost'       => 'required|numeric|min:0',
         ]);
 
         $data['user_id'] = Auth::id();
+        $data['college_id'] = $user->campus_id;
 
         $training->update($data);
 
@@ -446,14 +463,52 @@ class TrainingController extends Controller
             return back()->with('error', 'Only HQ Reviewed trainings can be finally approved.');
         }
 
-        $training->status = Training::STATUS_APPROVED;
-        $training->rejection_comment = null;
-        $training->rejection_stage   = null;
-        $training->rejected_by       = null;
-        $training->rejected_at       = null;
-        $training->save();
+        DB::transaction(function () use ($training) {
+
+            // Only generate if not already set (avoid changing it later)
+            if (empty($training->series_code)) {
+                $training->series_code = $this->generateSeriesCode($training);
+            }
+
+            $training->status            = Training::STATUS_APPROVED;
+            $training->rejection_comment = null;
+            $training->rejection_stage   = null;
+            $training->rejected_by       = null;
+            $training->rejected_at       = null;
+            $training->save();
+        });
 
         return back()->with('success', 'Training finally approved.');
+    }
+
+    protected function generateSeriesCode(Training $training): string
+    {
+        // Ensure course & course_code are loaded
+        $training->loadMissing('course');
+
+        if (! $training->course || ! $training->course->course_code) {
+            throw new \RuntimeException('Course or course_code is missing for this training.');
+        }
+
+        $year   = now()->year;
+        $prefix = $training->course->course_code . '/' . $year . '/';
+
+        // Find last series_code used for this course in this year
+        $lastSeries = Training::where('course_id', $training->course_id)
+            ->whereNotNull('series_code')
+            ->where('series_code', 'like', $prefix.'%')
+            ->orderBy('series_code', 'desc')
+            ->lockForUpdate() // prevents duplicates under concurrency
+            ->value('series_code');
+
+        $nextNumber = 1;
+
+        if ($lastSeries) {
+            $lastNumber = (int) substr($lastSeries, strrpos($lastSeries, '/') + 1);
+            $nextNumber = $lastNumber + 1;
+        }
+
+        return $prefix . str_pad($nextNumber, 3, '0', STR_PAD_LEFT); // 001, 002, ...
     }
 
     /**
@@ -486,13 +541,37 @@ class TrainingController extends Controller
     /**
      * Shared helper to handle rejections with comments.
      */
+//    protected function rejectTraining(Training $training, string $stage, string $reason, int $userId): void
+//    {
+//        $training->status            = Training::STATUS_REJECTED;
+//        $training->rejection_comment = $reason;
+//        $training->rejection_stage   = $stage;
+//        $training->rejected_by       = $userId;
+//        $training->rejected_at       = now();
+//        $training->save();
+//    }
+
     protected function rejectTraining(Training $training, string $stage, string $reason, int $userId): void
     {
-        $training->status            = Training::STATUS_REJECTED;
-        $training->rejection_comment = $reason;
-        $training->rejection_stage   = $stage;
-        $training->rejected_by       = $userId;
-        $training->rejected_at       = now();
-        $training->save();
+        DB::transaction(function () use ($training, $stage, $reason, $userId) {
+
+            // 1) Create history row
+            TrainingRejection::create([
+                'training_id' => $training->id,
+                'rejected_by' => $userId,
+                'stage'       => $stage,
+                'reason'      => $reason,
+                'rejected_at' => now(),
+            ]);
+
+            // 2) Update "current" rejection info on trainings table
+            $training->status            = Training::STATUS_REJECTED;
+            $training->rejection_comment = $reason;
+            $training->rejection_stage   = $stage;
+            $training->rejected_by       = $userId;
+            $training->rejected_at       = now();
+            $training->save();
+        });
     }
+
 }

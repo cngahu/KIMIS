@@ -223,7 +223,7 @@
                                     <i class="fa-solid fa-eye icon-brown"></i>
                                 </a>
 
-                                {{-- ✅ ONLY HOD can Edit/Delete Draft or Rejected (no more superadmin) --}}
+                                {{-- ✅ ONLY HOD can Edit/Delete Draft or Rejected --}}
                                 @if($isHod && $training->isEditableByHod())
                                     <a href="{{ route('trainings.edit', $training) }}"
                                        class="btn btn-sm btn-outline-warning"
@@ -261,7 +261,7 @@
                                     </form>
                                 @endif
 
-                                {{-- Campus Registrar: Approve/Reject when Pending Registrar (still allowed) --}}
+                                {{-- Campus Registrar: Approve/Reject when Pending Registrar --}}
                                 @if(($isCampus || $isSuper) && $training->status === \App\Models\Training::STATUS_PENDING_REGISTRAR)
                                     <form action="{{ route('trainings.registrar_approve', $training) }}"
                                           method="POST"
@@ -274,10 +274,14 @@
                                         </button>
                                     </form>
 
+                                    {{-- ❌ old reject form had no "reason" -> validation failed
+                                         ✅ new reject form asks for a reason via JS prompt --}}
                                     <form action="{{ route('trainings.registrar_reject', $training) }}"
                                           method="POST"
-                                          class="d-inline">
+                                          class="d-inline"
+                                          onsubmit="return registrarRejectPrompt(this);">
                                         @csrf
+                                        <input type="hidden" name="reason" value="">
                                         <button type="submit"
                                                 class="btn btn-sm btn-danger"
                                                 title="Reject training">
@@ -313,10 +317,13 @@
                                         </button>
                                     </form>
 
+                                    {{-- You can apply the same JS pattern for director reject if needed --}}
                                     <form action="{{ route('trainings.director_reject', $training) }}"
                                           method="POST"
-                                          class="d-inline">
+                                          class="d-inline"
+                                          onsubmit="return directorRejectPrompt(this);">
                                         @csrf
+                                        <input type="hidden" name="reason" value="">
                                         <button type="submit"
                                                 class="btn btn-sm btn-danger"
                                                 title="Reject">
@@ -369,6 +376,27 @@
                     return new bootstrap.Tooltip(tooltipTriggerEl)
                 })
             });
+
+            // Ask registrar for rejection reason and send it in hidden input
+            function registrarRejectPrompt(form) {
+                const reason = prompt('Please enter reason for rejecting this training:');
+                if (!reason) {
+                    // user cancelled or left blank
+                    return false;
+                }
+                form.querySelector('input[name="reason"]').value = reason;
+                return true;
+            }
+
+            // Same idea for Director reject (if using reason validation there too)
+            function directorRejectPrompt(form) {
+                const reason = prompt('Please enter reason for director rejection:');
+                if (!reason) {
+                    return false;
+                }
+                form.querySelector('input[name="reason"]').value = reason;
+                return true;
+            }
         </script>
     @endpush
 

@@ -18,6 +18,7 @@ class Training extends Model
         'cost',
         'status',
         'user_id',
+        'series_code',
         'rejection_comment',
         'rejection_stage',
         'rejected_at',
@@ -103,5 +104,10 @@ class Training extends Model
     public function isActionableByRegistrar(): bool
     {
         return $this->status === self::STATUS_PENDING_REGISTRAR;
+    }
+
+    public function rejections()
+    {
+        return $this->hasMany(\App\Models\TrainingRejection::class);
     }
 }
