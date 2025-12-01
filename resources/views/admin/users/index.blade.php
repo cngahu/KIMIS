@@ -129,6 +129,9 @@
                                     <i class="bx bx-edit"></i>
                                 </a>
 
+
+
+
                                 <form action="{{ route('admin.users.destroy', $user) }}"
                                       method="POST"
                                       class="d-inline"

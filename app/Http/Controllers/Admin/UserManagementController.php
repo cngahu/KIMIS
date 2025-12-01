@@ -119,13 +119,36 @@ class UserManagementController extends Controller
             ->route('admin.users.index')
             ->with('success', 'User created successfully. Login code: '.$code);
     }
+//    public function edit(User $user)
+//    {
+//        $roles    = \Spatie\Permission\Models\Role::orderBy('name')->get();
+//        $campuses = College::orderBy('name')->get();
+//
+//        return view('admin.users.edit', compact('user', 'roles', 'campuses'));
+//    }
+
     public function edit(User $user)
     {
-        $roles    = \Spatie\Permission\Models\Role::orderBy('name')->get();
+        $roles = Role::all();
+        $permissions = Permission::all();
         $campuses = College::orderBy('name')->get();
+        // Add these two lines:
+        $userRoleNames = $user->roles->pluck('name')->toArray();
+        $userPermissionNames = $user->permissions->pluck('name')->toArray();
 
-        return view('admin.users.edit', compact('user', 'roles', 'campuses'));
+        return view('admin.users.edit', compact(
+            'user',
+            'roles',
+            'permissions',
+            'userRoleNames',
+            'campuses',
+            'userPermissionNames'
+        ));
     }
+
+
+
+
 
     public function update(Request $request, User $user)
     {
@@ -172,5 +195,19 @@ class UserManagementController extends Controller
         return redirect()
             ->route('admin.users.index')
             ->with('success', 'User updated successfully.');
+    }
+
+
+    public function destroy(User $user)
+    {
+        if (auth()->id() === $user->id) {
+            return back()->with('error', 'You cannot delete your own account.');
+        }
+
+        $user->delete();
+
+        return redirect()
+            ->route('admin.users.index')
+            ->with('success', 'User deleted successfully.');
     }
 }
