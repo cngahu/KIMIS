@@ -3,6 +3,7 @@
 namespace App\Services;
 use App\Models\Invoice;
 use App\Models\Application;
+use App\Models\InvoiceItem;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use App\Services\Audit\AuditLogService;
@@ -18,7 +19,7 @@ class PaymentService
     /**
      * Create invoice for an application.
      */
-    public function generateInvoice(Application $app, float $amount): Invoice
+    public function generateInvoice0(Application $app, float $amount): Invoice
     {
         return DB::transaction(function () use ($app, $amount) {
 
@@ -29,6 +30,42 @@ class PaymentService
                 'status'         => 'pending',
             ]);
 
+            $this->audit->log('invoice_created', $invoice);
+
+            return $invoice;
+        });
+    }
+    public function generateInvoice(Application $app, float $amount): Invoice
+    {
+        return DB::transaction(function () use ($app, $amount) {
+
+            // 1. Create invoice
+            $invoice = Invoice::create([
+                'application_id' => $app->id,
+                'user_id'        => null, // applicant may not be a registered system user yet
+                'course_id'      => $app->course_id,
+                'category'       => 'knec_application', // NEW CATEGORY
+                'invoice_number' => $this->generateInvoiceNumber(),
+                'amount'         => $amount,
+                'status'         => 'pending',
+            ]);
+
+            // 2. Create invoice item
+            InvoiceItem::create([
+                'invoice_id'     => $invoice->id,
+                'application_id' => $app->id,
+                'user_id'        => null,
+                'course_id'      => $app->course_id,
+                'item_name'      => 'KNEC Application Fee - ' . $app->full_name,
+                'unit_amount'    => $amount,
+                'quantity'       => 1,
+                'total_amount'   => $amount,
+                'metadata'       => [
+                    'type' => 'knec_application'
+                ],
+            ]);
+
+            // 3. Audit log
             $this->audit->log('invoice_created', $invoice);
 
             return $invoice;
