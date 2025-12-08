@@ -163,10 +163,11 @@ class UserManagementController extends Controller
             'nationalid' => 'nullable|string|max:100',
             'national_id'=> 'nullable|string|max:100',
             'campus_id'  => 'nullable|exists:colleges,id',
-
             'status'     => 'required|in:active,inactive',
-            'roles'      => 'array',
-            'roles.*'    => 'exists:roles,id',
+
+            // 🔑 IMPORTANT
+            'roles'      => 'nullable|array',
+            'roles.*'    => 'string|exists:roles,name',
         ]);
 
         $user->surname     = $data['surname'];
@@ -183,19 +184,16 @@ class UserManagementController extends Controller
 
         $user->save();
 
-        if (!empty($data['roles'])) {
-            $roleNames = \Spatie\Permission\Models\Role::whereIn('id', $data['roles'])
-                ->pluck('name')
-                ->toArray();
-            $user->syncRoles($roleNames);
-        } else {
-            $user->syncRoles([]);
-        }
+        // 🔑 ROLES: use names directly, no query by id
+        $roles = $data['roles'] ?? [];   // if nothing selected, empty array
+
+        $user->syncRoles($roles);
 
         return redirect()
             ->route('admin.users.index')
             ->with('success', 'User updated successfully.');
     }
+
 
 
     public function destroy(User $user)

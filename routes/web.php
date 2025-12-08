@@ -242,7 +242,10 @@ Route::middleware(['auth','history','verified'])->group(function () {
                 Route::get('/users/create', 'create')->name('admin.users.create');
                 Route::post('/users/store', 'store')->name('admin.users.store');
                 Route::get('/users/edit/{user}', 'edit')->name('admin.users.edit');
-                Route::post('/users/update/{user}', 'update')->name('admin.users.update');
+                //Route::post('/users/update/{user}', 'update')->name('admin.users.update');
+                Route::match(['post', 'put'], 'users/update/{user}', 'update')
+                    ->name('admin.users.update');
+
                 //Route::get('/users/delete/{user}', 'destroy')->name('admin.users.destroy');
                 Route::delete('/users/{user}', 'destroy')->name('admin.users.destroy');
             });
