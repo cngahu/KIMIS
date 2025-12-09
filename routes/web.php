@@ -63,6 +63,10 @@ Route::post('/verify-otp', [\App\Http\Controllers\Auth\AuthenticatedSessionContr
     ->name('otp.verify');
 Route::get('/resend-otp', [\App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'resendOtp'])->name('otp.resend');
 
+Route::get('/otp/channel', [\App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'showOtpChannelForm'])->name('otp.channel.form');
+
+Route::post('/otp/channel', [\App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'chooseOtpChannel'])->name('otp.channel.choose');
+
 ;
 Route::get('/logout', [AdminController::class, 'Logout'])->name('logout');
 

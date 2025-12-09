@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Verify OTP – KIHBT Portal</title>
+    <title>KIHBT – Choose OTP Method</title>
 
     <!-- Fonts & Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -94,7 +94,7 @@
             font-size:.78rem;color:var(--tertiary);font-weight:600;
         }
 
-        .title{font-size:1.5rem;font-weight:800;margin-bottom:.3rem;color:var(--primary);}
+        .title{font-size:1.4rem;font-weight:800;margin-bottom:.3rem;color:var(--primary);}
         .subtitle{font-size:.85rem;color:var(--tertiary);margin-bottom:1.2rem;}
 
         .alert{
@@ -108,15 +108,31 @@
             background:#ecfdf3;border:1px solid #bbf7d0;color:#166534;
         }
 
-        label{font-size:.82rem;font-weight:600;margin-bottom:.28rem;display:block;}
-        .otp-input{
-            width:100%;padding:.8rem 1rem;font-size:1.2rem;
-            border-radius:14px;border:1px solid var(--line);
-            text-align:center;letter-spacing:.4em;
+        .option-card{
+            display:flex;align-items:flex-start;gap:.75rem;
+            padding:.9rem .85rem;border-radius:12px;
+            border:1px solid var(--line);
+            cursor:pointer;
+            transition:.16s ease;
+            font-size:.84rem;
+            margin-bottom:.6rem;
         }
-        .otp-input:focus{
-            outline:none;border-color:var(--secondary);
-            box-shadow:0 0 0 2px rgba(249,169,15,.23);
+        .option-card:hover{
+            border-color:var(--secondary);
+            box-shadow:0 6px 16px rgba(0,0,0,0.05);
+        }
+        .option-card.disabled{
+            opacity:.55;
+            cursor:not-allowed;
+        }
+        .option-radio{
+            margin-top:.15rem;
+        }
+        .option-label-title{
+            font-weight:600;color:var(--ink);font-size:.86rem;
+        }
+        .option-label-sub{
+            font-size:.8rem;color:var(--tertiary);margin-top:.1rem;
         }
 
         .btn{
@@ -127,20 +143,8 @@
         }
         .btn:hover{opacity:.94;transform:translateY(-1px);}
 
-        .helper-text{
-            font-size:.78rem;color:var(--tertiary);margin-top:.6rem;text-align:center;
-        }
-
-        .resend-block{
-            text-align:center;margin-top:1.4rem;font-size:.8rem;color:var(--tertiary);
-        }
-        .resend-block a{
-            color:var(--secondary);text-decoration:none;font-weight:600;
-        }
-        .resend-block a:hover{text-decoration:underline;}
-
         .back-link{
-            text-align:center;margin-top:1rem;
+            text-align:center;margin-top:1.4rem;
             font-size:.78rem;color:var(--tertiary);
         }
         .back-link a{
@@ -154,7 +158,7 @@
 <div class="auth-shell">
     <div class="auth-layout">
 
-        <!-- LEFT -->
+        <!-- LEFT (same as login) -->
         <section class="info-column">
             <div class="info-header">
                 <img src="{{ asset('adminbackend/assets/images/logokihbt.png') }}" class="info-logo">
@@ -165,16 +169,16 @@
             </div>
 
             <div class="info-highlight">
-                <h1>Verify Your Login</h1>
+                <h1>Two-Factor Verification</h1>
                 <p>
-                    We’ve sent you a one-time verification code as an extra layer of security.
-                    Enter the code below to complete your sign in.
+                    For your security, we require a one-time verification code after your password.
+                    Choose how you would like to receive it.
                 </p>
             </div>
 
             <div class="info-meta">
-                <div class="info-pill">Two-Factor Security</div>
-                <div class="info-pill">Account Protection</div>
+                <div class="info-pill">Secure Access</div>
+                <div class="info-pill">Multi-Channel OTP</div>
                 <div class="info-pill">Students & Staff</div>
             </div>
         </section>
@@ -184,65 +188,82 @@
             <div class="login-card">
                 <div class="current-date" id="currentDate"></div>
 
-                <h2 class="title">Verify OTP</h2>
+                <h2 class="title">Choose OTP Method</h2>
                 <p class="subtitle">
-                    A 6-digit verification code has been sent
-                    @if(isset($channel) && $channel === 'sms')
-                        to your <span style="font-weight:600;">phone via SMS</span>.
-                    @else
-                        to your <span style="font-weight:600;">email address</span>.
-                    @endif
+                    Your credentials are valid. Select where we should send your 6-digit verification code.
                 </p>
 
-                {{-- Status Message --}}
-                @if (session('status'))
-                    <div class="alert alert-success">
-                        {{ session('status') }}
-                    </div>
-                @endif
-
-                {{-- Error Message --}}
+                {{-- Errors --}}
                 @if ($errors->any())
                     <div class="alert alert-error">
                         {{ $errors->first() }}
                     </div>
                 @endif
 
-                <form method="POST" action="{{ route('otp.verify') }}">
+                {{-- Status --}}
+                @if (session('status'))
+                    <div class="alert alert-success">
+                        {{ session('status') }}
+                    </div>
+                @endif
+
+                <form method="POST" action="{{ route('otp.channel.choose') }}">
                     @csrf
 
-                    <label for="otp">Enter OTP</label>
-                    <input
-                        id="otp"
-                        type="text"
-                        name="otp"
-                        maxlength="6"
-                        class="otp-input"
-                        placeholder="000000"
-                        required
-                        inputmode="numeric"
-                        pattern="[0-9]*"
-                    >
+                    {{-- Email option --}}
+                    <label class="option-card">
+                        <input
+                            type="radio"
+                            name="otp_channel"
+                            value="email"
+                            class="option-radio"
+                            {{ old('otp_channel', 'email') === 'email' ? 'checked' : '' }}
+                        >
+                        <div>
+                            <div class="option-label-title">
+                                <i class="fa-regular fa-envelope"></i> Email
+                            </div>
+                            <div class="option-label-sub">
+                                {{ $user->email }}
+                            </div>
+                        </div>
+                    </label>
+
+                    {{-- SMS option --}}
+                    @php $noPhone = empty($user->phone); @endphp
+                    <label class="option-card {{ $noPhone ? 'disabled' : '' }}">
+                        <input
+                            type="radio"
+                            name="otp_channel"
+                            value="sms"
+                            class="option-radio"
+                            {{ old('otp_channel') === 'sms' ? 'checked' : '' }}
+                            {{ $noPhone ? 'disabled' : '' }}
+                        >
+                        <div>
+                            <div class="option-label-title">
+                                <i class="fa-solid fa-mobile-screen-button"></i> Phone (SMS)
+                            </div>
+                            @if(!$noPhone)
+                                <div class="option-label-sub">
+                                    {{ $user->phone }}
+                                </div>
+                            @else
+                                <div class="option-label-sub" style="color:#b3261e;">
+                                    Phone number is not available. Please choose Email or update your profile.
+                                </div>
+                            @endif
+                        </div>
+                    </label>
 
                     <button type="submit" class="btn">
-                        Verify OTP
+                        Continue
                     </button>
                 </form>
 
-                <div class="helper-text">
-                    Make sure to enter the code exactly as it appears. It will expire after a few minutes.
-                </div>
-
-                <div class="resend-block">
-                    <p>Didn't receive the code?</p>
-                    <a href="{{ route('otp.resend', ['channel' => $channel ?? 'email']) }}">
-                        Resend via {{ ($channel ?? 'email') === 'sms' ? 'SMS' : 'Email' }}
-                    </a>
-                </div>
-
                 <div class="back-link">
                     <a href="{{ route('login') }}">
-                        <i class="fa-solid fa-angle-left"></i> Back to Login
+                        <i class="fa-solid fa-angle-left"></i> Cancel and go back to Login
                     </a>
                 </div>
             </div>
