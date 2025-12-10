@@ -192,6 +192,26 @@
                         </a>
                     </li>
 
+                    <li>
+                        <a href="{{ route('admin.shortcourses.import.form') }}">
+                            <i class="bx bx-right-arrow-alt"></i>Upload completed Short Courses Certificates
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="{{ route('admin.admissions.import.form') }}">
+                            <i class="bx bx-right-arrow-alt"></i>Upload Admissions Data
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="{{ route('admin.biodata.import.form') }}">
+                            <i class="bx bx-right-arrow-alt"></i>Upload Student Bio Data
+                        </a>
+                    </li>
+
+
+
 
                 </ul>
             </li>
@@ -201,6 +221,11 @@
             <li>
                 <a href="{{ route('admin.users.index') }}">
                     <i class="bx bx-right-arrow-alt"></i>Manage Users
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('admin.biodata.index') }}">
+                    <i class="bx bx-right-arrow-alt"></i>Student Bio Data
                 </a>
             </li>
 

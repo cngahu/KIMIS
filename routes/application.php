@@ -42,3 +42,7 @@ Route::get('/payment/simulate/{invoice}', [PaymentController::class, 'simulate']
 
 Route::get('/certificates/verify', [CertificateLookupController::class, 'verify'])
     ->name('certificates.verify');
+
+Route::get('/certificate-verification', [CertificateLookupController::class, 'showForm'])
+    ->name('certificates.verify');
+
