@@ -13,6 +13,7 @@ use App\Models\Training;
 use App\Models\Application;
 use App\Models\ShortTraining;
 use App\Services\ApplicationService;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 
 class ApplicationController extends Controller
@@ -380,7 +381,7 @@ class ApplicationController extends Controller
 //
 //        return view('public.payment', compact('application'));
 //    }
-    public function payment($id)
+    public function payment0($id)
     {
         // Load application + invoice + course
         $application = Application::with(['invoice', 'course'])->findOrFail($id);
@@ -431,6 +432,417 @@ class ApplicationController extends Controller
         return view('public.payment', [
             'application'     => $application,
             'shortApplicants' => $shortApplicants,
+        ]);
+    }
+    public function paymentbk($id)
+    {
+
+        // Load application + invoice + course
+        $application = Application::with(['invoice', 'course'])->findOrFail($id);
+
+        // existing short-term logic...
+        $shortApplicants = collect();
+
+        $meta    = $application->metadata ?? [];
+        $isShort = !empty($meta['short_term']) && !empty($meta['training_id']);
+
+        if ($isShort) {
+            // ... your short applicants logic unchanged ...
+            $training = Training::find($meta['training_id']);
+            $unitFee  = $training?->cost;
+            $invoice        = $application->invoice;
+            $applicantCount = null;
+
+            if ($invoice && $unitFee && $unitFee > 0) {
+                $applicantCount = (int) floor($invoice->amount / $unitFee);
+                if ($applicantCount < 1) {
+                    $applicantCount = 1;
+                }
+            }
+
+            $query = ShortTraining::where('training_id', $meta['training_id'])
+                ->where('financier', $application->financier)
+                ->when(
+                    $application->financier === 'employer' && !empty($meta['employer_name']),
+                    function ($q) use ($meta) {
+                        $q->where('employer_name', $meta['employer_name']);
+                    }
+                )
+                ->orderByDesc('id');
+
+            if ($applicantCount) {
+                $query->take($applicantCount);
+            }
+
+            $shortApplicants = $query->get()->sortBy('id')->values();
+        }
+
+        // ----------------- Pesaflow/eCitizen data -----------------
+        // only prepare payment payload if invoice exists and status != paid
+        $pesaflow = null;
+
+        if ($application->invoice && $application->invoice->status !== 'paid') {
+            // load config from env (put these in .env)
+//            $apiClientID = env('PF_CLIENT_ID', '35');
+//            $secret      = env('PF_SECRET', '7UiF90LT3RkIkala3FAxcwzYEXiy8Ztw');
+//            $key         = env('PF_KEY', 'Fhtuo4tuMATrqmtL');
+//            $serviceID   = env('PF_SERVICE_ID', '234330');
+
+            $apiClientID = "35";
+            $serviceID   = "234330";
+
+            $secret = "7UiF90LT3RkIkala3FAxcwzYEXiy8Ztw";   // appended in string
+            $key    = "Fhtuo4tuMATrqmtL";
+            // choose amount expected (cents? Pesaflow expects integer amounts as in your integration)
+            // Use the invoice->amount (assume stored as numeric (e.g. 50000.00) — cast to integer or string as appropriate)
+            $amountExpected = (int) round($application->invoice->amount); // ensure integer
+
+            $billRefNumber = $application->invoice->invoice_number ?? 'INV-' . $application->id;
+            $billDesc      = $application->course->course_name ?? 'Training Payment';
+            $clientName    = $application->full_name ?? ($application->applicant_name ?? 'Client');
+            $clientEmail   = $application->email ?? ($application->client_email ?? '');
+            $clientMSISDN  = $application->phone ?? ($application->client_phone ?? '');
+            $clientIDNumber = $application->id_number ?? 'A12345678';
+            $currency = "KES";
+
+            // Build the data string exactly as Pesaflow expects
+//            $dataString = $apiClientID
+//                . $amountExpected
+//                . $serviceID
+//                . $clientIDNumber
+//                . $currency
+//                . $billRefNumber
+//                . $billDesc
+//                . $clientName
+//                . $secret;
+//
+//            $hash = hash_hmac('sha256', $dataString, $key);
+//            $secureHash = base64_encode($hash);
+
+            $dataString =
+                $apiClientID .
+                $serviceID .
+                $billRefNumber .
+                $amountExpected .
+                $currency .
+                $clientIDNumber .
+                $secret;
+
+            $hash = hash_hmac('sha256', $dataString, $key);
+            $secureHash = base64_encode($hash);
+
+
+            $data_string = "$apiClientID"."$amountExpected"."$serviceID"."$clientIDNumber"."$currency"."$billRefNumber"."$billDesc"     . "$clientName"."$secret";
+            // Step 2 hash the values
+            $hash = hash_hmac('sha256', $data_string, $key);
+            // Step 3 encode
+            $my_secureHash = base64_encode($hash);
+
+//            dd($secureHash, $my_secureHash);
+            // callback/notification URLs — change to real routes
+//            $callBackURLOnSuccess = route('payments.success');    // define route
+//            $notificationURL = route('payments.notify');         // define route
+            $callBackURLOnSuccess = 'https://portal.pck.go.ke/applicant/dashboard';
+            $notificationURL = "https://portal.pck.go.ke/api/pesaflow/confirm";
+            $pesaflow = [
+//                'secureHash' => $secureHash,
+                'secureHash' => $my_secureHash,
+                'apiClientID' => $apiClientID,
+                'serviceID' => $serviceID,
+                'billDesc' => $billDesc,
+                'billRefNumber' => $billRefNumber,
+                'currency' => $currency,
+                'clientMSISDN' => $clientMSISDN,
+                'clientName' => $clientName,
+                'clientIDNumber' => $clientIDNumber,
+                'clientEmail' => $clientEmail,
+                'callBackURLOnSuccess' => $callBackURLOnSuccess,
+                'notificationURL' => $notificationURL,
+                'amountExpected' => $amountExpected,
+            ];
+        }
+
+
+        if (!empty($pesaflow)) {
+
+            // Prepare the POST payload
+            $payload = [
+                'secureHash'            => $my_secureHash,
+                'apiClientID'           => $pesaflow['apiClientID'],
+                'sendSTK'               => 'True',
+                'format'                => 'iframe',
+                'billDesc'              => $pesaflow['billDesc'],
+                'billRefNumber'         => $pesaflow['billRefNumber'],
+                'currency'              => $pesaflow['currency'],
+                'serviceID'             => $pesaflow['serviceID'],
+                'clientMSISDN'          => $pesaflow['clientMSISDN'],
+                'clientName'            => $pesaflow['clientName'],
+                'clientIDNumber'        => $pesaflow['clientIDNumber'],
+                'clientEmail'           => $pesaflow['clientEmail'],
+                'callBackURLOnSuccess'  => $pesaflow['callBackURLOnSuccess'],
+                'notificationURL'       => $pesaflow['notificationURL'],
+                'amountExpected'        => $pesaflow['amountExpected'],
+            ];
+
+            // 🧪 Hit Pesaflow test endpoint directly
+            $response = Http::asForm()->post(
+                'https://test.pesaflow.com/PaymentAPI/iframev2.1.php',
+                $payload
+            );
+
+            // 🔍 Dump the status + body (this is what the iframe is hiding!)
+            dd($response->status(), $response->body(), $response->json());
+
+        }
+
+        return view('public.payment', [
+            'application' => $application,
+            'shortApplicants' => $shortApplicants,
+            // pass pesaflow (can be null if already paid or invoice missing)
+            'pesaflow' => $pesaflow,
+            'isShort' => $isShort,
+            'meta' => $meta,
+        ]);
+    }
+    public function payment($id)
+    {
+
+        // Load application + invoice + course
+        $application = Application::with(['invoice', 'course'])->findOrFail($id);
+
+        // existing short-term logic...
+        $shortApplicants = collect();
+
+        $meta    = $application->metadata ?? [];
+        $isShort = !empty($meta['short_term']) && !empty($meta['training_id']);
+
+        if ($isShort) {
+            // ... your short applicants logic unchanged ...
+            $training = Training::find($meta['training_id']);
+            $unitFee  = $training?->cost;
+            $invoice        = $application->invoice;
+            $applicantCount = null;
+
+            if ($invoice && $unitFee && $unitFee > 0) {
+                $applicantCount = (int) floor($invoice->amount / $unitFee);
+                if ($applicantCount < 1) {
+                    $applicantCount = 1;
+                }
+            }
+
+            $query = ShortTraining::where('training_id', $meta['training_id'])
+                ->where('financier', $application->financier)
+                ->when(
+                    $application->financier === 'employer' && !empty($meta['employer_name']),
+                    function ($q) use ($meta) {
+                        $q->where('employer_name', $meta['employer_name']);
+                    }
+                )
+                ->orderByDesc('id');
+
+            if ($applicantCount) {
+                $query->take($applicantCount);
+            }
+
+            $shortApplicants = $query->get()->sortBy('id')->values();
+        }
+
+        // ----------------- Pesaflow/eCitizen data -----------------
+        // only prepare payment payload if invoice exists and status != paid
+        $pesaflow = null;
+
+        if ($application->invoice && $application->invoice->status !== 'paid') {
+            // load config from env (put these in .env)
+//            $apiClientID = env('PF_CLIENT_ID', '35');
+//            $secret      = env('PF_SECRET', '7UiF90LT3RkIkala3FAxcwzYEXiy8Ztw');
+//            $key         = env('PF_KEY', 'Fhtuo4tuMATrqmtL');
+//            $serviceID   = env('PF_SERVICE_ID', '234330');
+
+            $apiClientID = "35";
+            $serviceID   = "234330";
+
+            $secret = "7UiF90LT3RkIkala3FAxcwzYEXiy8Ztw";   // appended in string
+            $key    = "Fhtuo4tuMATrqmtL";
+            // choose amount expected (cents? Pesaflow expects integer amounts as in your integration)
+            // Use the invoice->amount (assume stored as numeric (e.g. 50000.00) — cast to integer or string as appropriate)
+            $amountExpected = (int) round($application->invoice->amount); // ensure integer
+
+            $billRefNumber = $application->invoice->invoice_number ?? 'INV-' . $application->id;
+            $billDesc      = $application->course->course_name ?? 'Training Payment';
+            $clientName    = $application->full_name ?? ($application->applicant_name ?? 'Client');
+            $clientEmail   = $application->email ?? ($application->client_email ?? '');
+            $clientMSISDN  = $application->phone ?? ($application->client_phone ?? '');
+            $clientIDNumber = $application->id_number ?? 'A12345678';
+            $currency = "KES";
+
+            // Build the data string exactly as Pesaflow expects
+//            $dataString = $apiClientID
+//                . $amountExpected
+//                . $serviceID
+//                . $clientIDNumber
+//                . $currency
+//                . $billRefNumber
+//                . $billDesc
+//                . $clientName
+//                . $secret;
+//
+//            $hash = hash_hmac('sha256', $dataString, $key);
+//            $secureHash = base64_encode($hash);
+
+            $dataString =
+                $apiClientID .
+                $serviceID .
+                $billRefNumber .
+                $amountExpected .
+                $currency .
+                $clientIDNumber .
+                $secret;
+
+            $hash = hash_hmac('sha256', $dataString, $key);
+            $secureHash = base64_encode($hash);
+
+
+            $data_string = "$apiClientID"."$amountExpected"."$serviceID"."$clientIDNumber"."$currency"."$billRefNumber"."$billDesc"     . "$clientName"."$secret";
+            // Step 2 hash the values
+            $hash = hash_hmac('sha256', $data_string, $key);
+            // Step 3 encode
+            $my_secureHash = base64_encode($hash);
+
+//            dd($secureHash, $my_secureHash);
+            // callback/notification URLs — change to real routes
+//            $callBackURLOnSuccess = route('payments.success');    // define route
+//            $notificationURL = route('payments.notify');         // define route
+            $callBackURLOnSuccess = 'https://portal.pck.go.ke/applicant/dashboard';
+            $notificationURL = "https://portal.pck.go.ke/api/pesaflow/confirm";
+            $pesaflow = [
+//                'secureHash' => $secureHash,
+                'secureHash' => $my_secureHash,
+                'apiClientID' => $apiClientID,
+                'serviceID' => $serviceID,
+                'billDesc' => $billDesc,
+                'billRefNumber' => $billRefNumber,
+                'currency' => $currency,
+                'clientMSISDN' => $clientMSISDN,
+                'clientName' => $clientName,
+                'clientIDNumber' => $clientIDNumber,
+                'clientEmail' => $clientEmail,
+                'callBackURLOnSuccess' => $callBackURLOnSuccess,
+                'notificationURL' => $notificationURL,
+                'amountExpected' => $amountExpected,
+            ];
+        }
+
+        $convenience = 50;
+        $serviceID = 234330;
+
+        $total = 50000 + $convenience;
+
+        // Test values you provided in Blade:
+        $clientMSISDN = '0700123456';
+        $clientEmail  = 'canjetan.ngahu@icta.go.ke';
+
+        $callBackURLOnSuccess = 'https://portal.pck.go.ke/applicant/dashboard';
+        $notificationURL      = 'https://portal.pck.go.ke/api/pesaflow/confirm';
+
+        $apiClientID      = '35';
+        $amountExpected   = 190; // SAME as Blade
+        $clientIDNumber   = 'A123456783';
+        $currency         = 'KES';
+        $billRefNumber    = 'PCK20240011';
+        $billDesc         = 'KIBI TEST PAYMENT';
+        $clientName       = 'Canjetan Ngahu';
+
+        $secret = "7UiF90LT3RkIkala3FAxcwzYEXiy8Ztw";
+        $key    = "Fhtuo4tuMATrqmtL";
+
+        // ----------------------------------------------------------
+        // 2. BUILD THE DATA STRING EXACTLY LIKE YOUR BLADE SNIPPET
+        // ----------------------------------------------------------
+        $dataString =
+            $apiClientID .
+            $amountExpected .
+            $serviceID .
+            $clientIDNumber .
+            $currency .
+            $billRefNumber .
+            $billDesc .
+            $clientName .
+            $secret;
+
+        // Hash and encode:
+        $hash = hash_hmac('sha256', $dataString, $key);
+        $secureHash = base64_encode($hash);
+
+        // ----------------------------------------------------------
+        // 3. BUILD PAYLOAD EXACTLY LIKE THE IFRAME SUBMISSION
+        // ----------------------------------------------------------
+        $payload = [
+            'secureHash'            => $secureHash,
+            'apiClientID'           => $apiClientID,
+            'sendSTK'               => 'True',
+            'format'                => 'iframe',
+            'billDesc'              => $billDesc,
+            'billRefNumber'         => $billRefNumber,
+            'currency'              => $currency,
+            'serviceID'             => $serviceID,
+            'clientMSISDN'          => $clientMSISDN,
+            'clientName'            => $clientName,
+            'clientIDNumber'        => $clientIDNumber,
+            'clientEmail'           => $clientEmail,
+            'callBackURLOnSuccess'  => $callBackURLOnSuccess,
+            'notificationURL'       => $notificationURL,
+            'amountExpected'        => $amountExpected,
+        ];
+
+        // ----------------------------------------------------------
+        // 4. TEST CALL TO PESAFLOW (backend)
+        // ----------------------------------------------------------
+        $response = Http::asForm()->timeout(40)->post(
+            'https://test.pesaflow.com/PaymentAPI/iframev2.1.php',
+            $payload
+        );
+
+        // Return raw response for debugging
+
+//        if (!empty($pesaflow)) {
+//
+//            // Prepare the POST payload
+//            $payload = [
+//                'secureHash'            => $my_secureHash,
+//                'apiClientID'           => $apiClientID,
+//                'sendSTK'               => 'True',
+//                'format'                => 'iframe',
+//                'billDesc'              => $billDesc,
+//                'billRefNumber'         => $billRefNumber,
+//                'currency'              => $currency,
+//                'serviceID'             => $serviceID,
+//                'clientMSISDN'          => '0700924662',
+//                'clientName'            => $pesaflow['clientName'],
+//                'clientIDNumber'        => $pesaflow['clientIDNumber'],
+//                'clientEmail'           => $pesaflow['clientEmail'],
+//                'callBackURLOnSuccess'  => $pesaflow['callBackURLOnSuccess'],
+//                'notificationURL'       => $pesaflow['notificationURL'],
+//                'amountExpected'        => $pesaflow['amountExpected'],
+//            ];
+//
+//            // 🧪 Hit Pesaflow test endpoint directly
+//            $response = Http::asForm()->post(
+//                'https://test.pesaflow.com/PaymentAPI/iframev2.1.php',
+//                $payload
+//            );
+//
+//            // 🔍 Dump the status + body (this is what the iframe is hiding!)
+//            dd($response->status(),$payload, $response->body(), $response->json());
+//
+//        }
+
+        return view('public.payment', [
+            'application' => $application,
+            'shortApplicants' => $shortApplicants,
+            // pass pesaflow (can be null if already paid or invoice missing)
+            'pesaflow' => $payload,
+            'isShort' => $isShort,
+            'meta' => $meta,
         ]);
     }
 

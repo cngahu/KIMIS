@@ -1,47 +1,8 @@
-@extends('admin.admin_dashboard')
-@section('admin')
+@extends('layouts.public')
+
+@section('content')
     @php
 
-        $convenience=50;
-       $Serviceid="";
-//        $serviceID=48460;
-              $serviceID=234330;
-
-
-       $total=50000 + $convenience;
-           $curl = curl_init();
-       $clientMSISDN = '0700123456';
-
-       $clientEmail = 'canjetan.ngahu@icta.go.ke';
-
-
-       $callBackURLOnSuccess = 'https://portal.pck.go.ke/applicant/dashboard';
-       $notificationURL = "https://portal.pck.go.ke/api/pesaflow/confirm";
-
-       $apiClientID = '35';
-//       $apiClientID = '580';
-       //$amountExpected = $total;
-            $amountExpected = 100;
-       $serviceIDd = $serviceID;
-       $clientIDNumber = 'A123456784';
-       $currency = "KES";
-       //    $billRefNumber = "KFCB123131";
-       $billRefNumber = 'PCK20240014544';
-       $billDesc = 'KIBI TEST PAYMENT';
-       $clientName ='Canjetan Ngahu';
-//       $secret = "7UiF90LT3RkIkala3FAxcwzYEXiy8Ztw";
-//       $key = "Fhtuo4tuMATrqmtL";
-
-           $secret = "7UiF90LT3RkIkala3FAxcwzYEXiy8Ztw";
-       $key = "Fhtuo4tuMATrqmtL";
-       $stk=true;
-       $format='iframe';
-
-       $data_string = "$apiClientID"."$amountExpected"."$serviceID"."$clientIDNumber"."$currency"."$billRefNumber"."$billDesc"     . "$clientName"."$secret";
-       // Step 2 hash the values
-       $hash = hash_hmac('sha256', $data_string, $key);
-       // Step 3 encode
-       $my_secureHash = base64_encode($hash);
 
 
 
@@ -66,5 +27,6 @@
     </form>
 
     <iframe name="my_iframe" style="width:100%;height:700px;border:0;margin-top:10px;"></iframe>
+
 
 @endsection

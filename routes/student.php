@@ -82,3 +82,11 @@ Route::group(['middleware' => ['role:student','auth','history','verified']], fun
 
 
 });
+
+
+
+Route::post('/payments/success', [\App\Http\Controllers\Application\PaymentController::class, 'success'])
+    ->name('payments.success');
+
+Route::post('/payments/notify', [\App\Http\Controllers\Application\PaymentController::class, 'notify'])
+    ->name('payments.notify');

@@ -10,7 +10,7 @@ class Invoice extends Model
     use HasFactory;
     protected $fillable = [
         'application_id','invoice_number','amount',
-        'status','gateway_reference','metadata','paid_at'
+        'status','gateway_reference','metadata','paid_at','amount_paid'
     ];
 
     protected $casts = [

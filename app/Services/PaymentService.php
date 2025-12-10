@@ -98,6 +98,33 @@ class PaymentService
         app(\App\Services\ApplicationNotificationService::class)
             ->sendNotifications($invoice);
     }
+    public function markPaid1(Invoice $invoice, string $gatewayRef, ?float $amountPaid = null)
+    {
+        // If the gateway does not provide actual amount paid, default to invoice amount
+        $amountPaid = $amountPaid ?? $invoice->amount;
+
+        $invoice->update([
+            'status'            => 'paid',
+            'gateway_reference' => $gatewayRef,
+            'paid_at'           => now(),
+            'amount_paid'       => $amountPaid,    // ✅ NEW COLUMN SET HERE
+        ]);
+
+        // Update parent application
+        $app = $invoice->application;
+
+        $app->update([
+            'payment_status' => 'paid',
+            'status'         => 'submitted',
+        ]);
+
+        // Log action
+        $this->audit->log('invoice_paid', $invoice);
+
+        // Send notifications
+        app(\App\Services\ApplicationNotificationService::class)
+            ->sendNotifications($invoice);
+    }
 
     protected function generateInvoiceNumber()
     {

@@ -181,13 +181,14 @@ class AdmissionPaymentService
     /**
      * Mark invoice as paid (callback or manual simulation)
      */
-    public function markInvoicePaid(Invoice $invoice, ?string $gatewayReference = null)
+    public function markInvoicePaid0(Invoice $invoice, ?string $gatewayReference = null)
     {
         $old = $invoice->getOriginal();
 
         $invoice->update([
             'status'            => 'paid',
             'gateway_reference' => $gatewayReference,
+            'amount_paid'      => $invoice->amount,
             'paid_at'           => now(),
         ]);
 
@@ -211,6 +212,60 @@ class AdmissionPaymentService
 //                $courseFee = optional($admission->application->course)->cost ?? 0;
                 $courseFee = $admission->required_fee ?? 0;
 
+                $paidTotal = AdmissionFeePayment::where('admission_id', $admission->id)
+                    ->where('status','paid')
+                    ->sum('amount');
+
+                if (bccomp($paidTotal, $courseFee, 2) >= 0) {
+                    $admission->update(['status' => 'fee_paid']);
+                } else {
+                    $admission->update(['status' => 'fee_pending']);
+                }
+
+                // Audit
+                $this->audit->log('admission_invoice_paid', $invoice, [
+                    'old' => $old,
+                    'new' => $invoice->getChanges(),
+                ]);
+            }
+        }
+
+        return $invoice;
+    }
+    public function markInvoicePaid(Invoice $invoice, ?string $gatewayReference = null, ?float $amountPaid = null)
+    {
+        $old = $invoice->getOriginal();
+
+        // Default to full invoice amount if not provided
+        $amountPaid = $amountPaid ?? $invoice->amount;
+
+        $invoice->update([
+            'status'            => 'paid',
+            'gateway_reference' => $gatewayReference,
+            'amount_paid'       => $amountPaid,    // ✅ store actual paid amount
+            'paid_at'           => now(),
+        ]);
+
+        // Update admission ledger
+        $fp = AdmissionFeePayment::where('invoice_id', $invoice->id)->first();
+        if ($fp) {
+            $fp->update([
+                'status'  => 'paid',
+                'paid_at' => now(),
+            ]);
+        }
+
+        // Identify admission ID from invoice metadata
+        $meta = $invoice->metadata ?? [];
+        $admissionId = $meta['admission_id'] ?? null;
+
+        if ($admissionId) {
+            $admission = Admission::find($admissionId);
+
+            if ($admission) {
+                $courseFee = $admission->required_fee ?? 0;
+
+                // Compute total paid so far from all invoices
                 $paidTotal = AdmissionFeePayment::where('admission_id', $admission->id)
                     ->where('status','paid')
                     ->sum('amount');
