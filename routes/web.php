@@ -24,6 +24,9 @@ use App\Http\Controllers\Registrar\DocumentVerificationController;
 use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\Registrar\AdmissionProcessingController;
 use App\Http\Controllers\Admin\AccountsController;
+use App\Http\Controllers\Admin\ShortCourseDataController;
+use App\Http\Controllers\Admin\AdmissionRecordImportController;
+use App\Http\Controllers\Admin\BiodataImportController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -178,6 +181,31 @@ Route::middleware(['auth','history','verified'])->group(function () {
 
         Route::delete('admission-documents/{doc}', [AdmissionDocumentTypeController::class, 'destroy'])
             ->name('admin.admission.documents.delete');
+
+
+
+        Route::get('/shortcourses/import', [ShortCourseDataController::class, 'showImportForm'])
+            ->name('admin.shortcourses.import.form');
+
+        Route::post('/shortcourses/import', [ShortCourseDataController::class, 'import'])
+            ->name('admin.shortcourses.import');
+
+
+        Route::get('/admissions/import', [AdmissionRecordImportController::class, 'showImportForm'])
+            ->name('admin.admissions.import.form');
+
+        Route::post('/admissions/import', [AdmissionRecordImportController::class, 'import'])
+            ->name('admin.admissions.import');
+
+        Route::get('/biodata/import', [BiodataImportController::class, 'showImportForm'])
+            ->name('admin.biodata.import.form');
+
+        Route::post('/biodata/import', [BiodataImportController::class, 'import'])
+            ->name('admin.biodata.import');
+
+        Route::get('/biodata', [BiodataImportController::class, 'index'])
+            ->name('admin.biodata.index');
+
     });
 
 

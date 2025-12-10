@@ -138,6 +138,7 @@
         </div>
 
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.75rem;max-width:1000px;margin:0 auto;">
+
             <div class="acct-card">
                 <span class="acct-icon"><i class="la la-calendar-check"></i></span>
                 <h3 class="acct-title">Course Application</h3>
@@ -150,16 +151,17 @@
                 </a>
             </div>
 
+
             <div class="acct-card p-4 text-center shadow-sm border rounded-3"
                  style="background: #fff; border-color: #e5e7eb;">
 
                 {{-- Icon --}}
                 <div class="mb-3">
-        <span class="acct-icon d-inline-flex justify-content-center align-items-center"
-              style="width: 70px; height: 70px; border-radius: 50%;
-                     background: #09913910; color: #099139; font-size: 35px;">
-            <i class="la la-certificate"></i>
-        </span>
+                <span class="acct-icon d-inline-flex justify-content-center align-items-center"
+                      style="width: 70px; height: 70px; border-radius: 50%;
+                             background: #09913910; color: #099139; font-size: 35px;">
+                    <i class="la la-certificate"></i>
+                </span>
                 </div>
 
                 {{-- Title --}}
