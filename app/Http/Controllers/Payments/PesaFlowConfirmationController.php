@@ -51,7 +51,7 @@ class PesaFlowConfirmationController extends Controller
         return response()->json(['message' => 'Notification processed successfully'], 200);
     }
 
-    public function index(Request $request)
+    public function index1(Request $request)
     {
         $data = $request->all();
 
@@ -99,6 +99,119 @@ class PesaFlowConfirmationController extends Controller
         return response()->json([
             'message' => 'Notification processed successfully'
         ], 200);
+    }
+    public function index2(Request $request)
+    {
+        $data = $request->all();
+
+        // Extract values safely
+        $clientInvoiceRef = $data['client_invoice_ref'] ?? null;
+        $status           = $data['status'] ?? null;
+        $paymentChannel   = $data['payment_channel'] ?? null;
+        $amountPaid       = $data['amount_paid'] ?? null;
+        $paymentReference = $data['payment_reference'][0] ?? [];
+        $receivedHash     = $data['secure_hash'] ?? null;
+
+        // Find invoice by client ref
+        $invoice = Invoice::where('invoice_number', $clientInvoiceRef)->first();
+
+        if ($invoice)
+        {
+            // Load existing notifications
+            $existingNotifications = $invoice->ecitizen_notification ?? [];
+
+            // Append new notification packet
+            $existingNotifications[] = [
+                'received_at' => now()->toDateTimeString(),
+                'payload'     => $data,
+            ];
+
+            // Always save notification log, even if pending
+            $invoice->ecitizen_notification = $existingNotifications;
+            $invoice->save();
+
+            // Update invoice with important extracted fields
+            $invoice->update([
+                'invoice_amount'          => $data['invoice_amount'] ?? null,
+                'payment_channel'         => $paymentChannel,
+                'ecitizen_invoice_number' => $data['invoice_number'] ?? null,
+            ]);
+
+            // If payment is confirmed
+            if ($status === 'settled') {
+
+                $invoice->update([
+                    'status'            => 'paid',
+                    'gateway_reference' => $paymentReference['payment_reference'] ?? null,
+                    'paid_at'           => $paymentReference['payment_date'] ?? now(),
+                    'amount_paid'       => $amountPaid,
+                ]);
+            }
+        }
+
+        // Success response to eCitizen
+        return response()->json([
+            'message' => 'Notification processed successfully'
+        ], 200);
+    }
+    public function index(Request $request)
+    {
+        // Default Laravel parsing
+        $data = $request->all();
+
+        // If invoice fields missing, decode raw JSON body
+        if (!isset($data['invoice_amount']) || !isset($data['invoice_number'])) {
+            $raw = $request->getContent();
+            $json = json_decode($raw, true);
+
+            if (is_array($json)) {
+                $data = array_merge($data, $json);
+            }
+        }
+
+        $clientInvoiceRef  = $data['client_invoice_ref'] ?? null;
+        $status            = $data['status'] ?? null;
+        $paymentChannel    = $data['payment_channel'] ?? null;
+        $invoiceAmount     = $data['invoice_amount'] ?? null;
+        $eciInvoiceNumber  = $data['invoice_number'] ?? null;
+        $amountPaid        = $data['amount_paid'] ?? null;
+        $paymentReference  = $data['payment_reference'][0] ?? [];
+
+        $invoice = Invoice::where('invoice_number', $clientInvoiceRef)->first();
+
+        if ($invoice) {
+
+            // Append notification
+            $existing = $invoice->ecitizen_notification ?? [];
+            $existing[] = [
+                'received_at' => now()->toDateTimeString(),
+                'payload'     => $data,
+            ];
+
+            // Save notification log
+            $invoice->update([
+                'ecitizen_notification' => $existing,
+            ]);
+
+            // Save structured fields
+            $invoice->update([
+                'invoice_amount'          => $invoiceAmount,
+                'payment_channel'         => $paymentChannel,
+                'ecitizen_invoice_number' => $eciInvoiceNumber,
+            ]);
+
+            // Mark paid
+            if ($status === 'settled') {
+                $invoice->update([
+                    'status'            => 'paid',
+                    'amount_paid'       => $amountPaid,
+                    'gateway_reference' => $paymentReference['payment_reference'] ?? null,
+                    'paid_at'           => $paymentReference['payment_date'] ?? now(),
+                ]);
+            }
+        }
+
+        return response()->json(['message' => 'Notification processed successfully'], 200);
     }
 
 }

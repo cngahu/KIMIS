@@ -24,7 +24,6 @@ class PaymentController extends Controller
     }
     public function success(Request $request)
     {
-        // Optional Pesaflow callback values
         $invoiceNo = $request->input('billRefNumber');
         $status    = $request->input('status');
 
@@ -32,6 +31,7 @@ class PaymentController extends Controller
             ->route('callback')
             ->with('success', 'Your payment has been submitted successfully. It will be verified shortly.');
     }
+
 
 
     /**
@@ -298,8 +298,9 @@ class PaymentController extends Controller
 
 
 //        $callBackURLOnSuccess = 'https://portal.pck.go.ke/applicant/dashboard';
-        route('payments.success');
-        $notificationURL = "https://uat.kims.kihbt.ac.ke//api/pesaflow/confirm";
+        $callBackURLOnSuccess = route('payments.success');
+
+        $notificationURL = "https://uat.kims.kihbt.ac.ke/api/pesaflow/confirm";
 
         $apiClientID = '580';
 
