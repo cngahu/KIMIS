@@ -186,6 +186,11 @@ class AuthenticatedSessionController extends Controller
         elseif($request->user()->hasRole('student')) {
             return redirect('student/dashboard');
         }
+        else
+        {
+            dd('Am here');
+            dd('Am here');
+        }
         abort(403);
     }
     public function resendOtp(Request $request)
