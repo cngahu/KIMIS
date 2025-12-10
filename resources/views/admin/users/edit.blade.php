@@ -114,17 +114,14 @@
                         </div>
 
                         {{-- Roles --}}
-                        <div class="col-md-6">
-                            <label class="form-label">Roles</label>
-                            <select name="roles[]" class="form-select" multiple>
-                                @foreach($roles as $role)
-                                    <option value="{{ $role->name }}"
-                                        {{ in_array($role->name, old('roles', $userRoleNames)) ? 'selected' : '' }}>
-                                        {{ $role->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
+                        <select name="roles[]" class="form-select" multiple>
+                            @foreach($roles as $role)
+                                <option value="{{ $role->name }}"
+                                    {{ in_array($role->name, old('roles', $userRoleNames)) ? 'selected' : '' }}>
+                                    {{ $role->name }}
+                                </option>
+                            @endforeach
+                        </select>
 
                         {{-- Permissions --}}
 {{--                        <div class="col-md-6">--}}

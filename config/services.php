@@ -31,4 +31,12 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'advanta' => [
+        'base_url'  => env('ADVANTA_BASE_URL', 'https://quicksms.advantasms.com'),
+        'api_key'   => env('ADVANTA_API_KEY'),
+        'partner_id'=> env('ADVANTA_PARTNER_ID'),
+        'sender_id' => env('ADVANTA_SENDER_ID'),
+    ],
+
+
 ];

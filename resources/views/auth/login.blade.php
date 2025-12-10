@@ -182,18 +182,35 @@
 
                     <div class="form-group">
                         <label for="email">Username or Email</label>
-                        <input id="email" name="email" type="text" placeholder="Enter username or email" required>
+                        <input
+                            id="email"
+                            name="email"
+                            type="text"
+                            placeholder="Enter username or email"
+                            value="{{ old('email') }}"
+                            required
+                        >
                     </div>
 
                     <div class="form-group">
                         <label for="password">Password</label>
                         <div class="input-wrapper">
-                            <input id="password" name="password" type="password" placeholder="Enter password" required>
+                            <input
+                                id="password"
+                                name="password"
+                                type="password"
+                                placeholder="Enter password"
+                                required
+                            >
                             <button type="button" class="toggle-pass">
                                 <i class="fa-solid fa-eye-slash"></i>
                             </button>
                         </div>
                     </div>
+
+                    {{-- 🔽 NEW: OTP delivery method --}}
+
+                    {{-- 🔼 END NEW --}}
 
                     <div class="form-group">
                         <div class="captcha-row">
@@ -205,13 +222,23 @@
                     </div>
 
                     <div class="remember-forgot">
-                        <label><input type="checkbox" name="remember"> Remember Me</label>
+                        <label>
+                            <input type="checkbox" name="remember" {{ old('remember') ? 'checked' : '' }}>
+                            Remember Me
+                        </label>
                         <a href="{{ route('password.request') }}">Forgot?</a>
                     </div>
 
                     <button type="submit" class="btn">Login</button>
-                    <button type="button" class="btn btn-reset" onclick="document.getElementById('loginForm').reset()">Reset</button>
+                    <button
+                        type="button"
+                        class="btn btn-reset"
+                        onclick="document.getElementById('loginForm').reset()"
+                    >
+                        Reset
+                    </button>
                 </form>
+
 
             </div>
         </section>

@@ -15,6 +15,7 @@ use Illuminate\View\View;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Middleware\RoleMiddleware;
+use Illuminate\Validation\Rule;
 
 class AuthenticatedSessionController extends Controller
 {
@@ -29,7 +30,7 @@ class AuthenticatedSessionController extends Controller
     /**
      * Handle an incoming authentication request.
      */
-    public function store(LoginRequest $request): RedirectResponse
+    public function store1(LoginRequest $request): RedirectResponse
     {
 
         $request->authenticate();
@@ -69,28 +70,29 @@ class AuthenticatedSessionController extends Controller
 //        return redirect()->intended(RouteServiceProvider::HOME);
        // return redirect()->intended($url);
     }
-    public function store1(LoginRequest $request)
+    public function store(LoginRequest $request)
     {
-        // First: validate email + password
+        // 1) Validate + authenticate username/password
         $request->authenticate();
 
-        // At this point credentials are correct but we DO NOT log in fully yet
         $user = $request->user();
 
-        // log audit
+        // 2) Log audit
         app(\App\Services\Audit\AuditLogService::class)->log('login.credentials_valid', $user);
 
-        // generate OTP
-        app(\App\Services\Auth\OTPService::class)->generate($user);
+        // 3) Store user id for 2FA
+        session([
+            '2fa:user:id' => $user->id,
+            // don't decide channel yet – leave for next step
+        ]);
 
-        // store user ID in session temporarily
-        session(['2fa:user:id' => $user->id]);
-
-        // logout the session temporarily
+        // 4) Log out the session temporarily (user not fully logged in yet)
         Auth::logout();
 
-        return redirect()->route('otp.verify.form');
+        // 5) Redirect to "choose OTP method" page
+        return redirect()->route('otp.channel.form');
     }
+
 
     /**
      * Destroy an authenticated session.
@@ -116,15 +118,17 @@ class AuthenticatedSessionController extends Controller
         return redirect('/');
     }
 
-
     public function showOtpForm()
     {
         if (!session('2fa:user:id')) {
             return redirect()->route('login')->withErrors('Session expired.');
         }
 
-        return view('auth.verify-otp');
+        $channel = session('2fa:channel', 'email');
+
+        return view('auth.verify-otp', compact('channel'));
     }
+
 
     public function verifyOtp(Request $request)
     {
@@ -184,9 +188,9 @@ class AuthenticatedSessionController extends Controller
         }
         abort(403);
     }
-    public function resendOtp()
+    public function resendOtp(Request $request)
     {
-        $audit = app(\App\Services\Audit\AuditLogService::class);
+        $audit = app(AuditLogService::class);
 
         // Validate session user
         $userId = session('2fa:user:id');
@@ -202,24 +206,93 @@ class AuthenticatedSessionController extends Controller
         }
 
         try {
-            $otpService = app(\App\Services\Auth\OTPService::class);
+            $otpService = app(OTPService::class);
 
-            // Generate new OTP
-            $otpService->generate($user);
+            // Get channel from query or session (default email)
+            $channel = $request->query('channel', session('2fa:channel', 'email'));
 
-            // Log success
-            $audit->log('otp.resent', $user);
+            // Remember latest choice
+            session(['2fa:channel' => $channel]);
 
-            return back()->with('status', 'A new OTP has been sent to your email.');
+            // Generate new OTP using that channel
+            $otpService->generate($user, $channel);
+
+            $audit->log('otp.resent', $user, ['channel' => $channel]);
+
+            return back()->with(
+                'status',
+                'A new OTP has been sent via ' . ($channel === 'sms' ? 'SMS to your phone.' : 'email.')
+            );
 
         } catch (\Exception $e) {
 
-            // Log failure
             $audit->log('otp.resend_failed', $user, [
                 'error' => $e->getMessage()
             ]);
 
             return back()->withErrors('Failed to resend OTP. Please try again.');
+        }
+    }
+
+    public function showOtpChannelForm()
+    {
+        $userId = session('2fa:user:id');
+
+        if (!$userId) {
+            return redirect()->route('login')->withErrors('Session expired. Please log in again.');
+        }
+
+        $user = User::findOrFail($userId);
+
+        // we pass the user so we can show email & phone, and know if phone exists
+        return view('auth.choose-otp-channel', compact('user'));
+    }
+
+    public function chooseOtpChannel(Request $request)
+    {
+        $userId = session('2fa:user:id');
+
+        if (!$userId) {
+            return redirect()->route('login')->withErrors('Session expired. Please log in again.');
+        }
+
+        $user = User::findOrFail($userId);
+
+        // validate the choice
+        $data = $request->validate([
+            'otp_channel' => ['required', Rule::in(['email', 'sms'])],
+        ]);
+
+        $channel = $data['otp_channel'];
+
+        // ✅ if SMS selected, check if phone exists
+        if ($channel === 'sms' && (empty($user->phone))) {
+            return back()->withErrors([
+                'otp_channel' => 'Phone number is not available. Please choose Email or update your profile.',
+            ])->withInput();
+        }
+
+        // remember chosen channel
+        session(['2fa:channel' => $channel]);
+
+        // generate + send OTP using selected channel
+        $otpService = app(OTPService::class);
+        $audit      = app(AuditLogService::class);
+
+        try {
+            $otpService->generate($user, $channel);
+
+            $audit->log('otp.generated', $user, ['channel' => $channel]);
+
+            return redirect()->route('otp.verify.form')
+                ->with('status', 'A verification code has been sent to your ' . ($channel === 'sms' ? 'phone.' : 'email.'));
+        } catch (\Throwable $e) {
+            $audit->log('otp.generate_failed', $user, [
+                'channel' => $channel,
+                'error'   => $e->getMessage(),
+            ]);
+
+            return back()->withErrors('Failed to send OTP. Please try again or choose another method.');
         }
     }
 
