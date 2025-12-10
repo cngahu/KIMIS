@@ -1,5 +1,6 @@
-@extends('admin.admin_dashboard')
-@section('admin')
+@extends('layouts.public')
+
+@section('content')
     @php
 
         $convenience=50;
@@ -21,12 +22,12 @@
        $apiClientID = '35';
 //       $apiClientID = '580';
        //$amountExpected = $total;
-            $amountExpected = 100;
+            $amountExpected = 1;
        $serviceIDd = $serviceID;
-       $clientIDNumber = 'A123456784';
+       $clientIDNumber = 'A12345678';
        $currency = "KES";
        //    $billRefNumber = "KFCB123131";
-       $billRefNumber = 'PCK20240014544';
+       $billRefNumber = 'PCK2024001';
        $billDesc = 'KIBI TEST PAYMENT';
        $clientName ='Canjetan Ngahu';
 //       $secret = "7UiF90LT3RkIkala3FAxcwzYEXiy8Ztw";
@@ -66,5 +67,47 @@
     </form>
 
     <iframe name="my_iframe" style="width:100%;height:700px;border:0;margin-top:10px;"></iframe>
+
+    <div class="container py-5">
+
+        <h3 class="mb-4">Secure Payment – KNEC Application</h3>
+
+
+         Auto submit the form into the iframe
+        <form id="pesaflowForm" method="POST" action="https://test.pesaflow.com/PaymentAPI/iframev2.1.php" target="paymentFrame">
+
+            <input type="hidden" name="apiClientID" value="35">
+            <input type="hidden" name="serviceID" value="{{ $serviceID }}">
+            <input type="hidden" name="billDesc" value="{{ $billDesc }}">
+            <input type="hidden" name="currency" value="{{ $currency }}">
+            <input type="hidden" name="billRefNumber" value="{{ $billRefNumber }}">
+            <input type="hidden" name="clientMSISDN" value="{{ $clientMSISDN }}">
+            <input type="hidden" name="clientName" value="{{ $clientName }}">
+            <input type="hidden" name="clientIDNumber" value="{{ $clientIDNumber }}">
+            <input type="hidden" name="clientEmail" value="{{ $clientEmail }}">
+            <input type="hidden" name="callBackURLONSuccess" value="{{ $callbackURL }}">
+            <input type="hidden" name="notificationURL" value="{{ $notificationURL }}">
+            <input type="hidden" name="amountExpected" value="{{ $amountExpected }}">
+            <input type="hidden" name="secureHash" value="{{ $secureHash }}">
+            <input type="hidden" name="format" value="{{ $format }}">
+            <input type="hidden" name="sendSTK" value="{{ $sendSTK }}">
+{{--            <input type="hidden" name="PictureURL" value="{{ $pictureURL }}">--}}
+
+        </form>
+
+         IFRAME
+        <iframe
+            name="paymentFrame"
+            width="100%"
+            height="650px"
+            frameborder="0"
+            class="border rounded">
+        </iframe>
+
+    </div>
+
+    <script>
+        document.getElementById('pesaflowForm').submit();
+    </script>
 
 @endsection

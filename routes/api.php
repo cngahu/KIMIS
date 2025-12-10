@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Payments\PesaFlowConfirmationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -27,3 +28,7 @@ Route::get('/counties/{county}/subcounties', function ($county) {
 Route::get('/apply/{course}/requirements',
     [\App\Http\Controllers\Application\ApplicationController::class, 'requirements']
 )->name('applications.requirements');
+
+Route::group(['prefix' => 'pesaflow'], function () {
+    Route::post('/confirm', [PesaFlowConfirmationController::class,'index'])->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);
+});

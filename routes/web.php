@@ -47,6 +47,10 @@ Route::get('/', function () {
 Route::get('/login', function () {
     return view('auth.login');
 });
+Route::get('/payment/callback', function () {
+    return view('public.payments.callback');
+})->name('callback');
+
 
 Route::get('/counties/{county}/subcounties', function ($county) {
     return \App\Models\Subcounty::where('county_id', $county)

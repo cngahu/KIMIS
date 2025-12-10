@@ -21,7 +21,7 @@ use Illuminate\Support\Str;
 class AdmissionController extends Controller
 {
     //
-    public function simulateAdmissionPayment(Request $request, AdmissionPaymentService $service)
+    public function simulateAdmissionPayment0(Request $request, AdmissionPaymentService $service)
     {
         // Only allow this in non-production modes
         if (app()->environment('production')) {
@@ -44,6 +44,33 @@ class AdmissionController extends Controller
 
         // Use your payment service to mark it paid
         $service->markInvoicePaid($invoice, $validated['reference'] ?? 'SIM-' . strtoupper(Str::random(6)));
+
+        return response()->json([
+            'success' => true,
+            'message' => "Invoice {$invoice->invoice_number} marked as PAID.",
+            'admission_status' => optional($invoice->application->admission)->status,
+        ]);
+    }
+    public function simulateAdmissionPayment(Request $request, AdmissionPaymentService $service)
+    {
+        if (app()->environment('production')) {
+            abort(403, "Simulation not allowed in production");
+        }
+
+        $validated = $request->validate([
+            'invoice_id'   => 'required|exists:invoices,id',
+            'amount_paid'  => 'required|numeric|min:1',
+            'reference'    => 'nullable|string|max:255',
+        ]);
+
+        $invoice = Invoice::findOrFail($validated['invoice_id']);
+
+        // Pass the amount paid and reference to the service
+        $service->markInvoicePaid(
+            invoice: $invoice,
+            gatewayReference: $validated['reference'] ?? 'SIM-' . strtoupper(Str::random(6)),
+            amountPaid: $validated['amount_paid']
+        );
 
         return response()->json([
             'success' => true,

@@ -9,9 +9,23 @@ class Invoice extends Model
 {
     use HasFactory;
     protected $fillable = [
-        'application_id','invoice_number','amount',
-        'status','gateway_reference','metadata','paid_at'
+        'application_id',
+        'user_id',
+        'course_id',
+        'invoice_number',
+        'category',
+        'amount',
+        'invoice_amount',
+        'payment_channel',
+        'ecitizen_invoice_number',
+        'amount_paid',
+        'status',
+        'gateway_reference',
+        'paid_at',
+        'metadata',
+        'ecitizen_notification',
     ];
+
 
     protected $casts = [
         'metadata' => 'array',

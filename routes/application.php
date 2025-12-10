@@ -30,6 +30,8 @@ Route::post('/apply/store', [ApplicationController::class, 'store'])->name('appl
 Route::get('/apply/{application}/payment', [ApplicationController::class, 'payment'])->name('applications.payment');
 
 Route::get('/apply/{application}/pay-now', [PaymentController::class, 'pay'])->name('applications.pay.now');
+Route::get('/ecitizen/payment/-{application}-pay-now', [PaymentController::class, 'payEcitizen'])->name('applications.pay.now.ecitizen');
+
 
 Route::post('/payment/callback', [PaymentController::class, 'callback'])->name('payment.callback');
 
