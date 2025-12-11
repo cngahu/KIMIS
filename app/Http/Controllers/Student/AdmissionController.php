@@ -263,7 +263,7 @@ class AdmissionController extends Controller
         // load view that contains the iframe form (see below)
         return view('student.admission.payment.iframe', compact('invoice','admission'));
     }
-    public function paymentIframe(Invoice $invoice)
+    public function paymentIframe1(Invoice $invoice)
     {
         // metadata is already an array because of $casts
         $meta = $invoice->metadata ?? [];
@@ -276,6 +276,98 @@ class AdmissionController extends Controller
 
         return view('student.admission.payment.iframe', compact('invoice','admission'));
     }
+    public function paymentIframe(Invoice $invoice)
+    {
+        // If invoice is tied to an Admission via polymorphic relation
+        if ($invoice->billable_type === Admission::class) {
+            $admission = $invoice->billable; // ← polymorphic
+        } else {
+            abort(404, "This invoice is not linked to an admission.");
+        }
+        $application = Admission::with('application')->findOrFail($invoice->billable_id);
+
+//        $invoice = $application->invoice;
+//        $meta = $application->metadata ?? [];
+
+        // ------------ CONFIG (Move these to env later) -----------------
+        $apiClientID = env('PF_CLIENT_ID', '35');
+        $secret      = env('PF_SECRET', '7UiF90LT3RkIkala3FAxcwzYEXiy8Ztw');
+        $key         = env('PF_KEY', 'Fhtuo4tuMATrqmtL');
+        $serviceID   = env('PF_SERVICE_ID', '234330');
+        $callbackURL = route('payments.success'); // you can define this
+        $notificationURL = route('payments.notify');
+        // ---------------------------------------------------------------
+
+        $amountExpected = $invoice->amount;
+
+        // Dynamic BillRefNumber:
+        $billRefNumber = $invoice->invoice_number;
+
+        $billDesc  = $admission->application->full_name ?? "Admission Payment";
+        $clientName = $admission->application->full_name;
+        $clientEmail = $admission->application->email;
+        $clientMSISDN = $admission->application->phone;
+        $clientIDNumber = $admission->application->id_number ?? "A12345678";
+        $currency = "KES";
+
+        $serviceID=234330;
+
+
+        $total=$invoice->amount;
+        $curl = curl_init();
+
+
+
+//        $callBackURLOnSuccess = 'https://portal.pck.go.ke/applicant/dashboard';
+        $callBackURLOnSuccess = route('payments.success');
+
+        $notificationURL = "https://uat.kims.kihbt.ac.ke/api/pesaflow/confirm";
+
+        $apiClientID = '580';
+
+//        $amountExpected = $invoice->amount;
+        $amountExpected = 1;
+
+
+
+        $currency = "KES";
+
+        $billRefNumber =$invoice->invoice_number;
+
+
+
+
+        $secret = "7UiF90LT3RkIkala3FAxcwzYEXiy8Ztw";
+        $key = "Fhtuo4tuMATrqmtL";
+
+
+        $data_string = "$apiClientID"."$amountExpected"."$serviceID"."$clientIDNumber"."$currency"."$billRefNumber"."$billDesc"     . "$clientName"."$secret";
+        // Step 2 hash the values
+        $hash = hash_hmac('sha256', $data_string, $key);
+        // Step 3 encode
+        $my_secureHash = base64_encode($hash);
+        return view('student.admission.payment.iframe', [
+            'secureHash' => $my_secureHash,
+            'my_secureHash' => $my_secureHash,
+            'apiClientID' => $apiClientID,
+            'serviceID' => $serviceID,
+            'billDesc' => $billDesc,
+            'billRefNumber' => $billRefNumber,
+            'clientMSISDN' => $clientMSISDN,
+            'clientName' => $clientName,
+            'clientIDNumber' => $clientIDNumber,
+            'clientEmail' => $clientEmail,
+            'callBackURLOnSuccess' => $callBackURLOnSuccess,
+            'notificationURL' => $notificationURL,
+            'amountExpected' => $amountExpected,
+            'application' => $application,
+            'admission'=>$admission,
+        ]);
+
+
+//        return view('student.admission.payment.iframe', compact('invoice', 'admission'));
+    }
+
 
 
     /**

@@ -1,4 +1,8 @@
 @php $user = \Illuminate\Support\Facades\Auth::user(); @endphp
+
+@if($admission)
+
+
 @if($admission->status === 'offer_sent')
 
     <li>
@@ -130,4 +134,6 @@
         </a>
     </li>
 
+@endif
+@else
 @endif

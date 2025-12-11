@@ -1,9 +1,15 @@
 <?php
 
 namespace App\Services;
+use App\Models\Admission;
+use App\Models\AdmissionFeePayment;
 use App\Models\Invoice;
 use App\Models\Application;
 use App\Models\ShortTrainingApplication;
+use App\Services\Audit\AuditLogService;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+
 class PaymentProcessingService
 {
     public function handleInvoicePaid(Invoice $invoice)
@@ -27,6 +33,9 @@ class PaymentProcessingService
 
             case 'short_course':
                 $this->handleShortCoursePaid($billable);
+                break;
+            case 'admission_fee':  // 🔥 new case
+                $this->handleAdmissionFeePaid($billable, $invoice);
                 break;
 
             // future:
@@ -63,4 +72,38 @@ class PaymentProcessingService
 
         // send email / SMS to employer or student
     }
+
+    protected function handleAdmissionFeePaid(Admission $admission, Invoice $invoice)
+    {
+        // 1. Get required fee
+        $courseFee = $admission->required_fee ?? 0;
+
+        // 2. Sum all payments from ledger
+        $paidTotal = AdmissionFeePayment::where('admission_id', $admission->id)
+            ->where('status', 'paid')
+            ->sum('amount');
+
+        // 3. Update admission status based on cumulative payments
+        if (bccomp($paidTotal, $courseFee, 2) >= 0) {
+            $admission->update(['status' => 'fee_paid']);
+        } else {
+            $admission->update(['status' => 'fee_pending']);
+        }
+
+        // 4. Send communications (email/SMS)
+        try {
+//            Mail::to($admission->application->email)
+//                ->send(new \App\Mail\AdmissionFeePaidMail($admission, $invoice));
+        } catch (\Exception $e) {
+            Log::error("Failed to send admission fee email", ['error' => $e->getMessage()]);
+        }
+
+        // 5. Audit log
+        app(AuditLogService::class)->log('admission_fee_paid', $invoice, [
+            'admission_id' => $admission->id,
+            'paid_total'   => $paidTotal,
+            'course_fee'   => $courseFee,
+        ]);
+    }
+
 }
