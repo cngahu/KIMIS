@@ -274,35 +274,83 @@
         </li>
 
 
-        <li class="menu-label">Reports</li>
+        <li class="menu-label">KENC Reports</li>
 
         <li>
             <a href="javascript:;" class="has-arrow">
                 <div class="parent-icon"><i class='bx bx-file'></i></div>
-                <div class="menu-title">Reports</div>
+                <div class="menu-title">KNEC Reports</div>
             </a>
             <ul>
                 <li>
                     <a href="{{ route('reports.applications') }}">
-                        <i class="bx bx-radio-circle"></i> All Applications
+                        <i class="bx bx-radio-circle"></i> All KNEC Applications
                     </a>
                 </li>
-
                 <li>
-                    <a href="{{ route('reports.decisions') }}">
+                    <a href="{{ route('knec.reports.applications') }}">
+                        <i class="bx bx-radio-circle"></i> KNEC Applications Filter
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('reports.rejected') }}">
                         <i class="bx bx-radio-circle"></i> Approved / Rejected
                     </a>
                 </li>
 
                 <li>
-                    <a href="{{ route('reports.reviewers') }}">
-                        <i class="bx bx-radio-circle"></i> Reviewer Performance
+                    <a href="{{ route('reports.summary.pdf') }}">
+                        <i class="bx bx-radio-circle"></i> KNEC Application Summary
                     </a>
                 </li>
+
+                <li>
+                    <a href="{{ route('reports.summary.index') }}">
+                        <i class="bx bx-radio-circle"></i> KNEC  Summary
+                    </a>
+                </li>
+
             </ul>
         </li>
 
+            <li class="menu-label">Short Courses Reports</li>
 
+            <li>
+                <a href="javascript:;" class="has-arrow">
+                    <div class="parent-icon"><i class='bx bx-file'></i></div>
+                    <div class="menu-title">Short Courses Reports</div>
+                </a>
+                <ul>
+                    <li>
+                        <a href="{{ route('reports.short.applications') }}">
+                            <i class="bx bx-radio-circle"></i> All Short Courses Applications
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('reports.short.training.summary') }}">
+                            <i class="bx bx-radio-circle"></i> Short Courses Training Summary
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('reports.short.participants') }}">
+                            <i class="bx bx-radio-circle"></i> Participants Master List
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="{{ route('reports.summary.pdf') }}">
+                            <i class="bx bx-radio-circle"></i> KNEC Application Summary
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="{{ route('reports.summary.index') }}">
+                            <i class="bx bx-radio-circle"></i> KNEC  Summary
+                        </a>
+                    </li>
+
+                </ul>
+            </li>
 
             <li class="menu-label">Admission Documents</li>
 
