@@ -24,14 +24,18 @@ class Invoice extends Model
         'paid_at',
         'metadata',
         'ecitizen_notification',
+        'billable_type',
+        'billable_id',
     ];
 
 
     protected $casts = [
         'metadata' => 'array',
         'paid_at' => 'datetime',
+        'ecitizen_notification' => 'array',
 
     ];
+
 
     public function application()
     {
@@ -52,6 +56,10 @@ class Invoice extends Model
             'id',                        // local key on Invoice
             'admission_id'               // local key on AFP
         );
+    }
+    public function billable()
+    {
+        return $this->morphTo();
     }
 
 }

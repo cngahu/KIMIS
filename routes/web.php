@@ -27,6 +27,7 @@ use App\Http\Controllers\Admin\AccountsController;
 use App\Http\Controllers\Admin\ShortCourseDataController;
 use App\Http\Controllers\Admin\AdmissionRecordImportController;
 use App\Http\Controllers\Admin\BiodataImportController;
+use App\Http\Controllers\Payment\PaymentSimulationController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -37,6 +38,12 @@ use App\Http\Controllers\Admin\BiodataImportController;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
+
+if (app()->environment('local')) {
+    Route::get('/simulate-payment/{invoice}', [PaymentSimulationController::class, 'simulate'])
+        ->name('simulate.payment');
+}
+
 
 Route::get('/', function () {
     return view('welcome');

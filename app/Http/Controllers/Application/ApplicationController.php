@@ -28,8 +28,9 @@ class ApplicationController extends Controller
         // Throttle both long-term and short-term submissions
         $this->middleware('throttle:10,1')->only(['store', 'storeShort']);
     }
-    public function show(Invoice $invoice)
+    public function show0(Invoice $invoice)
     {
+
         if ($invoice->category !== 'short_course') {
             abort(404, "Invalid invoice type.");
         }
@@ -65,6 +66,59 @@ class ApplicationController extends Controller
                 'address' => $first->postal_address,
                 'town' => $first->town,
                 'county' => optional($first->currentCounty)->name,
+            ];
+        }
+
+        return view('public.payments.payment', compact(
+            'invoice',
+            'application',
+            'participants',
+            'payer'
+        ));
+    }
+    public function show(Invoice $invoice)
+    {
+        // Resolve the billable model (Application, ShortTrainingApplication, etc.)
+        $billable = $invoice->billable;
+
+        if (! $billable) {
+            abort(404, "Invoice is not linked to a valid billable record.");
+        }
+
+        // Check invoice category
+        if ($invoice->category !== 'short_course') {
+            abort(404, "Invalid invoice type.");
+        }
+
+        // billable is ShortTrainingApplication model
+        /** @var \App\Models\ShortTrainingApplication $application */
+        $application = $billable->load('participants');
+        $participants = $application->participants;
+
+        // Determine who is paying
+        if ($application->financier === 'employer') {
+            $payer = [
+                'type'           => 'employer',
+                'name'           => $application->employer_name,
+                'contact_person' => $application->employer_contact_person,
+                'email'          => $application->employer_email,
+                'phone'          => $application->employer_phone,
+                'address'        => $application->employer_postal_address,
+                'town'           => $application->employer_town,
+                'county'         => optional($application->employerCounty)->name,
+            ];
+        } else {
+            // Self-sponsored → use first participant
+            $first = $participants->first();
+
+            $payer = [
+                'type'    => 'self',
+                'name'    => $first->full_name,
+                'email'   => $first->email,
+                'phone'   => $first->phone,
+                'address' => $first->postal_address,
+                'town'    => $first->town,
+                'county'  => optional($first->currentCounty)->name,
             ];
         }
 
