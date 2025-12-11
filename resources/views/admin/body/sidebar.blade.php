@@ -160,17 +160,29 @@
 
         {{-- SUPERADMIN MENU --}}
         @if(Auth::user()->hasRole('superadmin'))
+
+            <li>
+                <a href="javascript:;" class="has-arrow">
+                    <div class="parent-icon"><i class='bx bx-home-circle'></i></div>
+                    <div class="menu-title">Training Courses </div>
+                </a>
+                <ul>
+
+            <li>
+                <a href="{{ route('all.trainings') }}">
+                    <i class="bx bx-right-arrow-alt"></i>Training Schedules
+                </a>
+            </li>
+                </ul>
+            </li>
+
             <li>
                 <a href="javascript:;" class="has-arrow">
                     <div class="parent-icon"><i class='bx bx-home-circle'></i></div>
                     <div class="menu-title">Constants</div>
                 </a>
                 <ul>
-                    <li>
-                        <a href="{{ route('all.trainings') }}">
-                            <i class="bx bx-right-arrow-alt"></i>Training Schedules
-                        </a>
-                    </li>
+
                     <li>
                         <a href="{{ route('all.courses') }}">
                             <i class="bx bx-right-arrow-alt"></i>Courses
