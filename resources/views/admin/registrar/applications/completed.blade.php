@@ -2,140 +2,111 @@
 
 @section('registrar-content')
 
-    <div class="card shadow-sm">
-        <div class="card-body">
+    <div class="page-content">
 
-            <h5 class="mb-3">Completed Applications (Approved or Rejected)</h5>
+        <div class="card shadow-sm">
+            <div class="card-body">
 
-            <table class="table table-striped align-middle">
-                <thead>
-                <tr>
-                    <th>Reference</th>
-                    <th>Applicant</th>
-                    <th>Applied Course</th>
-                    <th>Admitted Course</th>
-                    <th>Status</th>
-                    <th>Reviewed By</th>
-                    <th>Decision Date</th>
-                    <th>View</th>
-                </tr>
-                </thead>
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                    <h5 class="mb-0">My Completed Applications (Approved / Rejected)</h5>
 
-                <tbody>
-                @forelse($apps as $app)
-                    @php
-                        $meta = $app->metadata ?? [];
+                    {{-- Search form --}}
+                    <form method="GET" class="d-flex gap-2">
+                        <input type="text"
+                               name="search"
+                               value="{{ request('search') }}"
+                               class="form-control form-control-sm"
+                               placeholder="Search ref, name, course...">
 
-                        // IDs from metadata (fallback to current course_id where needed)
-                        $appliedCourseId  = $meta['applied_course_id']  ?? $app->course_id;
-                        $admittedCourseId = $meta['admitted_course_id'] ?? $app->course_id;
+                        <button class="btn btn-sm btn-primary" type="submit">
+                            Search
+                        </button>
 
-                        $appliedCourse  = \App\Models\Course::find($appliedCourseId);
-                        $admittedCourse = \App\Models\Course::find($admittedCourseId);
+                        @if(request('search'))
+                            <a href="{{ route('officer.applications.completed') }}"
+                               class="btn btn-sm btn-outline-secondary">
+                                Reset
+                            </a>
+                        @endif
+                    </form>
+                </div>
 
-                        $appliedCourseName  = $appliedCourse
-                            ? ($appliedCourse->course_name ?? $appliedCourse->name)
-                            : 'N/A';
+                @if(request('search'))
+                    <p class="small text-muted mb-2">
+                        Showing results for: <strong>"{{ request('search') }}"</strong>
+                    </p>
+                @endif
 
-                        $admittedCourseName = $admittedCourse
-                            ? ($admittedCourse->course_name ?? $admittedCourse->name)
-                            : $appliedCourseName;
-
-                        $isAlternative = (int)$admittedCourseId !== (int)$appliedCourseId;
-
-                        // For nice text: which option is admitted?
-                        $alt1Id = $meta['alt_course_1_id'] ?? null;
-                        $alt2Id = $meta['alt_course_2_id'] ?? null;
-
-                        if (!$isAlternative) {
-                            $admittedOptionLabel = 'Primary option';
-                        } elseif ($alt1Id && (int)$admittedCourseId === (int)$alt1Id) {
-                            $admittedOptionLabel = 'Option 1';
-                        } elseif ($alt2Id && (int)$admittedCourseId === (int)$alt2Id) {
-                            $admittedOptionLabel = 'Option 2';
-                        } else {
-                            $admittedOptionLabel = 'Alternative option';
-                        }
-                    @endphp
-
+                <table class="table table-striped align-middle">
+                    <thead>
                     <tr>
-                        {{-- Reference --}}
-                        <td>{{ $app->reference }}</td>
+                        <th>Reference</th>
+                        <th>Applicant</th>
+                        <th>Course</th>
+                        <th>Status</th>
+                        <th>Decision Date</th>
+                    </tr>
+                    </thead>
 
-                        {{-- Applicant --}}
-                        <td>{{ $app->full_name }}</td>
+                    <tbody>
+                    @forelse($apps as $app)
+                        <tr>
+                            <td>{{ $app->reference }}</td>
+                            <td>{{ $app->full_name }}</td>
+                            <td>{{ $app->course->course_name ?? $app->course->name ?? 'N/A' }}</td>
+                            <td>
+                                <span class="badge bg-{{ $app->status === 'approved' ? 'success' : 'danger' }}">
+                                    {{ ucfirst($app->status) }}
+                                </span>
+                            </td>
+                            <td>{{ $app->updated_at->format('d M Y, h:i A') }}</td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="5" class="text-center text-muted">
+                                No completed applications found.
+                            </td>
+                        </tr>
+                    @endforelse
+                    </tbody>
+                </table>
 
-                        {{-- Applied course --}}
-                        <td>
-                            {{ $appliedCourseName }}
-                        </td>
+                {{-- Totals + pagination --}}
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div class="small text-muted">
+                        @php
+                            $first = $apps->firstItem() ?? 0;
+                            $last  = $apps->lastItem() ?? 0;
+                            $pageCount = $apps->count();
+                            $filteredTotal = $apps->total();
+                        @endphp
 
-                        {{-- Admitted course (may be same or different) --}}
-                        <td>
-                            <strong>{{ $admittedCourseName }}</strong>
+                        Showing
+                        <strong>{{ $first }}</strong> to
+                        <strong>{{ $last }}</strong>
+                        of
+                        <strong>{{ $filteredTotal }}</strong>
+                        matching records.
 
-                            @if($isAlternative)
-                                <br>
-                                <small class="text-muted">
-                                    Student applied for
-                                    <strong>{{ $appliedCourseName }}</strong>,
-                                    but based on the entry requirements was
-                                    <strong>recommended and admitted</strong>
-                                    to this course ({{ $admittedOptionLabel }}).
-                                </small>
-                            @else
-                                <br>
-                                <small class="text-muted">
-                                    Student admitted to the same course they applied for
-                                    ({{ $admittedOptionLabel }}).
-                                </small>
-                            @endif
-                        </td>
+                        &nbsp;This page:
+                        <strong>{{ $pageCount }}</strong>.
 
-                        {{-- Status --}}
-                        <td>
-                            <span class="badge bg-{{ $app->status === 'approved' ? 'success' : 'danger' }}">
-                                {{ ucfirst($app->status) }}
+                        @isset($totalAll)
+                            <br>
+                            <span>
+                                Total completed applications you reviewed: <strong>{{ $totalAll }}</strong>.
                             </span>
-                        </td>
+                        @endisset
+                    </div>
 
-                        {{-- Reviewer (safe if null) --}}
-                        <td>
-                            @if($app->reviewer)
-                                {{ $app->reviewer->surname }} {{ $app->reviewer->firstname }}
-                            @else
-                                <span class="text-muted">N/A</span>
-                            @endif
-                        </td>
+                    <div>
+                        {{ $apps->onEachSide(1)->links() }}
+                    </div>
+                </div>
 
-                        {{-- Decision date --}}
-                        <td>{{ $app->updated_at->format('d M Y, h:i A') }}</td>
-
-                        {{-- View button (modal) --}}
-                        <td>
-                            <button class="btn btn-secondary btn-sm"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#viewApplicationModal"
-                                    onclick="loadApplication({{ $app->id }})">
-                                View
-                            </button>
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="8" class="text-center text-muted">
-                            No completed applications found.
-                        </td>
-                    </tr>
-                @endforelse
-                </tbody>
-            </table>
-
-            {{ $apps->links() }}
-
+            </div>
         </div>
-    </div>
 
-    @include('admin.registrar.applications.modal')
+    </div>
 
 @endsection

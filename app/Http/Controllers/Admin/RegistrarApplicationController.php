@@ -27,24 +27,33 @@ class RegistrarApplicationController extends Controller
      * List all submitted applications
      */
 
-    public function awaiting()
+    public function awaiting(Request $request)
     {
-        $apps = Application::where('status', 'submitted')
-            ->with(['course', 'reviewer'])
-            ->orderBy('created_at', 'desc')
-            ->paginate(20);
+        $search = $request->get('search');
 
+        $query = Application::where('status', 'submitted')
+            ->with(['course']);
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('full_name', 'like', "%{$search}%")
+                    ->orWhere('reference', 'like', "%{$search}%")
+                    ->orWhereHas('course', function ($cq) use ($search) {
+                        $cq->where('course_name', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        $apps = $query->orderBy('created_at', 'desc')
+            ->paginate(20)
+            ->withQueryString();
+
+        // Officers list
         $officers = User::whereHas('roles', function ($q) {
             $q->whereIn('name', ['hod', 'campus_registrar']);
         })->get();
-        $counts = [
-            'awaiting' => Application::where('status','submitted')->count(),
-            'assigned' => Application::where('status','under_review')->count(),
-            'completed' => Application::whereIn('status',['approved','rejected'])->count(),
-        ];
-        return view('admin.registrar.applications.awaiting', compact('apps','officers','counts'));
 
-//        return view('admin.registrar.applications.awaiting', compact('apps', 'officers'));
+        return view('admin.registrar.applications.awaiting', compact('apps', 'officers'));
     }
 
     public function assigned()
