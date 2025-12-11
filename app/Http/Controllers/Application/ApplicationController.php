@@ -42,16 +42,16 @@ class ApplicationController extends Controller
     public function showForm(Request $request, Course $course)
     {
         // Load related data you might need
-        $course->load('requirements');
+        $course->load('requirements', 'college');
 
         // Check mode: 'Long Term' vs 'Short Term'
-        $mode = $course->course_mode;   // assuming this column exists on courses table
+        $mode = $course->course_mode;
 
         if (strcasecmp($mode, 'Short Term') === 0) {
-            // ---- SHORT TERM FLOW ----
-            $counties    = \App\Models\County::orderBy('name')->get();
-            $postalCodes = \App\Models\PostalCode::orderBy('code')->get();
-            // Find the specific training (by query param), or the first approved one for that course
+            // SHORT TERM FLOW (unchanged)
+            $counties    = County::orderBy('name')->get();
+            $postalCodes = PostalCode::orderBy('code')->get();
+
             $training = Training::with('college')
                 ->where('course_id', $course->id)
                 ->where('status', 'Approved')
@@ -61,18 +61,13 @@ class ApplicationController extends Controller
                 ->orderBy('start_date')
                 ->firstOrFail();
 
-            // Show the short-course multi-applicant form
             return view('public.apply_shorttraining', compact('course', 'postalCodes','counties','training'));
         }
 
-        // ---- LONG TERM FLOW (existing) ----
+        // ---- LONG TERM FLOW ----
+        $counties    = County::orderBy('name')->get();
+        $postalCodes = PostalCode::orderBy('code')->get();
 
-        // Whatever you previously had here:
-        // e.g. load counties, postal codes, dynamic requirements etc.
-        $counties    = \App\Models\County::orderBy('name')->get();
-        $postalCodes = \App\Models\PostalCode::orderBy('code')->get();
-
-        // You may or may not care about training here for long courses
         $training = Training::with('college')
             ->where('course_id', $course->id)
             ->where('status', 'Approved')
@@ -82,11 +77,19 @@ class ApplicationController extends Controller
             ->orderBy('start_date')
             ->first();
 
+        // 🔹 Alternative courses: only Long Term, exclude current
+        $alternativeCourses = Course::with('college')
+            ->where('course_mode', 'Long Term')
+            ->where('id', '<>', $course->id)
+            ->orderBy('course_name')
+            ->get();
+
         return view('public.apply', [
-            'course'      => $course,
-            'counties'    => $counties,
-            'postalCodes' => $postalCodes,
-            'training'    => $training,
+            'course'             => $course,
+            'counties'           => $counties,
+            'postalCodes'        => $postalCodes,
+            'training'           => $training,
+            'alternativeCourses' => $alternativeCourses,
         ]);
     }
 
@@ -300,8 +303,62 @@ class ApplicationController extends Controller
 //            ->with('success', 'Short course application(s) submitted successfully.');
 //    }
 
-
     public function store(StoreApplicationRequest $request)
+    {
+        $validated = $request->validated();
+
+        $uploadDisk = 'public';
+
+        $birthCertificatePath = null;
+        if ($request->hasFile('birth_certificate')) {
+            $birthCertificatePath = $request->file('birth_certificate')
+                ->store('applications/documents', $uploadDisk);
+        }
+
+        $nationalIdPath = null;
+        if ($request->hasFile('national_id')) {
+            $nationalIdPath = $request->file('national_id')
+                ->store('applications/documents', $uploadDisk);
+        }
+
+        $payload = [
+            'course_id'             => $validated['course_id'],
+            'full_name'             => $validated['full_name'],
+            'id_number'             => $validated['id_number'] ?? null,
+            'phone'                 => $validated['phone'],
+            'email'                 => $validated['email'] ?? null,
+            'date_of_birth'         => $validated['date_of_birth'] ?? null,
+            'home_county_id'        => $validated['home_county_id'],
+            'current_county_id'     => $validated['current_county_id'],
+            'current_subcounty_id'  => $validated['current_subcounty_id'],
+            'postal_address'        => $validated['postal_address'],
+            'postal_code_id'        => $validated['postal_code_id'],
+            'co'                    => $validated['co'] ?? null,
+            'town'                  => $validated['town'] ?? null,
+            'financier'             => $validated['financier'],
+            'kcse_mean_grade'       => $validated['kcse_mean_grade'],
+            'declaration'           => true,
+
+            'birth_certificate_path' => $birthCertificatePath,
+            'national_id_path'       => $nationalIdPath,
+
+            'requirements'          => $this->mergeRequirements($request),
+
+            // 🔹 store alternative choices in metadata
+            'metadata'              => [
+                'alt_course_1_id' => $validated['alt_course_1_id'] ?? null,
+                'alt_course_2_id' => $validated['alt_course_2_id'] ?? null,
+            ],
+        ];
+
+        $application = $this->service->create($payload);
+
+        return redirect()
+            ->route('applications.payment', $application->id)
+            ->with('success', 'Proceed to payment to complete your application.');
+    }
+
+    public function store1(StoreApplicationRequest $request)
     {
         $validated = $request->validated();
 

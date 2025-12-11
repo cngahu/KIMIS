@@ -20,12 +20,16 @@ class Application extends Model
         'school_leaving_certificate_path',
         'birth_certificate_path',
         'national_id_path',
+        'alt_course_1_id',
+        'alt_course_2_id',
     ];
 
     protected $casts = [
         'metadata' => 'array',
         'declaration' => 'boolean',
     ];
+
+
 
     public function homeCounty()
     {
@@ -62,6 +66,26 @@ class Application extends Model
     {
         return $this->hasOne(Invoice::class);
     }
+
+    public function altCourse1()
+    {
+        return $this->belongsTo(\App\Models\Course::class, 'alt_course_1_id');
+    }
+
+    public function altCourse2()
+    {
+        return $this->belongsTo(\App\Models\Course::class, 'alt_course_2_id');
+    }
+
+
+
+
+    // 🔹 Postal code
+    public function postalCode()
+    {
+        return $this->belongsTo(PostalCode::class, 'postal_code_id');
+    }
+
 
 
 }

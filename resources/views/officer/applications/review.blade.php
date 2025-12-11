@@ -96,12 +96,68 @@
 
 
                 <!-- ===== COURSE DETAILS ===== -->
+
                 <div class="section-title">Course Applied For</div>
 
                 <div class="mb-3">
-                    <span class="info-label">Course: </span>
-                    {{ $application->course->course_name }}
+                    <span class="info-label">Primary Course: </span>
+                    {{ $application->course->course_name ?? $application->course->name }}
                 </div>
+
+                {{-- Alternative Courses from metadata --}}
+
+                {{-- Alternative Courses (from metadata) --}}
+                @php
+                    // metadata is cast to array on the model
+                    $meta = $application->metadata ?? [];
+
+                    // IDs can be stored in metadata, and/or in the DB columns
+                    $alt1Id = $meta['alt_course_1_id'] ?? $application->alt_course_1_id ?? null;
+                    $alt2Id = $meta['alt_course_2_id'] ?? $application->alt_course_2_id ?? null;
+
+                    $altCourseIds = collect([$alt1Id, $alt2Id])
+                        ->filter()  // remove nulls
+                        ->unique()
+                        ->values();
+
+                    $altCourses = collect();
+                    if ($altCourseIds->isNotEmpty()) {
+                        $altCourses = \App\Models\Course::with('college')
+                            ->whereIn('id', $altCourseIds)
+                            ->get()
+                            ->keyBy('id');
+                    }
+                @endphp
+
+                <div class="section-title">Alternative Courses (for consideration)</div>
+
+                @if($altCourses->isNotEmpty())
+                    <ul class="mb-3">
+                        @foreach($altCourseIds as $index => $cid)
+                            @php $alt = $altCourses->get($cid); @endphp
+                            @if($alt)
+                                <li class="mb-1">
+                                    <strong>Option {{ $index + 2 }}:</strong>
+                                    {{ $alt->course_name ?? $alt->name }}
+
+                                    @if($alt->course_code)
+                                        <span class="text-muted"> ({{ $alt->course_code }})</span>
+                                    @endif
+
+                                    @if(optional($alt->college)->name)
+                                        <br>
+                                        <small class="text-muted">
+                                            College: {{ $alt->college->name }}
+                                        </small>
+                                    @endif
+                                </li>
+                            @endif
+                        @endforeach
+                    </ul>
+                @else
+                    <p class="text-muted mb-3"><em>No alternative courses selected.</em></p>
+                @endif
+
 
 
                 <!-- ===== PAYMENT DETAILS ===== -->
@@ -125,10 +181,71 @@
                 </div>
 
 
+                <!-- ===== ATTACHMENTS ===== -->
+                <div class="section-title">Attachments</div>
+
+                <div class="row">
+                    @if($application->kcse_certificate_path)
+                        <div class="col-md-6 mb-2">
+                            <span class="info-label">KCSE Certificate:</span>
+                            <a href="{{ asset('storage/'.$application->kcse_certificate_path) }}"
+                               target="_blank"
+                               class="btn btn-sm btn-outline-primary ms-2">
+                                View
+                            </a>
+                        </div>
+                    @endif
+
+                    @if($application->school_leaving_certificate_path)
+                        <div class="col-md-6 mb-2">
+                            <span class="info-label">School Leaving Certificate:</span>
+                            <a href="{{ asset('storage/'.$application->school_leaving_certificate_path) }}"
+                               target="_blank"
+                               class="btn btn-sm btn-outline-primary ms-2">
+                                View
+                            </a>
+                        </div>
+                    @endif
+
+                    @if($application->birth_certificate_path)
+                        <div class="col-md-6 mb-2">
+                            <span class="info-label">Birth Certificate:</span>
+                            <a href="{{ asset('storage/'.$application->birth_certificate_path) }}"
+                               target="_blank"
+                               class="btn btn-sm btn-outline-primary ms-2">
+                                View
+                            </a>
+                        </div>
+                    @endif
+
+                    @if($application->national_id_path)
+                        <div class="col-md-6 mb-2">
+                            <span class="info-label">National ID:</span>
+                            <a href="{{ asset('storage/'.$application->national_id_path) }}"
+                               target="_blank"
+                               class="btn btn-sm btn-outline-primary ms-2">
+                                View
+                            </a>
+                        </div>
+                    @endif
+
+                    @if(
+                        !$application->kcse_certificate_path &&
+                        !$application->school_leaving_certificate_path &&
+                        !$application->birth_certificate_path &&
+                        !$application->national_id_path
+                    )
+                        <div class="col-md-12 mb-2">
+                            <p class="text-muted"><em>No fixed attachments uploaded.</em></p>
+                        </div>
+                    @endif
+                </div>
+
+
                 <!-- ===== REQUIREMENT ANSWERS ===== -->
                 <div class="section-title">Submitted Requirements</div>
 
-                @foreach($application->answers as $ans)
+                @forelse($application->answers as $ans)
                     <div class="mb-3">
                         <span class="info-label">{{ $ans->requirement->course_requirement }}:</span>
 
@@ -144,15 +261,75 @@
                             <p>{{ $ans->value }}</p>
                         @endif
                     </div>
-                @endforeach
+                @empty
+                    <p class="text-muted"><em>No additional requirements submitted.</em></p>
+                @endforelse
 
-
-                <!-- ===== OFFICER ACTIONS ===== -->
+                {{-- ===== OFFICER ACTIONS ===== --}}
                 <div class="section-title">Officer Decision</div>
+
+                @php
+                    // metadata is cast to array
+                    $meta = $application->metadata ?? [];
+
+                    // read alt course IDs from metadata OR columns
+                    $alt1Id = $meta['alt_course_1_id'] ?? $application->alt_course_1_id ?? null;
+                    $alt2Id = $meta['alt_course_2_id'] ?? $application->alt_course_2_id ?? null;
+
+                    $altCourseIds = collect([$alt1Id, $alt2Id])
+                        ->filter()
+                        ->unique()
+                        ->values();
+
+                    $altCourses = collect();
+                    if ($altCourseIds->isNotEmpty()) {
+                        $altCourses = \App\Models\Course::with('college')
+                            ->whereIn('id', $altCourseIds)
+                            ->get()
+                            ->keyBy('id');
+                    }
+
+                    $primaryCourse = $application->course;
+                @endphp
 
                 <form action="" method="POST" id="decisionForm">
                     @csrf
 
+                    {{-- Course to admit into --}}
+                    <div class="mb-3">
+                        <label class="info-label d-block">Course to Admit Applicant To</label>
+
+                        <select name="approved_course_id" class="form-select" required>
+                            @if($primaryCourse)
+                                <option value="{{ $primaryCourse->id }}" selected>
+                                    Primary: {{ $primaryCourse->course_name ?? $primaryCourse->name }}
+                                    @if(optional($primaryCourse->college)->name)
+                                        ({{ $primaryCourse->college->name }})
+                                    @endif
+                                </option>
+                            @endif
+
+                            @foreach($altCourseIds as $index => $cid)
+                                @php $alt = $altCourses->get($cid); @endphp
+                                @if($alt)
+                                    <option value="{{ $cid }}">
+                                        Alternative {{ $index + 1 }}:
+                                        {{ $alt->course_name ?? $alt->name }}
+                                        @if(optional($alt->college)->name)
+                                            ({{ $alt->college->name }})
+                                        @endif
+                                    </option>
+                                @endif
+                            @endforeach
+                        </select>
+
+                        <small class="text-muted">
+                            Primary course is selected by default. Change this if you want to admit the applicant
+                            into a different (alternative) course.
+                        </small>
+                    </div>
+
+                    {{-- Comments --}}
                     <div class="mb-3">
                         <label class="info-label">Comments / Notes</label>
                         <textarea name="comments" class="form-control" rows="3" required></textarea>
@@ -175,6 +352,8 @@
                     </div>
 
                 </form>
+
+
 
             </div>
         </div>

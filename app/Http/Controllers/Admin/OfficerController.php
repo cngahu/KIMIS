@@ -47,20 +47,41 @@ class OfficerController extends Controller
         // Log “viewed”
         $this->review->markViewed($application);
 
-        $application->load(['course','invoice','answers.requirement']);
+        $application->load([
+            'course',
+            'invoice',
+            'answers.requirement',
+            'homeCounty',
+            'currentCounty',
+            'currentSubcounty',
+            'postalCode',
+            'altCourse1',
+            'altCourse2',
+        ]);
 
         return view('officer.applications.review', compact('application'));
     }
 
+
     public function approve(Request $request, Application $application)
     {
-        abort_if($application->reviewer_id !== Auth::id(), 403);
+        abort_if($application->reviewer_id !== \Auth::id(), 403);
 
-        $this->review->approve($application, $request->comments);
+        $data = $request->validate([
+            'comments'           => 'required|string',
+            'approved_course_id' => 'required|exists:courses,id',
+        ]);
+
+        $this->review->approve(
+            $application,
+            $data['comments'],
+            (int) $data['approved_course_id']
+        );
 
         return redirect()->route('officer.applications.completed')
             ->with('success', 'Application approved successfully!');
     }
+
 
 
     public function reject(Request $request, Application $application)

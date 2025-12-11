@@ -58,7 +58,7 @@ class RolesAndPermissionsSeeder extends Seeder
 
         /*
          |--------------------------------------------------------------------------
-         | 2. Create Roles
+         | 2. Create Roles (including student)
          |--------------------------------------------------------------------------
          */
         $roles = [
@@ -66,6 +66,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'campus_registrar',
             'kihbt_registrar',
             'director',
+            'student', // 👈 added
         ];
 
         foreach ($roles as $roleName) {
@@ -103,6 +104,10 @@ class RolesAndPermissionsSeeder extends Seeder
 
         $director = Role::findByName('director');
         $director->syncPermissions(Permission::all()); // Director has everything
+
+        // Optionally: student has no special permissions (portal-only user)
+        // $student = Role::findByName('student');
+        // $student->syncPermissions([]); // or give read-only permissions if you wish
 
         echo "Roles and Permissions seeded successfully.\n";
     }

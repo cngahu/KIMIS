@@ -226,6 +226,63 @@
                         </div>
                     </div>
 
+                    {{-- ALTERNATIVE COURSES (OPTIONAL) --}}
+                    <div class="card public-card mb-4">
+                        <div class="card-header">Alternative Course Choices (Optional)</div>
+                        <div class="card-body">
+                            <div class="row g-4">
+
+                                {{-- First alternative --}}
+                                <div class="col-md-6">
+                                    <label class="form-label">Alternative Course 1</label>
+                                    <select name="alt_course_1_id"
+                                            class="form-select @error('alt_course_1_id') is-invalid @enderror">
+                                        <option value="">-- None selected --</option>
+                                        @foreach($alternativeCourses as $alt)
+                                            <option value="{{ $alt->id }}"
+                                                {{ old('alt_course_1_id') == $alt->id ? 'selected' : '' }}>
+                                                {{ $alt->course_name }}
+                                                @if($alt->college)
+                                                    ({{ $alt->college->name }})
+                                                @endif
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('alt_course_1_id')
+                                    <span class="text-danger small">{{ $message }}</span>
+                                    @enderror
+                                </div>
+
+                                {{-- Second alternative --}}
+                                <div class="col-md-6">
+                                    <label class="form-label">Alternative Course 2</label>
+                                    <select name="alt_course_2_id"
+                                            class="form-select @error('alt_course_2_id') is-invalid @enderror">
+                                        <option value="">-- None selected --</option>
+                                        @foreach($alternativeCourses as $alt)
+                                            <option value="{{ $alt->id }}"
+                                                {{ old('alt_course_2_id') == $alt->id ? 'selected' : '' }}>
+                                                {{ $alt->course_name }}
+                                                @if($alt->college)
+                                                    ({{ $alt->college->name }})
+                                                @endif
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('alt_course_2_id')
+                                    <span class="text-danger small">{{ $message }}</span>
+                                    @enderror
+                                </div>
+
+                            </div>
+
+                            <p class="small text-muted mt-2 mb-0">
+                                If your primary course is full, admissions may consider you for your preferred alternatives.
+                            </p>
+                        </div>
+                    </div>
+
+
                     {{-- FIXED UPLOAD DOCUMENTS --}}
                     <div class="card public-card mb-4">
                         <div class="card-header">Mandatory & Optional Uploads</div>

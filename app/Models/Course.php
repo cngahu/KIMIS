@@ -17,8 +17,13 @@ class Course extends Model
     }
 
 
+//    public function college()
+//    {
+//        return $this->belongsTo(College::class);
+//    }
+
     public function college()
     {
-        return $this->belongsTo(College::class);
+        return $this->belongsTo(\App\Models\College::class, 'college_id');
     }
 }

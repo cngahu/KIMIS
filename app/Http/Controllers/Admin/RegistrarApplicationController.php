@@ -9,6 +9,7 @@ use App\Models\Application;
 use App\Models\User;
 use App\Services\Audit\AuditLogService;
 use App\Services\Admin\ApplicationReviewService;
+use App\Models\Course;
 
 class RegistrarApplicationController extends Controller
 {
@@ -97,12 +98,39 @@ class RegistrarApplicationController extends Controller
 
         return back()->with('success', 'Application assigned successfully!');
     }
-
     public function view(Application $application)
     {
-        $application->load(['course', 'invoice', 'answers.requirement']);
+        $application->load([
+            'course',
+            'invoice',
+            'answers.requirement',
+            'homeCounty',
+            'currentCounty',
+            'currentSubcounty',
+            'postalCode',
+        ]);
 
-        return view('admin.registrar.applications.view', compact('application'));
+        $meta = $application->metadata ?? [];
+
+        $altIds = collect([
+            $meta['alt_course_1_id'] ?? null,
+            $meta['alt_course_2_id'] ?? null,
+        ])->filter()->unique()->values();
+
+        $alternativeCourses = collect();
+
+        if ($altIds->isNotEmpty()) {
+            $alternativeCourses = \App\Models\Course::with('college')
+                ->whereIn('id', $altIds)
+                ->get()
+                ->values();
+        }
+
+        return view('admin.registrar.applications.view', compact('application', 'alternativeCourses'));
     }
+
+
+
+
 
 }

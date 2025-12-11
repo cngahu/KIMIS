@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ShortCourseData;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class ShortCourseDataController extends Controller
 {
@@ -33,8 +34,13 @@ class ShortCourseDataController extends Controller
      */
     public function import(Request $request)
     {
+        // Allow big imports
+        ini_set('max_execution_time', 0);
+        ini_set('memory_limit', '512M');
+        DB::disableQueryLog();
+
         $request->validate([
-            'file' => ['required', 'file', 'mimes:csv,txt'],
+            'file' => ['required', 'file', 'mimes:csv,txt,xls,xlsx'],
         ]);
 
         $path = $request->file('file')->getRealPath();
@@ -66,10 +72,32 @@ class ShortCourseDataController extends Controller
         $inserted   = 0;
         $duplicates = 0;
 
+        // ✅ Preload existing (classno, coursecode, studentid) combos to avoid per-row DB queries
+        $existingKeys = [];
+
+        ShortCourseData::select('classno', 'coursecode', 'studentid')
+            ->chunk(2000, function ($rows) use (&$existingKeys) {
+                foreach ($rows as $row) {
+                    $key = trim((string)$row->classno) . '|' .
+                        trim((string)$row->coursecode) . '|' .
+                        trim((string)$row->studentid);
+
+                    $existingKeys[$key] = true;
+                }
+            });
+
+        $batch     = [];
+        $batchSize = 500; // adjust as needed
+
         while (($row = fgetcsv($handle)) !== false) {
 
             // Skip completely empty lines
             if (count($row) === 1 && ($row[0] === null || $row[0] === '')) {
+                continue;
+            }
+
+            // Guard against malformed rows
+            if (count($row) !== count($header)) {
                 continue;
             }
 
@@ -81,21 +109,22 @@ class ShortCourseDataController extends Controller
             }
 
             // Normalize key fields for duplicate check
-            $classno    = $data['classno']    ?? null;
-            $coursecode = $data['coursecode'] ?? null;
-            $studentid  = $data['studentid']  ?? null;
+            $classno    = trim($data['classno']    ?? '');
+            $coursecode = trim($data['coursecode'] ?? '');
+            $studentid  = trim($data['studentid']  ?? '');
 
-            // 🔍 1. Duplicate check based on (classno, coursecode, studentid)
-            if ($classno && $coursecode && $studentid) {
-                $exists = ShortCourseData::where('classno', $classno)
-                    ->where('coursecode', $coursecode)
-                    ->where('studentid', $studentid)
-                    ->exists();
+            // Build unique key string
+            $key = $classno . '|' . $coursecode . '|' . $studentid;
 
-                if ($exists) {
+            // 🔍 Skip duplicates based on (classno, coursecode, studentid)
+            if ($classno !== '' && $coursecode !== '' && $studentid !== '') {
+                if (isset($existingKeys[$key])) {
                     $duplicates++;
-                    continue; // skip this row
+                    continue;
                 }
+
+                // mark as seen (so later rows in this upload also skip)
+                $existingKeys[$key] = true;
             }
 
             // 2. Parse dates (CSV like "02-02-15 12:00")
@@ -120,11 +149,11 @@ class ShortCourseDataController extends Controller
                 }
             }
 
-            // 3. Create record
-            ShortCourseData::create([
-                'classno'         => $classno,
+            // Add to batch instead of inserting row-by-row
+            $batch[] = [
+                'classno'         => $classno ?: null,
                 'departmentname'  => $data['departmentname']  ?? null,
-                'coursecode'      => $coursecode,
+                'coursecode'      => $coursecode ?: null,
                 'coursename'      => $data['coursename']      ?? null,
                 'venue'           => $data['venue']           ?? null,
                 'classname'       => $data['classname']       ?? null,
@@ -132,7 +161,7 @@ class ShortCourseDataController extends Controller
                 'enddate'         => $enddate,
                 'studyactualyear' => $data['studyactualyear'] ?? null,
                 'studyterm'       => $data['studyterm']       ?? null,
-                'studentid'       => $studentid,
+                'studentid'       => $studentid ?: null,
                 'studentsname'    => $data['studentsname']    ?? null,
                 'gender'          => $data['gender']          ?? null,
                 'company'         => $data['company']         ?? null,
@@ -142,16 +171,28 @@ class ShortCourseDataController extends Controller
                 'emailaddress'    => $data['emailaddress']    ?? null,
                 'county'          => $data['county']          ?? null,
                 'officer'         => $data['officer']         ?? null,
-            ]);
+                'created_at'      => now(),
+                'updated_at'      => now(),
+            ];
 
-            $inserted++;
+            // If batch is full, insert it
+            if (count($batch) >= $batchSize) {
+                ShortCourseData::insert($batch);
+                $inserted += count($batch);
+                $batch = [];
+            }
         }
 
         fclose($handle);
+
+        // Insert any remaining rows
+        if (!empty($batch)) {
+            ShortCourseData::insert($batch);
+            $inserted += count($batch);
+        }
 
         return back()->with(
             'success',
             "Import completed. Inserted {$inserted} records. Skipped {$duplicates} duplicates."
         );
-    }
-}
+    }}
