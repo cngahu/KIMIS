@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Carbon\Carbon;
+use Illuminate\Validation\Rule;
 
 class StoreApplicationRequest extends FormRequest
 {
@@ -59,6 +60,21 @@ class StoreApplicationRequest extends FormRequest
             // Dynamic requirements array
             'requirements'   => 'nullable|array',
             'requirements.*' => 'nullable', // validated below
+
+
+            'alt_course_1_id' => [
+                'nullable',
+                Rule::exists('courses', 'id')->where(fn($q) => $q->where('course_mode', 'Long Term')),
+                'different:course_id',       // not same as primary
+            ],
+
+            'alt_course_2_id' => [
+                'nullable',
+                Rule::exists('courses', 'id')->where(fn($q) => $q->where('course_mode', 'Long Term')),
+                'different:course_id',       // not same as primary
+                'different:alt_course_1_id', // not same as alt1
+            ],
+
         ];
     }
 

@@ -5,9 +5,36 @@
     <div class="card shadow-sm">
         <div class="card-body">
 
-            <h5 class="mb-3">Applications Awaiting Assignment</h5>
+            {{-- Title + Search Bar --}}
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                <h5 class="mb-0">Applications Awaiting Assignment</h5>
 
-            <table class="table table-striped">
+                <form method="GET" class="d-flex gap-2">
+                    <input type="text"
+                           name="search"
+                           value="{{ request('search') }}"
+                           class="form-control form-control-sm"
+                           placeholder="Search reference, applicant, course...">
+
+                    <button class="btn btn-sm btn-primary" type="submit">Search</button>
+
+                    @if(request('search'))
+                        <a href="{{ route('registrar.awaiting') }}"
+                           class="btn btn-sm btn-outline-secondary">
+                            Reset
+                        </a>
+                    @endif
+                </form>
+            </div>
+
+            {{-- Search Result Indicator --}}
+            @if(request('search'))
+                <p class="small text-muted mb-2">
+                    Showing results for: <strong>"{{ request('search') }}"</strong>
+                </p>
+            @endif
+
+            <table class="table table-striped align-middle">
                 <thead>
                 <tr>
                     <th>Reference</th>
@@ -20,7 +47,7 @@
                 </thead>
 
                 <tbody>
-                @foreach($apps as $app)
+                @forelse($apps as $app)
                     <tr>
                         <td>{{ $app->reference }}</td>
                         <td>{{ $app->full_name }}</td>
@@ -53,11 +80,35 @@
                             </form>
                         </td>
                     </tr>
-                @endforeach
+                @empty
+                    <tr>
+                        <td colspan="6" class="text-center text-muted">
+                            No applications awaiting assignment.
+                        </td>
+                    </tr>
+                @endforelse
                 </tbody>
             </table>
 
-            {{ $apps->links() }}
+            {{-- Pagination + Results Count --}}
+            <div class="d-flex justify-content-between align-items-center flex-wrap mt-2">
+                <div class="small text-muted">
+                    @php
+                        $first = $apps->firstItem() ?? 0;
+                        $last = $apps->lastItem() ?? 0;
+                        $total = $apps->total();
+                        $pageCount = $apps->count();
+                    @endphp
+
+                    Showing <strong>{{ $first }}</strong> to <strong>{{ $last }}</strong>
+                    of <strong>{{ $total }}</strong> records
+                    — This page: <strong>{{ $pageCount }}</strong>
+                </div>
+
+                <div>
+                    {{ $apps->onEachSide(1)->links() }}
+                </div>
+            </div>
 
         </div>
     </div>

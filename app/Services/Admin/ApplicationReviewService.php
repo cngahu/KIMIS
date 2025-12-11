@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Services\Admin;
+
 use App\Mail\ApplicationApprovedMail;
 use App\Mail\OfficerAssignmentMail;
 use App\Models\Application;
@@ -8,9 +9,9 @@ use App\Services\AdmissionPdfService;
 use App\Services\ApplicantAccountService;
 use App\Services\Audit\AuditLogService;
 use Illuminate\Support\Facades\Mail;
+
 class ApplicationReviewService
 {
-
     protected AuditLogService $audit;
 
     public function __construct(AuditLogService $audit)
@@ -26,12 +27,12 @@ class ApplicationReviewService
         // Update assignment
         $application->update([
             'reviewer_id' => $reviewerId,
-            'status' => 'under_review',
+            'status'      => 'under_review',
         ]);
 
         // Log audit
         $this->audit->log('application_assigned', $application, [
-            'new' => ['reviewer_id' => $reviewerId]
+            'new' => ['reviewer_id' => $reviewerId],
         ]);
 
         // Send email to officer
@@ -42,107 +43,114 @@ class ApplicationReviewService
     }
 
     /**
-     * Approve application
+     * Legacy simple approve (kept for reference / backwards compatibility)
      */
     public function approve0(Application $application, string $comment = null)
     {
         $application->update([
-            'status' => 'approved',
+            'status'            => 'approved',
             'reviewer_comments' => $comment,
         ]);
 
         $this->audit->log('application_approved', $application, [
-            'new' => ['reviewer_comments' => $comment]
+            'new' => ['reviewer_comments' => $comment],
         ]);
 
         // Send email to applicant
         Mail::to($application->email)
             ->send(new \App\Mail\ApplicationApprovedMail($application));
 
-        // Send email to registrar
-//        Mail::to('papacosi@gmail.com')
-//            ->send(new \App\Mail\AdminApplicationApprovedMail($application));
-
         return $application;
     }
-    public function approve(Application $application, string $comment = null)
+
+    /**
+     * Approve application WITH chosen course.
+     *
+     * @param  \App\Models\Application  $application
+     * @param  int                      $approvedCourseId   The course selected by the officer
+     * @param  string|null              $comment            Officer's comments
+     */
+
+
+
+    public function approve(Application $application, string $comment = null, ?int $approvedCourseId = null)
     {
-        // Create applicant portal account
-        $account = app(ApplicantAccountService::class)
+        // ---- 1. Metadata: applied vs admitted ----
+        $meta = $application->metadata ?? [];
+
+        // If we don't have the original yet, save it now
+        if (! isset($meta['applied_course_id'])) {
+            $meta['applied_course_id'] = $application->course_id;
+        }
+
+        // Decide which course is the admitted one
+        $admittedCourseId = $approvedCourseId ?: $meta['applied_course_id'];
+
+        $meta['admitted_course_id'] = $admittedCourseId;
+
+        // ---- 2. Create applicant account (unchanged) ----
+        $account = app(\App\Services\ApplicantAccountService::class)
             ->createApplicantAccount($application);
 
-        $rawPassword = $account['password'];  // Needed for email
-        $user = $account['user'];
+        $rawPassword = $account['password'];
+        $user        = $account['user'];
 
-        // Update application
+        // ---- 3. Update application (status, comments, metadata, course_id = admitted) ----
         $application->update([
-            'status' => 'approved',
+            'status'            => 'approved',
             'reviewer_comments' => $comment,
+            'metadata'          => $meta,
+            'course_id'         => $admittedCourseId,   // app now points to the admitted course
         ]);
 
-        // Log
+        // ---- 4. Audit log ----
         $this->audit->log('application_approved', $application, [
-            'new' => ['reviewer_comments' => $comment]
+            'new' => [
+                'reviewer_comments'   => $comment,
+                'applied_course_id'   => $meta['applied_course_id'],
+                'admitted_course_id'  => $meta['admitted_course_id'],
+            ]
         ]);
 
-        // Generate PDFs
-//        $admissionLetter = app(AdmissionPdfService::class)
-//            ->generateAdmissionLetter($application);
-//
-//        $feeStructure = app(AdmissionPdfService::class)
-//            ->generateFeeStructure($application);
-//
-//        // Send email
-//        Mail::to($application->email)->send(
-//            new ApplicationApprovedMail(
-//                $application,
-//                $user,
-//                $rawPassword,
-//                $admissionLetter,
-//                $feeStructure
-//            )
-//        );
-        $admissionLetter = app(AdmissionPdfService::class)
+        // ---- 5. PDFs + email (your existing logic) ----
+        $admissionLetter = app(\App\Services\AdmissionPdfService::class)
             ->generateAdmissionLetter($application);
 
-        $feeStructure = app(AdmissionPdfService::class)
+        $feeStructure = app(\App\Services\AdmissionPdfService::class)
             ->generateFeeStructure($application);
 
-        $medicalReport = app(AdmissionPdfService::class)
+        $medicalReport = app(\App\Services\AdmissionPdfService::class)
             ->generatemedical($application);
 
-        $requirement = app(AdmissionPdfService::class)
+        $requirement = app(\App\Services\AdmissionPdfService::class)
             ->generaterequirement($application);
 
-
-        Mail::to($application->email)->send(
-            new ApplicationApprovedMail(
+        \Mail::to($application->email)->send(
+            new \App\Mail\ApplicationApprovedMail(
                 $application,
                 $user,
                 $rawPassword,
                 $admissionLetter,
                 $feeStructure,
-                $medicalReport,
+                $feeStructure,
                 $requirement,
-
             )
         );
 
         return $application;
     }
 
-    /**
-     * Reject application
-     */
+
+
     public function reject0(Application $application, string $comment)
     {
         $application->update([
-            'status' => 'rejected',
+            'status'            => 'rejected',
             'reviewer_comments' => $comment,
         ]);
 
         $this->audit->log('application_rejected', $application, [
-            'new' => ['reviewer_comments' => $comment]
+            'new' => ['reviewer_comments' => $comment],
         ]);
 
         // Notify applicant
@@ -155,22 +163,28 @@ class ApplicationReviewService
 
         return $application;
     }
+
+    /**
+     * Current reject implementation
+     */
     public function reject(Application $application, string $comment)
     {
         $application->update([
-            'status' => 'rejected',
+            'status'            => 'rejected',
             'reviewer_comments' => $comment,
         ]);
 
         // Log
         $this->audit->log('application_rejected', $application, [
-            'new' => ['reviewer_comments' => $comment]
+            'new' => ['reviewer_comments' => $comment],
         ]);
 
-        // Send rejection email
-        Mail::to($application->email)->send(
-            new \App\Mail\ApplicationRejectedMail($application, $comment)
-        );
+        // Send rejection email (with comment)
+        if (!empty($application->email)) {
+            Mail::to($application->email)->send(
+                new \App\Mail\ApplicationRejectedMail($application, $comment)
+            );
+        }
 
         return $application;
     }
@@ -179,5 +193,4 @@ class ApplicationReviewService
     {
         $this->audit->log('application_viewed_by_officer', $application);
     }
-
 }

@@ -84,4 +84,7 @@ class OTPService
     {
         $otp->update(['used' => true]);
     }
+
+
+
 }
