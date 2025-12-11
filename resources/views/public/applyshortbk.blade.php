@@ -31,19 +31,13 @@
                     </div>
                 @endif
 
-                    @if ($errors->any())
-                        <div class="alert alert-danger">
-                            <strong>There were some issues with your submission:</strong>
-                            <ul class="mt-2 mb-0">
-                                @foreach ($errors->all() as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    @endif
+                @if($errors->any())
+                    <div class="alert alert-danger">
+                        Please correct the errors below.
+                    </div>
+                @endif
 
-
-                    <form action="{{ route('short_trainings.store', $training) }}"
+                <form action="{{ route('short_trainings.store', $training) }}"
                       method="POST"
                       enctype="multipart/form-data"
                       id="shortTrainingForm"
@@ -74,108 +68,17 @@
                             <div id="employerFields"
                                  style="display: {{ old('financier') === 'employer' ? 'block' : 'none' }};">
 
-                                <div class="row g-3">
-
-                                    <div class="col-md-6">
-                                        <label class="form-label">Employer / Institution Name *</label>
-                                        <input type="text"
-                                               name="employer_name"
-                                               value="{{ old('employer_name') }}"
-                                               class="form-control @error('employer_name') is-invalid @enderror">
-                                        @error('employer_name')
-                                        <span class="text-danger small">{{ $message }}</span>
-                                        @enderror
-                                    </div>
-
-                                    <div class="col-md-6">
-                                        <label class="form-label">Contact Person *</label>
-                                        <input type="text"
-                                               name="employer_contact_person"
-                                               value="{{ old('employer_contact_person') }}"
-                                               class="form-control @error('employer_contact_person') is-invalid @enderror">
-                                        @error('employer_contact_person')
-                                        <span class="text-danger small">{{ $message }}</span>
-                                        @enderror
-                                    </div>
-
-                                    <div class="col-md-4">
-                                        <label class="form-label">Employer Phone *</label>
-                                        <input type="text"
-                                               name="employer_phone"
-                                               value="{{ old('employer_phone') }}"
-                                               class="form-control @error('employer_phone') is-invalid @enderror">
-                                        @error('employer_phone')
-                                        <span class="text-danger small">{{ $message }}</span>
-                                        @enderror
-                                    </div>
-
-                                    <div class="col-md-4">
-                                        <label class="form-label">Employer Email *</label>
-                                        <input type="email"
-                                               name="employer_email"
-                                               value="{{ old('employer_email') }}"
-                                               class="form-control @error('employer_email') is-invalid @enderror">
-                                        @error('employer_email')
-                                        <span class="text-danger small">{{ $message }}</span>
-                                        @enderror
-                                    </div>
-
-                                    <div class="col-md-4">
-                                        <label class="form-label">Postal Address *</label>
-                                        <input type="text"
-                                               name="employer_postal_address"
-                                               value="{{ old('employer_postal_address') }}"
-                                               class="form-control @error('employer_postal_address') is-invalid @enderror">
-                                        @error('employer_postal_address')
-                                        <span class="text-danger small">{{ $message }}</span>
-                                        @enderror
-                                    </div>
-
-                                    <div class="col-md-6">
-                                        <label class="form-label">Postal Code *</label>
-                                        <select name="employer_postal_code_id"
-                                                class="form-select select2 @error('employer_postal_code_id') is-invalid @enderror">
-                                            <option value="">Choose...</option>
-                                            @foreach($postalCodes as $pc)
-                                                <option value="{{ $pc->id }}" {{ old('employer_postal_code_id') == $pc->id ? 'selected':'' }}>
-                                                    {{ $pc->code }} - {{ $pc->town }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                        @error('employer_postal_code_id')
-                                        <span class="text-danger small">{{ $message }}</span>
-                                        @enderror
-                                    </div>
-
-                                    <div class="col-md-6">
-                                        <label class="form-label">Town *</label>
-                                        <input type="text"
-                                               name="employer_town"
-                                               value="{{ old('employer_town') }}"
-                                               class="form-control @error('employer_town') is-invalid @enderror">
-                                        @error('employer_town')
-                                        <span class="text-danger small">{{ $message }}</span>
-                                        @enderror
-                                    </div>
-
-                                    <div class="col-md-6">
-                                        <label class="form-label">County *</label>
-                                        <select name="employer_county_id"
-                                                class="form-select select2 @error('employer_county_id') is-invalid @enderror">
-                                            <option value="">Choose...</option>
-                                            @foreach($counties as $county)
-                                                <option value="{{ $county->id }}" {{ old('employer_county_id') == $county->id ? 'selected':'' }}>
-                                                    {{ $county->name }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                        @error('employer_county_id')
-                                        <span class="text-danger small">{{ $message }}</span>
-                                        @enderror
-                                    </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Employer / Institution Name *</label>
+                                    <input type="text"
+                                           name="employer_name"
+                                           value="{{ old('employer_name') }}"
+                                           class="form-control @error('employer_name') is-invalid @enderror">
+                                    @error('employer_name')
+                                    <span class="text-danger small">{{ $message }}</span>
+                                    @enderror
                                 </div>
                             </div>
-
 
                         </div>
                     </div>

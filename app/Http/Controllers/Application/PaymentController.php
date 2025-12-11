@@ -263,6 +263,7 @@ class PaymentController extends Controller
     public function pay($id)
     {
 
+
         $application = Application::with('invoice', 'course')->findOrFail($id);
 
         $invoice = $application->invoice;

@@ -25,6 +25,7 @@
             'postal_address',
             'co',
             'town',
+                'application_id',
             ];
 
     public function training()
@@ -51,4 +52,10 @@
         {
             return $this->belongsTo(PostalCode::class, 'postal_code_id');
         }
+
+        public function application()
+        {
+            return $this->belongsTo(ShortTrainingApplication::class, 'application_id');
+        }
+
     }
