@@ -7,6 +7,7 @@
         <div class="card shadow-sm">
             <div class="card-body">
 
+                {{-- Title + Search Bar --}}
                 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
                     <h5 class="mb-0">My Completed Applications (Approved / Rejected)</h5>
 
@@ -31,6 +32,7 @@
                     </form>
                 </div>
 
+                {{-- Search hint --}}
                 @if(request('search'))
                     <p class="small text-muted mb-2">
                         Showing results for: <strong>"{{ request('search') }}"</strong>
@@ -45,6 +47,7 @@
                         <th>Course</th>
                         <th>Status</th>
                         <th>Decision Date</th>
+                        <th>View</th>
                     </tr>
                     </thead>
 
@@ -60,10 +63,20 @@
                                 </span>
                             </td>
                             <td>{{ $app->updated_at->format('d M Y, h:i A') }}</td>
+
+                            {{-- View details in modal (same modal as registrar) --}}
+                            <td>
+                                <button class="btn btn-sm btn-secondary"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#viewApplicationModal"
+                                        onclick="loadApplication({{ $app->id }})">
+                                    View
+                                </button>
+                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="text-center text-muted">
+                            <td colspan="6" class="text-center text-muted">
                                 No completed applications found.
                             </td>
                         </tr>
@@ -75,9 +88,9 @@
                 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
                     <div class="small text-muted">
                         @php
-                            $first = $apps->firstItem() ?? 0;
-                            $last  = $apps->lastItem() ?? 0;
-                            $pageCount = $apps->count();
+                            $first         = $apps->firstItem() ?? 0;
+                            $last          = $apps->lastItem() ?? 0;
+                            $pageCount     = $apps->count();
                             $filteredTotal = $apps->total();
                         @endphp
 
@@ -94,12 +107,13 @@
                         @isset($totalAll)
                             <br>
                             <span>
-                                Total completed applications you reviewed: <strong>{{ $totalAll }}</strong>.
+                                Total completed applications you reviewed:
+                                <strong>{{ $totalAll }}</strong>.
                             </span>
                         @endisset
                     </div>
 
-                    <div>
+                    <div class="pagination-container">
                         {{ $apps->onEachSide(1)->links() }}
                     </div>
                 </div>
@@ -108,5 +122,8 @@
         </div>
 
     </div>
+
+    {{-- Reuse the same modal + JS used by registrar --}}
+    @include('admin.registrar.applications.modal')
 
 @endsection
