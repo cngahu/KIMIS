@@ -154,7 +154,7 @@ class PesaFlowConfirmationController extends Controller
             'message' => 'Notification processed successfully'
         ], 200);
     }
-    public function index(Request $request)
+    public function index3(Request $request)
     {
         // Default Laravel parsing
         $data = $request->all();
@@ -208,6 +208,62 @@ class PesaFlowConfirmationController extends Controller
                     'gateway_reference' => $paymentReference['payment_reference'] ?? null,
                     'paid_at'           => $paymentReference['payment_date'] ?? now(),
                 ]);
+            }
+        }
+
+        return response()->json(['message' => 'Notification processed successfully'], 200);
+    }
+    public function index(Request $request)
+    {
+        $data = $request->all();
+
+        if (!isset($data['invoice_amount']) || !isset($data['invoice_number'])) {
+            $raw = $request->getContent();
+            $json = json_decode($raw, true);
+
+            if (is_array($json)) {
+                $data = array_merge($data, $json);
+            }
+        }
+
+        $clientInvoiceRef  = $data['client_invoice_ref'] ?? null;
+        $status            = $data['status'] ?? null;
+        $paymentChannel    = $data['payment_channel'] ?? null;
+        $invoiceAmount     = $data['invoice_amount'] ?? null;
+        $eciInvoiceNumber  = $data['invoice_number'] ?? null;
+        $amountPaid        = $data['amount_paid'] ?? null;
+        $paymentReference  = $data['payment_reference'][0] ?? [];
+
+        $invoice = Invoice::where('invoice_number', $clientInvoiceRef)->first();
+
+        if ($invoice) {
+
+            // Save notification log
+            $existing = $invoice->ecitizen_notification ?? [];
+            $existing[] = [
+                'received_at' => now()->toDateTimeString(),
+                'payload'     => $data,
+            ];
+
+            $invoice->update([
+                'ecitizen_notification' => $existing,
+                'invoice_amount'        => $invoiceAmount,
+                'payment_channel'       => $paymentChannel,
+                'ecitizen_invoice_number' => $eciInvoiceNumber,
+            ]);
+
+            // Mark paid
+            if ($status === 'settled') {
+                $invoice->update([
+                    'status'            => 'paid',
+                    'amount_paid'       => $amountPaid,
+                    'gateway_reference' => $paymentReference['payment_reference'] ?? null,
+                    'paid_at'           => $paymentReference['payment_date'] ?? now(),
+                ]);
+
+                // 🔥 Delegate workflow to service
+                app(\App\Services\PaymentProcessingService::class)
+                    ->handleInvoicePaid($invoice);
             }
         }
 

@@ -73,11 +73,11 @@ class ShortTrainingApplication extends Model
         return $this->hasMany(ShortTraining::class, 'application_id');
     }
 
-    public function invoices()
-    {
-        // invoices linked using application_id (same pattern as for long courses)
-        return $this->hasMany(\App\Models\Invoice::class, 'application_id');
-    }
+//    public function invoices()
+//    {
+//        // invoices linked using application_id (same pattern as for long courses)
+//        return $this->hasMany(\App\Models\Invoice::class, 'application_id');
+//    }
 
     /* -------------------------
        Helper accessors
@@ -91,6 +91,10 @@ class ShortTrainingApplication extends Model
     public function isSelf(): bool
     {
         return $this->financier === 'self';
+    }
+    public function invoices()
+    {
+        return $this->morphMany(Invoice::class, 'billable');
     }
 
 

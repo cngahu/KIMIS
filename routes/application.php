@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Application\ApplicationController;
 use App\Http\Controllers\Application\PaymentController;
 use App\Http\Controllers\public\CertificateLookupController;
+use App\Http\Controllers\Invoices\InvoiceController;
 
 //Route::get('/apply/{course}', [ApplicationController::class, 'showForm'])->name('applications.form');
 //Route::post('/apply/store', [ApplicationController::class, 'store'])->name('applications.store');
@@ -29,6 +30,10 @@ Route::get('/short-training/payment/{invoice}', [
     ApplicationController::class,
     'show'
 ])->name('short_training.payment');
+Route::get('/invoice/{invoice}/pdf', [InvoiceController::class, 'pdf'])
+    ->name('invoices.pdf');
+Route::get('/pay/invoice/{invoice}', [InvoiceController::class, 'payByInvoice'])
+    ->name('invoices.pay');
 
 
 Route::post('/apply/store', [ApplicationController::class, 'store'])->name('applications.store');
