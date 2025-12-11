@@ -96,6 +96,10 @@ class ShortTrainingApplication extends Model
     {
         return $this->morphMany(Invoice::class, 'billable');
     }
+     public function invoice()
+    {
+        return $this->morphOne(\App\Models\Invoice::class, 'billable');
+    }
 
 
 }

@@ -39,7 +39,7 @@ class PaymentProcessingService
     {
         $app->update([
             'payment_status' => 'paid',
-            'status' => 'under_review',
+            'status' => 'submitted',
         ]);
 
         // trigger vetting workflow, send email, etc.

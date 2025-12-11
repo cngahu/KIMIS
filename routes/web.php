@@ -28,6 +28,7 @@ use App\Http\Controllers\Admin\ShortCourseDataController;
 use App\Http\Controllers\Admin\AdmissionRecordImportController;
 use App\Http\Controllers\Admin\BiodataImportController;
 use App\Http\Controllers\Payment\PaymentSimulationController;
+use App\Http\Controllers\Report\ShortCoursesReportsController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -239,6 +240,18 @@ Route::middleware(['auth','history','verified'])->group(function () {
             [RegistrarApplicationController::class, 'view']);
     });
 
+    Route::get('/reports/rejected', [ReportController::class, 'rejectedIndex'])
+        ->name('reports.rejected');
+
+    Route::get('/reports/rejected/pdf', [ReportController::class, 'rejectedPdf'])
+        ->name('reports.rejected.pdf');
+    Route::get('/reports/applications/summary/pdf', [ReportController::class, 'applicationsSummaryPdf'])
+        ->name('reports.summary.pdf');
+    Route::get('/reports/applications/summary',
+        [ReportController::class, 'applicationsSummaryIndex']
+    )->name('reports.summary.index');
+
+
     Route::get('/registrar/dashboard', [RegistrarDashboardController::class, 'index'])
         ->name('registrar.dashboard');
 
@@ -247,16 +260,22 @@ Route::middleware(['auth','history','verified'])->group(function () {
 
         Route::get('/applications', [ReportController::class, 'applicationsIndex'])
             ->name('reports.applications');
+        Route::get('/knec-filter-applications', [ReportController::class, 'applicationsIndexKnec'])
+            ->name('knec.reports.applications');
 
         Route::get('/applications/preview', [ReportController::class, 'applicationsPreview'])
             ->name('reports.applications.preview');
 
         Route::get('/applications/pdf', [ReportController::class, 'applicationsPdf'])
             ->name('reports.applications.pdf');
+        Route::get('/reports/applications/data', [ReportController::class, 'applicationsData'])
+            ->name('reports.applications.data');
 
 
         Route::get('/decisions', [ReportController::class, 'decisionsIndex'])
             ->name('reports.decisions');
+        Route::get('/decisions/rejected-data', [ReportController::class, 'rejectedData'])
+            ->name('reports.decisions.rejected.data');
 
         Route::get('/decisions/preview', [ReportController::class, 'decisionsPreview'])
             ->name('reports.decisions.preview');
@@ -273,6 +292,32 @@ Route::middleware(['auth','history','verified'])->group(function () {
 
         Route::get('/reviewers/pdf', [ReportController::class, 'reviewerPdf'])
             ->name('reports.reviewers.pdf');
+
+
+
+        Route::prefix('reports/short')->name('reports.short.')->group(function () {
+
+            Route::get('/applications', [ShortCoursesReportsController::class, 'shortApplicationsIndex'])
+                ->name('applications');
+
+            Route::get('/applications/pdf', [ShortCoursesReportsController::class, 'shortApplicationsPdf'])
+                ->name('applications.pdf');
+
+            Route::get('/training-summary', [ShortCoursesReportsController::class, 'shortTrainingSummaryIndex'])
+                ->name('training.summary');
+
+            Route::get('/training-summary/pdf', [ShortCoursesReportsController::class, 'shortTrainingSummaryPdf'])
+                ->name('training.summary.pdf');
+
+            Route::get('/participants', [ShortCoursesReportsController::class, 'shortParticipantsIndex'  ])
+                ->name('participants');
+
+            // Participants Master PDF
+            Route::get('/participants/pdf', [ ShortCoursesReportsController::class, 'shortParticipantsPdf' ])
+                ->name('participants.pdf');
+
+        });
+
     });
 
     Route::middleware(['auth', 'role:superadmin|admin'])
