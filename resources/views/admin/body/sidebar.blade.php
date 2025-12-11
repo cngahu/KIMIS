@@ -338,14 +338,14 @@
                     </li>
 
                     <li>
-                        <a href="{{ route('reports.summary.pdf') }}">
-                            <i class="bx bx-radio-circle"></i> KNEC Application Summary
+                        <a href="{{ route('reports.short.employers') }}">
+                            <i class="bx bx-radio-circle"></i> Employers Summary
                         </a>
                     </li>
 
                     <li>
-                        <a href="{{ route('reports.summary.index') }}">
-                            <i class="bx bx-radio-circle"></i> KNEC  Summary
+                        <a href="{{ route('reports.short.revenue.index') }}">
+                            <i class="bx bx-radio-circle"></i> Revenue Report
                         </a>
                     </li>
 

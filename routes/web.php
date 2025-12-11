@@ -316,6 +316,23 @@ Route::middleware(['auth','history','verified'])->group(function () {
             Route::get('/participants/pdf', [ ShortCoursesReportsController::class, 'shortParticipantsPdf' ])
                 ->name('participants.pdf');
 
+            Route::get('/employers', [ShortCoursesReportsController::class, 'employerReportIndex'])
+                ->name('employers');
+
+            Route::get('/employers/pdf', [ShortCoursesReportsController::class, 'employerReportPdf'])
+                ->name('employers.pdf');
+
+            Route::get('/employers/{employer}/statement',[ShortCoursesReportsController::class, 'employerStatement'])
+                ->name('employer.statement');
+
+            Route::get('/employers/{employer}/statement/pdf',  [ShortCoursesReportsController::class, 'employerStatementPdf'])
+                ->name('employer.statement.pdf');
+
+            Route::get('/revenue', [ShortCoursesReportsController::class, 'shortRevenueIndex'])
+                ->name('revenue.index');
+
+            Route::get('/revenue/pdf',[ShortCoursesReportsController::class, 'shortRevenuePdf'])
+                ->name('revenue.pdf');
         });
 
     });
