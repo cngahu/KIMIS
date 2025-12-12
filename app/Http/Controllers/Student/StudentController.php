@@ -18,7 +18,7 @@ class StudentController extends Controller
         return view('student.index',compact('user'));
     }
 
-    public function dashboard()
+    public function dashboard1()
     {
 
         $admission = Admission::with(['application.course'])
@@ -27,8 +27,45 @@ class StudentController extends Controller
 
         // If student has never applied / never admitted
         if (!$admission) {
+
             // For future: direct continuing students
             return view('student.dashboard.no_admission');
+        }
+
+        $status = $admission->status;
+
+        if ($status === 'offer_sent') {
+            return view('student.dashboard.pre_admission', compact('admission'));
+        }
+
+        if (in_array($status, [
+            'offer_accepted',
+            'form_submitted',
+            'documents_uploaded',
+            'fee_paid',
+            'docs_verified',
+            'awaiting_sponsor_verification',
+            'awaiting_fee_decision'
+        ])) {
+            return view('student.dashboard.in_admission', compact('admission'));
+        }
+
+        if (in_array($status, [
+            'admission_number_assigned',
+            'admitted'
+        ])) {
+            return view('student.dashboard.full_student', compact('admission'));
+        }
+    }
+    public function dashboard()
+    {
+        $admission = Admission::with(['application.course'])
+            ->where('user_id', auth()->id())
+            ->first();
+
+        // Always return the partial with $admission (even if null)
+        if (!$admission) {
+            return view('student.dashboard.no_admission', compact('admission'));
         }
 
         $status = $admission->status;

@@ -6,7 +6,9 @@ use App\Models\AdmissionFeePayment;
 use App\Models\Invoice;
 
 use App\Models\Admission;
+use App\Models\InvoiceItem;
 use App\Services\Audit\AuditLogService;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
@@ -140,7 +142,7 @@ class AdmissionPaymentService
     /**
      * Generate an invoice for admission fee (full/partial).
      */
-    public function createInvoiceForAdmission(Admission $admission, float $amount, string $type = 'partial'): Invoice
+    public function createInvoiceForAdmission0(Admission $admission, float $amount, string $type = 'partial'): Invoice
     {
         $invoiceNumber = 'ADM-' . date('Ymd') . '-' . strtoupper(Str::random(6));
 
@@ -175,6 +177,68 @@ class AdmissionPaymentService
         ]);
 
         return $invoice;
+    }
+    public function createInvoiceForAdmission(Admission $admission, float $amount, string $type = 'partial'): Invoice
+    {
+        return DB::transaction(function () use ($admission, $amount, $type) {
+
+            // Generate invoice number
+            $invoiceNumber = 'ADM-' . date('Ymd') . '-' . strtoupper(Str::random(6));
+
+            // Create invoice using new polymorphic structure
+            $invoice = Invoice::create([
+                'billable_type'  => Admission::class,
+                'billable_id'    => $admission->id,
+                'invoice_number' => $invoiceNumber,
+                'category'       => 'admission_fee',
+                'amount'         => $amount,
+                'user_id'=>Auth::user()->id,
+                'status'         => 'pending',
+                'metadata'       => [
+                    'payment_type' => $type,
+                ],
+            ]);
+
+            // Create invoice item according to the invoice_items table structure
+            InvoiceItem::create([
+                'invoice_id'     => $invoice->id,
+                'admission_id'   => $admission->id,
+                'application_id' => $admission->application_id,
+                'course_id'      => optional($admission->application)->course_id,
+
+                // CORRECTED NAME FROM APPLICATION FULL NAME
+                'item_name'      => "Admission Fee ({$type}) for " . $admission->application->full_name,
+
+                'unit_amount'    => $amount,
+                'quantity'       => 1,
+                'total_amount'   => $amount,
+                'metadata'       => json_encode([
+                    'fee_type'      => $type,
+                    'student_name'  => $admission->application->full_name,
+                ]),
+            ]);
+
+
+            // Ledger entry for admissions
+            AdmissionFeePayment::create([
+                'admission_id' => $admission->id,
+                'invoice_id'   => $invoice->id,
+                'amount'       => $amount,
+                'payment_type' => $type,
+                'status'       => 'pending'
+            ]);
+
+            // Audit trail
+            $this->audit->log('admission_invoice_created', $invoice, [
+                'new' => [
+                    'amount'         => $amount,
+                    'payment_type'   => $type,
+                    'invoice_number' => $invoiceNumber
+                ]
+            ]);
+
+            return $invoice;
+        });
     }
 
 
