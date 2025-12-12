@@ -30,7 +30,7 @@ class AuthenticatedSessionController extends Controller
     /**
      * Handle an incoming authentication request.
      */
-    public function store(LoginRequest $request): RedirectResponse
+    public function store1(LoginRequest $request): RedirectResponse
     {
 
         $request->authenticate();
@@ -70,7 +70,7 @@ class AuthenticatedSessionController extends Controller
 //        return redirect()->intended(RouteServiceProvider::HOME);
        // return redirect()->intended($url);
     }
-    public function store1(LoginRequest $request)
+    public function store(LoginRequest $request)
     {
         // 1) Validate + authenticate username/password
         $request->authenticate();
