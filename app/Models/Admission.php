@@ -19,7 +19,8 @@ class Admission extends Model
         'verified_at',
         'verified_by',
         'admission_number',
-        'admitted_at'
+        'admitted_at',
+        'required_fee'
     ];
     // link back to the application
     public function application()
