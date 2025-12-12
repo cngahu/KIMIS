@@ -10,6 +10,8 @@ use Illuminate\Support\Str;
 class Subcounty extends Model
 {
     use HasFactory;
+
+    protected $table = 'subcounties';
     protected $fillable = [
         'county_id',
         'name',

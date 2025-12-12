@@ -84,7 +84,7 @@
                         </td>
 
 
-                        <td>{{ optional($inv->application->course)->course_name }}</td>
+                        <td>{{ optional($inv->application?->course)->course_name ?? '--' }}</td>
 
                         <td>KES {{ number_format($inv->amount,2) }}</td>
 
