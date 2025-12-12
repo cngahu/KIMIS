@@ -162,23 +162,25 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerate();
 
         // ROLE REDIRECT
-        if ($user->hasRole('applicant')) {
-            return redirect('applicant/dashboard');
+
+        if($request->user()->hasRole('applicant')){
+            $url='student/dashboard';
         }
-        elseif ($user->hasRole('superadmin')) {
-            return redirect('/dashboard');
+        elseif($request->user()->hasRole('superadmin')){
+            $url='/dashboard';
         }
 
-        elseif ($user->hasRole('hod')) {
-            return redirect('/dashboard');
+        elseif($request->user()->hasRole('hod')){
+            $url='/dashboard';
         }
 
-        elseif($request->user()->hasRole('campus_registrar')) {
+        elseif($request->user()->hasRole('campus_registrar')){
+            $url='/dashboard';
+        }
+
+        elseif($request->user()->hasRole('kihbt_registrar')) {
             $url = '/dashboard';
         }
-        elseif($request->user()->hasRole('kihbt_registrar')){
-            $url='/dashboard';
-         }
 
         elseif($request->user()->hasRole('director')) {
             $url = '/dashboard';
@@ -186,12 +188,11 @@ class AuthenticatedSessionController extends Controller
         elseif($request->user()->hasRole('student')) {
             return redirect('student/dashboard');
         }
-        else
-        {
-            dd('Am here');
-            dd('Am here');
+
+        else {
+            abort(403);
         }
-        abort(403);
+        return redirect($url);
     }
     public function resendOtp(Request $request)
     {
