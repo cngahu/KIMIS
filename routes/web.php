@@ -29,6 +29,7 @@ use App\Http\Controllers\Admin\AdmissionRecordImportController;
 use App\Http\Controllers\Admin\BiodataImportController;
 use App\Http\Controllers\Payment\PaymentSimulationController;
 use App\Http\Controllers\Report\ShortCoursesReportsController;
+use App\Http\Controllers\Report\FinanceReportController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -128,6 +129,11 @@ Route::middleware(['auth','history','verified'])->group(function () {
 
         Route::post('/clear/{admission}', [\App\Http\Controllers\Admin\AccountsController::class, 'clearForAdmission'])
             ->name('clear.admission');
+
+
+
+
+
     });
 
 
@@ -215,6 +221,13 @@ Route::middleware(['auth','history','verified'])->group(function () {
             ->name('admin.biodata.index');
 
     });
+
+
+
+
+
+
+
 
 
     Route::get('/applications/awaiting',
@@ -614,3 +627,4 @@ Route::group(['middleware' => ['role:applicant','auth','history','verified']], f
 require __DIR__.'/auth.php';
 require __DIR__.'/application.php';
 require __DIR__.'/student.php';
+require __DIR__.'/finance.php';

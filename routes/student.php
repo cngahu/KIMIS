@@ -3,6 +3,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\Student\StudentController;
 use App\Http\Controllers\Student\AdmissionController;
+use App\Http\Controllers\Student\FeeStatementController;
 
 // DEVELOPMENT PAYMENT SIMULATION ENDPOINT
 // ----------- SIMPLE PAYMENT SIMULATOR (DEV ONLY) ----------
@@ -80,6 +81,13 @@ Route::group(['middleware' => ['role:student','auth','history','verified']], fun
     Route::post('/admission/payment/callback', [App\Http\Controllers\Student\AdmissionController::class, 'paymentCallback'])
         ->name('student.admission.payment.callback');
 
+
+
+    Route::get('/student/fee-statement', [FeeStatementController::class, 'index'])
+        ->name('student.fee.statement');
+
+    Route::get('/student/fee-statement/pdf', [FeeStatementController::class, 'downloadPdf'])
+        ->name('student.fee.statement.pdf');
 
 });
 

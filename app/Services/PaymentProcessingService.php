@@ -73,7 +73,7 @@ class PaymentProcessingService
         // send email / SMS to employer or student
     }
 
-    protected function handleAdmissionFeePaid(Admission $admission, Invoice $invoice)
+    protected function handleAdmissionFeePaid0(Admission $admission, Invoice $invoice)
     {
         // 1. Get required fee
         $courseFee = $admission->required_fee ?? 0;
@@ -103,6 +103,40 @@ class PaymentProcessingService
             'admission_id' => $admission->id,
             'paid_total'   => $paidTotal,
             'course_fee'   => $courseFee,
+        ]);
+    }
+    protected function handleAdmissionFeePaid(Admission $admission, Invoice $invoice)
+    {
+        // 1. Update the ledger entry for THIS specific invoice
+        $fp = AdmissionFeePayment::where('invoice_id', $invoice->id)->first();
+
+        if ($fp) {
+            $fp->update([
+                'status'  => 'paid',
+                'paid_at' => now(),
+            ]);
+        }
+
+        // 2. Compute total paid so far for this admission (ALL invoices)
+        $courseFee = $admission->required_fee ?? 0;
+
+        $paidTotal = AdmissionFeePayment::where('admission_id', $admission->id)
+            ->where('status', 'paid')
+            ->sum('amount'); // YES — this stays using admission_id
+
+        // 3. Update admission status
+        if (bccomp($paidTotal, $courseFee, 2) >= 0) {
+            $admission->update(['status' => 'fee_paid']);
+        } else {
+            $admission->update(['status' => 'fee_pending']);
+        }
+
+        // 4. Audit log
+        app(AuditLogService::class)->log('admission_fee_paid', $invoice, [
+            'admission_id' => $admission->id,
+            'paid_total'   => $paidTotal,
+            'course_fee'   => $courseFee,
+            'invoice_id'   => $invoice->id,
         ]);
     }
 

@@ -421,6 +421,20 @@
                         </a>
                     </li>
 
+                    <li>
+                        <a href="{{ route('reports.daily.collections') }}">
+                            <i class="bx bx-radio-circle"></i> Daily Collections Report
+
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('reports.outstanding') }}">
+                            <i class="bx bx-radio-circle"></i>Outstanding Payments
+
+                        </a>
+                    </li>
+
+
                 </ul>
             </li>
         @endif

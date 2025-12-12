@@ -93,7 +93,7 @@
     </li>
 
     <li>
-        <a href="{{ route('student.dashboard') }}">
+        <a href="{{ route('student.fee.statement') }}">
             <div class="parent-icon"><i class="bx bx-money"></i></div>
             <div class="menu-title">Fees & Payments</div>
         </a>

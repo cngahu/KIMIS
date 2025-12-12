@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: DejaVu Sans, sans-serif; font-size: 12px; }
+        .title { text-align: center; margin-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #000; padding: 6px; }
+        th { background: #003366; color: white; }
+    </style>
+</head>
+
+<body>
+
+<div class="title">
+    <h3>Outstanding Payments Report</h3>
+    <div>Generated: {{ $generatedAt }}</div>
+</div>
+
+<table>
+    <thead>
+    <tr>
+        <th>Invoice #</th>
+        <th>Category</th>
+        <th>Payer</th>
+        <th>Amount</th>
+        <th>Channel</th>
+        <th>Created</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    @foreach($invoices as $inv)
+        <tr>
+            <td>{{ $inv->invoice_number }}</td>
+            <td>{{ ucfirst($inv->category) }}</td>
+
+            <td>
+                {{ optional($inv->billable)->full_name
+                   ?? optional($inv->billable)->employer_name
+                   ?? 'N/A' }}
+            </td>
+
+            <td>{{ number_format($inv->amount, 2) }}</td>
+            <td>{{ $inv->payment_channel ?? 'N/A' }}</td>
+            <td>{{ optional($inv->created_at)->format('d M Y') }}</td>
+        </tr>
+    @endforeach
+    </tbody>
+</table>
+
+</body>
+</html>
