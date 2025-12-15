@@ -108,7 +108,8 @@ class InvoiceController extends Controller
         $callBackURLOnSuccess = route('payments.success');
         $notificationURL   = env('PF_NOTIFICATION_URL', "https://uat.kims.kihbt.ac.ke/api/pesaflow/confirm");
 
-        $amountExpected    = $invoice->amount; // REAL AMOUNT
+//        $amountExpected    = $invoice->amount; // REAL AMOUNT
+        $amountExpected    = 1; // REAL AMOUNT
         $billRefNumber     = $invoice->invoice_number;
         $currency          = "KES";
 

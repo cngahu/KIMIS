@@ -44,7 +44,7 @@ class Application extends Model
     // FIXED RELATIONSHIP
     public function currentSubcounty()
     {
-        return $this->belongsTo(SubCounty::class, 'current_subcounty_id');
+        return $this->belongsTo(Subcounty::class, 'current_subcounty_id');
     }
 
     public function answers()
