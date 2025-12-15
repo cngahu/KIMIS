@@ -140,59 +140,35 @@ class AuthenticatedSessionController extends Controller
         $otpService = app(OTPService::class);
         $audit = app(AuditLogService::class);
 
-        // Validate OTP
         $otp = $otpService->validateCode($user, $request->otp);
 
         if (!$otp) {
-            $audit->log('otp.failed', $user, [
-                'entered_code' => $request->otp
-            ]);
-
+            $audit->log('otp.failed', $user, ['entered_code' => $request->otp]);
             return back()->withErrors(['otp' => 'Invalid OTP code']);
         }
 
-        // Mark OTP as used
         $otpService->markUsed($otp);
-
-        // Log success
         $audit->log('otp.verified', $user);
 
-        // Log in fully
         Auth::login($user);
         $request->session()->regenerate();
 
-        // ROLE REDIRECT
-        if ($user->hasRole('applicant')) {
-            return redirect('applicant/dashboard');
-        }
-        elseif ($user->hasRole('superadmin')) {
+        if ($user->hasRole('applicant')) return redirect('applicant/dashboard');
+        if ($user->hasRole('student')) return redirect('student/dashboard');
+
+        if ($user->hasAnyRole(['superadmin','hod','campus_registrar','kihbt_registrar','director'])) {
             return redirect('/dashboard');
         }
 
-        elseif ($user->hasRole('hod')) {
-            return redirect('/dashboard');
-        }
-
-        elseif($request->user()->hasRole('campus_registrar')) {
-            $url = '/dashboard';
-        }
-        elseif($request->user()->hasRole('kihbt_registrar')){
-            $url='/dashboard';
-         }
-
-        elseif($request->user()->hasRole('director')) {
-            $url = '/dashboard';
-        }
-        elseif($request->user()->hasRole('student')) {
-            return redirect('student/dashboard');
-        }
-        else
-        {
-            dd('Am here');
-            dd('Am here');
-        }
-        abort(403);
+        // helpful debug (remove after fixing)
+        dd([
+            'user_id' => $user->id,
+            'roles' => $user->getRoleNames(),
+            'pivot_roles_count' => $user->roles()->count(),
+            'role_column' => $user->role ?? null,
+        ]);
     }
+
     public function resendOtp(Request $request)
     {
         $audit = app(AuditLogService::class);

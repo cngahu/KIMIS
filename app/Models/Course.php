@@ -26,4 +26,17 @@ class Course extends Model
     {
         return $this->belongsTo(\App\Models\College::class, 'college_id');
     }
+
+    public function hods()
+    {
+        return $this->belongsToMany(\App\Models\User::class, 'course_user')->withTimestamps();
+    }
+
+
+    public function department()
+    {
+        return $this->belongsTo(\App\Models\Departmentt::class, 'department_id');
+    }
+
+
 }

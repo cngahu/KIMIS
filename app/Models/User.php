@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use App\Models\College;
-
+use Illuminate\Support\Carbon;
 class User extends Authenticatable implements MustVerifyEmail
 {
     use HasApiTokens, HasFactory, Notifiable, HasRoles;
@@ -41,8 +41,11 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'password_expires_at' => 'datetime',
+        'password_changed_at' => 'datetime',
         'password' => 'hashed',
     ];
+
     public static  function getpermissionGroups(){
        $get_permissionGroups= DB::table('permissions')->select('group_name')->groupBy('group_name')->get();
        return $get_permissionGroups;
@@ -91,6 +94,29 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->belongsTo(College::class, 'campus_id');
     }
 
+    public function passwordIsExpired(): bool
+    {
+        if (!$this->password_expires_at) return false;
+        return Carbon::now()->greaterThan($this->password_expires_at);
+    }
 
+
+    // helper: courses the HOD can access (via departments)
+    public function managedCourses()
+    {
+        return Course::query()
+            ->whereIn('department_id', $this->departments()->pluck('departmentts.id'))
+            ->where('college_id', $this->campus_id);
+    }
+
+    public function departments()
+    {
+        return $this->belongsToMany(\App\Models\Departmentt::class, 'department_user', 'user_id', 'department_id');
+    }
+
+    public function courses()
+    {
+        return $this->belongsToMany(\App\Models\Course::class, 'course_user', 'user_id', 'course_id');
+    }
 
 }

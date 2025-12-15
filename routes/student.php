@@ -15,7 +15,7 @@ Route::post('/simulate-payment', [App\Http\Controllers\Student\AdmissionControll
     ->name('simulate.payment');
 
 
-Route::group(['middleware' => ['role:student','auth','history','verified']], function () {
+Route::group(['middleware' => ['role:student','auth','history','verified','force.password']], function () {
     //
 
 

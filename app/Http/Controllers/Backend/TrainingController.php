@@ -6,9 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Training;
 use App\Models\Course;
 use App\Models\College;
+use App\Models\TrainingRejection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\TrainingRejection;
 use Illuminate\Support\Facades\DB;
 
 class TrainingController extends Controller
@@ -19,10 +19,8 @@ class TrainingController extends Controller
     }
 
     /**
-     * Display a listing of the trainings.
+     * Display a listing of trainings with role-based visibility.
      */
-
-
     public function index(Request $request)
     {
         $user      = Auth::user();
@@ -32,9 +30,10 @@ class TrainingController extends Controller
         $collegeId = $request->input('college_id'); // campus filter (for superadmin & kihbt_registrar)
 
         $isSuper = $user->hasRole('superadmin');
-        $isHq    = $user->hasRole('kihbt_registrar'); // HQ registrar sees ALL campuses
+        $isHq    = $user->hasRole('kihbt_registrar');
+        $isHod   = $user->hasRole('hod');
 
-        $trainings = Training::with(['course', 'college', 'user'])
+        $trainingsQuery = Training::with(['course', 'college', 'user'])
             // 🔎 Search by course name/code
             ->when($search, function ($q) use ($search) {
                 $q->whereHas('course', function ($cq) use ($search) {
@@ -49,27 +48,52 @@ class TrainingController extends Controller
             // 📌 Course filter
             ->when($courseId, function ($q) use ($courseId) {
                 $q->where('course_id', $courseId);
-            })
-            // 🏫 Superadmin & KIHBT registrar: optional campus filter from request
-            ->when(($isSuper || $isHq) && $collegeId, function ($q) use ($collegeId) {
-                $q->where('college_id', $collegeId);
-            })
-            // 🏫 All other roles: force to own campus
-            ->when(!$isSuper && !$isHq && $user->campus_id, function ($q) use ($user) {
-                $q->where('college_id', $user->campus_id);
-            })
+            });
+
+        /**
+         * ✅ VISIBILITY RULES
+         */
+        if ($isSuper || $isHq) {
+            // Superadmin/HQ can optionally filter by campus
+            if ($collegeId) {
+                $trainingsQuery->where('college_id', $collegeId);
+            }
+        } elseif ($isHod) {
+            // HOD sees ONLY assigned course trainings (+ optional campus restriction)
+            $assignedCourseIds = $user->courses()->pluck('courses.id')->toArray();
+
+            // If HOD has no assigned courses, show none
+            $trainingsQuery->whereIn('course_id', $assignedCourseIds ?: [-1]);
+
+            if ($user->campus_id) {
+                $trainingsQuery->where('college_id', $user->campus_id);
+            }
+        } else {
+            // Other roles: force campus
+            if ($user->campus_id) {
+                $trainingsQuery->where('college_id', $user->campus_id);
+            } else {
+                // no campus linked → show none (or you can abort)
+                $trainingsQuery->whereRaw('1=0');
+            }
+        }
+
+        $trainings = $trainingsQuery
             ->latest()
             ->paginate(10)
             ->appends($request->query());
 
-        $courses = Course::orderBy('course_name')->get();
-
-        // 🔹 Campus list:
-        //     - Superadmin & KIHBT Registrar: all campuses + campus filter dropdown
-        //     - Others: only their own campus, and no real filter visual effect
+        /**
+         * ✅ Filter dropdown data (courses + colleges) should also respect role
+         */
         if ($isSuper || $isHq) {
+            $courses  = Course::orderBy('course_name')->get();
             $colleges = College::orderBy('name')->get();
+        } elseif ($isHod) {
+            $courses  = $user->courses()->orderBy('course_name')->get();
+            $colleges = College::where('id', $user->campus_id)->get();
         } else {
+            $courses  = Course::where('college_id', $user->campus_id)->orderBy('course_name')->get();
             $colleges = College::where('id', $user->campus_id)->get();
         }
 
@@ -94,7 +118,6 @@ class TrainingController extends Controller
         ));
     }
 
-
     /**
      * Show the form for creating a new training.
      * Only HOD & superadmin.
@@ -103,24 +126,19 @@ class TrainingController extends Controller
     {
         $user = Auth::user();
 
-        if (! $user->hasAnyRole(['hod', 'superadmin'])) {
+        if (!$user->hasAnyRole(['hod', 'superadmin'])) {
             abort(403);
         }
 
-        // If SUPERADMIN → see all courses
         if ($user->hasRole('superadmin')) {
             $courses = Course::orderBy('course_name')->get();
         } else {
-            // HOD / others → only courses for their campus
-            $courses = Course::where('college_id', $user->campus_id)
-                ->orderBy('course_name')
-                ->get();
+            // ✅ only assigned courses
+            $courses = $user->courses()->orderBy('course_name')->get();
         }
 
-        // no need for $colleges anymore here
         return view('admin.trainings.create', compact('courses'));
     }
-
 
     /**
      * Store a newly created training in storage.
@@ -128,30 +146,40 @@ class TrainingController extends Controller
      */
     public function store(Request $request)
     {
-        if (! Auth::user()->hasAnyRole(['hod', 'superadmin'])) {
+        $user = Auth::user();
+
+        if (!$user->hasAnyRole(['hod', 'superadmin'])) {
             abort(403);
         }
 
         $data = $request->validate([
-            'course_id'   => 'required|exists:courses,id',
-            'start_date'  => 'required|date',
-            'end_date'    => 'nullable|date|after_or_equal:start_date',
-            'cost'        => 'required|numeric|min:0',
-            // ❌ REMOVE validation for college_id
+            'course_id'  => 'required|exists:courses,id',
+            'start_date' => 'required|date|after_or_equal:today',
+            'end_date'   => 'nullable|date|after_or_equal:start_date',
+            'cost'       => 'required|numeric|min:0',
         ]);
 
-        $user = Auth::user();
-
-        // Ensure user has campus_id set
-        if (! $user->campus_id) {
+        // Ensure campus_id exists for non-superadmin
+        if (!$user->hasRole('superadmin') && !$user->campus_id) {
             return back()
                 ->withErrors(['campus_id' => 'Your account is not linked to any campus. Contact the system administrator.'])
                 ->withInput();
         }
 
+        // ✅ HOD can only create for assigned courses
+        if ($user->hasRole('hod')) {
+            $isAssigned = $user->courses()->where('courses.id', $data['course_id'])->exists();
+            if (!$isAssigned) {
+                return back()->withErrors(['course_id' => 'You are not assigned to that course.'])->withInput();
+            }
+        }
+
         $data['user_id']    = $user->id;
-        $data['college_id'] = $user->campus_id;   // 👈 auto assign campus of logged-in user
-        $data['status']     = Training::STATUS_DRAFT;
+        $data['college_id'] = $user->hasRole('superadmin')
+            ? (Course::find($data['course_id'])->college_id ?? null) // optional: use course college
+            : $user->campus_id;
+
+        $data['status'] = Training::STATUS_DRAFT;
 
         Training::create($data);
 
@@ -160,12 +188,10 @@ class TrainingController extends Controller
             ->with('success', 'Training created as Draft.');
     }
 
-
-
     /**
      * Display the specified training.
+     * (Optional: add visibility check if needed)
      */
-
     public function show(Training $training)
     {
         $training->load([
@@ -178,50 +204,38 @@ class TrainingController extends Controller
         return view('admin.trainings.show', compact('training'));
     }
 
-
-
-//    public function show(Training $training)
-//    {
-//        $training->load(['course', 'college', 'user']);
-//
-//        return view('admin.trainings.show', compact('training'));
-//    }
-
     /**
      * Show the form for editing the specified training.
-     * HOD can edit only Draft/Rejected, superadmin any.
      */
     public function edit(Training $training)
     {
         $user = Auth::user();
 
-        if (! $user->hasAnyRole(['hod', 'superadmin'])) {
+        if (!$user->hasAnyRole(['hod', 'superadmin'])) {
             abort(403);
         }
 
         if ($user->hasRole('superadmin')) {
             $courses = Course::orderBy('course_name')->get();
         } else {
-            $courses = Course::where('college_id', $user->campus_id)
-                ->orderBy('course_name')
-                ->get();
+            $courses = $user->courses()->orderBy('course_name')->get();
         }
 
         return view('admin.trainings.edit', compact('training', 'courses'));
     }
 
     /**
-     * Update the specified training in storage.
+     * Update the specified training.
      */
     public function update(Request $request, Training $training)
     {
         $user = Auth::user();
 
-        if (! $user->hasAnyRole(['hod', 'superadmin'])) {
+        if (!$user->hasAnyRole(['hod', 'superadmin'])) {
             abort(403);
         }
 
-        if ($user->hasRole('hod') && ! $training->isEditableByHod()) {
+        if ($user->hasRole('hod') && !$training->isEditableByHod()) {
             return redirect()
                 ->route('trainings.show', $training)
                 ->with('error', 'You cannot update this training once it has been submitted for approval.');
@@ -229,13 +243,23 @@ class TrainingController extends Controller
 
         $data = $request->validate([
             'course_id'  => 'required|exists:courses,id',
-            'start_date' => 'required|date',
+            'start_date' => 'required|date|after_or_equal:today',
             'end_date'   => 'nullable|date|after_or_equal:start_date',
-           // 'cost'       => 'required|numeric|min:0',
+            // 'cost'    => 'required|numeric|min:0',
         ]);
 
-        $data['user_id'] = Auth::id();
-        $data['college_id'] = $user->campus_id;
+        // ✅ HOD can only update to assigned courses
+        if ($user->hasRole('hod')) {
+            $isAssigned = $user->courses()->where('courses.id', $data['course_id'])->exists();
+            if (!$isAssigned) {
+                return back()->withErrors(['course_id' => 'You are not assigned to that course.'])->withInput();
+            }
+        }
+
+        $data['user_id']    = $user->id;
+        $data['college_id'] = $user->hasRole('superadmin')
+            ? ($training->college_id) // keep existing college (or compute from course)
+            : $user->campus_id;
 
         $training->update($data);
 
@@ -245,18 +269,17 @@ class TrainingController extends Controller
     }
 
     /**
-     * Remove the specified training from storage.
-     * HOD only Draft/Rejected; superadmin any.
+     * Remove the specified training.
      */
     public function destroy(Training $training)
     {
         $user = Auth::user();
 
-        if (! $user->hasAnyRole(['hod', 'superadmin'])) {
+        if (!$user->hasAnyRole(['hod', 'superadmin'])) {
             abort(403);
         }
 
-        if ($user->hasRole('hod') && ! $training->isEditableByHod()) {
+        if ($user->hasRole('hod') && !$training->isEditableByHod()) {
             return back()->with('error', 'You cannot delete this training once it has been submitted for approval.');
         }
 
@@ -274,15 +297,14 @@ class TrainingController extends Controller
     {
         $user = Auth::user();
 
-        if (! $user->hasAnyRole(['hod', 'superadmin'])) {
+        if (!$user->hasAnyRole(['hod', 'superadmin'])) {
             abort(403, 'Only HOD can submit trainings for approval.');
         }
 
-        if (! $training->isEditableByHod()) {
+        if (!$training->isEditableByHod()) {
             return back()->with('error', 'Only Draft or Rejected trainings can be submitted for approval.');
         }
 
-        // Clear old rejection info when resubmitting
         $training->status            = Training::STATUS_PENDING_REGISTRAR;
         $training->rejection_comment = null;
         $training->rejection_stage   = null;
@@ -305,7 +327,7 @@ class TrainingController extends Controller
     {
         $user = auth()->user();
 
-        if (! $user->hasAnyRole(['campus_registrar', 'kihbt_registrar', 'superadmin'])) {
+        if (!$user->hasAnyRole(['campus_registrar', 'kihbt_registrar', 'superadmin'])) {
             abort(403);
         }
 
@@ -321,7 +343,7 @@ class TrainingController extends Controller
     {
         $user = auth()->user();
 
-        if (! $user->hasAnyRole(['kihbt_registrar', 'superadmin'])) {
+        if (!$user->hasAnyRole(['kihbt_registrar', 'superadmin'])) {
             abort(403);
         }
 
@@ -337,7 +359,7 @@ class TrainingController extends Controller
     {
         $user = auth()->user();
 
-        if (! $user->hasAnyRole(['director', 'superadmin'])) {
+        if (!$user->hasAnyRole(['director', 'superadmin'])) {
             abort(403);
         }
 
@@ -356,7 +378,7 @@ class TrainingController extends Controller
     {
         $user = auth()->user();
 
-        if (! $user->hasAnyRole(['campus_registrar', 'superadmin'])) {
+        if (!$user->hasAnyRole(['campus_registrar', 'superadmin'])) {
             abort(403);
         }
 
@@ -365,7 +387,6 @@ class TrainingController extends Controller
         }
 
         $training->status = Training::STATUS_REGISTRAR_APPROVED_HQ;
-        // Clear rejection info if any left
         $training->rejection_comment = null;
         $training->rejection_stage   = null;
         $training->rejected_by       = null;
@@ -382,7 +403,7 @@ class TrainingController extends Controller
     {
         $user = auth()->user();
 
-        if (! $user->hasAnyRole(['campus_registrar', 'superadmin'])) {
+        if (!$user->hasAnyRole(['campus_registrar', 'superadmin'])) {
             abort(403);
         }
 
@@ -406,7 +427,7 @@ class TrainingController extends Controller
     {
         $user = auth()->user();
 
-        if (! $user->hasAnyRole(['kihbt_registrar', 'superadmin'])) {
+        if (!$user->hasAnyRole(['kihbt_registrar', 'superadmin'])) {
             abort(403);
         }
 
@@ -424,14 +445,11 @@ class TrainingController extends Controller
         return back()->with('success', 'Training marked as HQ Reviewed.');
     }
 
-    /**
-     * KIHBT Registrar (HQ): reject back to HOD with comment.
-     */
     public function hqReject(Request $request, Training $training)
     {
         $user = auth()->user();
 
-        if (! $user->hasAnyRole(['kihbt_registrar', 'superadmin'])) {
+        if (!$user->hasAnyRole(['kihbt_registrar', 'superadmin'])) {
             abort(403);
         }
 
@@ -455,7 +473,7 @@ class TrainingController extends Controller
     {
         $user = auth()->user();
 
-        if (! $user->hasAnyRole(['director', 'superadmin'])) {
+        if (!$user->hasAnyRole(['director', 'superadmin'])) {
             abort(403);
         }
 
@@ -464,8 +482,6 @@ class TrainingController extends Controller
         }
 
         DB::transaction(function () use ($training) {
-
-            // Only generate if not already set (avoid changing it later)
             if (empty($training->series_code)) {
                 $training->series_code = $this->generateSeriesCode($training);
             }
@@ -481,48 +497,15 @@ class TrainingController extends Controller
         return back()->with('success', 'Training finally approved.');
     }
 
-    protected function generateSeriesCode(Training $training): string
-    {
-        // Ensure course & course_code are loaded
-        $training->loadMissing('course');
-
-        if (! $training->course || ! $training->course->course_code) {
-            throw new \RuntimeException('Course or course_code is missing for this training.');
-        }
-
-        $year   = now()->year;
-        $prefix = $training->course->course_code . '/' . $year . '/';
-
-        // Find last series_code used for this course in this year
-        $lastSeries = Training::where('course_id', $training->course_id)
-            ->whereNotNull('series_code')
-            ->where('series_code', 'like', $prefix.'%')
-            ->orderBy('series_code', 'desc')
-            ->lockForUpdate() // prevents duplicates under concurrency
-            ->value('series_code');
-
-        $nextNumber = 1;
-
-        if ($lastSeries) {
-            $lastNumber = (int) substr($lastSeries, strrpos($lastSeries, '/') + 1);
-            $nextNumber = $lastNumber + 1;
-        }
-
-        return $prefix . str_pad($nextNumber, 3, '0', STR_PAD_LEFT); // 001, 002, ...
-    }
-
-    /**
-     * Director: final rejection (while under HQ review or just after Registrar approval).
-     */
     public function directorReject(Request $request, Training $training)
     {
         $user = auth()->user();
 
-        if (! $user->hasAnyRole(['director', 'superadmin'])) {
+        if (!$user->hasAnyRole(['director', 'superadmin'])) {
             abort(403);
         }
 
-        if (! in_array($training->status, [
+        if (!in_array($training->status, [
             Training::STATUS_REGISTRAR_APPROVED_HQ,
             Training::STATUS_HQ_REVIEWED,
         ], true)) {
@@ -538,24 +521,38 @@ class TrainingController extends Controller
         return back()->with('success', 'Training rejected by Director and returned to HOD with comments.');
     }
 
-    /**
-     * Shared helper to handle rejections with comments.
-     */
-//    protected function rejectTraining(Training $training, string $stage, string $reason, int $userId): void
-//    {
-//        $training->status            = Training::STATUS_REJECTED;
-//        $training->rejection_comment = $reason;
-//        $training->rejection_stage   = $stage;
-//        $training->rejected_by       = $userId;
-//        $training->rejected_at       = now();
-//        $training->save();
-//    }
+    protected function generateSeriesCode(Training $training): string
+    {
+        $training->loadMissing('course');
+
+        if (!$training->course || !$training->course->course_code) {
+            throw new \RuntimeException('Course or course_code is missing for this training.');
+        }
+
+        $year   = now()->year;
+        $prefix = $training->course->course_code . '/' . $year . '/';
+
+        $lastSeries = Training::where('course_id', $training->course_id)
+            ->whereNotNull('series_code')
+            ->where('series_code', 'like', $prefix . '%')
+            ->orderBy('series_code', 'desc')
+            ->lockForUpdate()
+            ->value('series_code');
+
+        $nextNumber = 1;
+
+        if ($lastSeries) {
+            $lastNumber = (int) substr($lastSeries, strrpos($lastSeries, '/') + 1);
+            $nextNumber = $lastNumber + 1;
+        }
+
+        return $prefix . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
+    }
 
     protected function rejectTraining(Training $training, string $stage, string $reason, int $userId): void
     {
         DB::transaction(function () use ($training, $stage, $reason, $userId) {
 
-            // 1) Create history row
             TrainingRejection::create([
                 'training_id' => $training->id,
                 'rejected_by' => $userId,
@@ -564,7 +561,6 @@ class TrainingController extends Controller
                 'rejected_at' => now(),
             ]);
 
-            // 2) Update "current" rejection info on trainings table
             $training->status            = Training::STATUS_REJECTED;
             $training->rejection_comment = $reason;
             $training->rejection_stage   = $stage;
@@ -573,5 +569,4 @@ class TrainingController extends Controller
             $training->save();
         });
     }
-
 }

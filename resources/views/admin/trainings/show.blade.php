@@ -256,8 +256,16 @@
 
                         <p class="mb-1">
                             <strong>Created By:</strong><br>
-                            {{ optional($training->user)->name ?? '-' }}
+                            @if($training->user)
+                                {{ $training->user->surname }}
+                                {{ $training->user->firstname }}
+                                {{ $training->user->othername ?? '' }}<br>
+                                <small class="text-muted">{{ $training->user->email }}</small>
+                            @else
+                                -
+                            @endif
                         </p>
+
                     </div>
                 </div>
 

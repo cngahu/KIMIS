@@ -13,12 +13,12 @@
     <div class="container-fluid">
 
         {{-- Header --}}
-        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-            <h1 class="h3 mb-0">Courses Management</h1>
-            <a href="{{ route('courses.create') }}" class="btn btn-primary">
-                <i class="fas fa-plus me-1"></i> Add New Course
-            </a>
-        </div>
+        @role('superadmin')
+        <a href="{{ route('courses.create') }}" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i> Add New Course
+        </a>
+        @endrole
+
 
         {{-- Success Message --}}
         @if(session('success'))
@@ -130,24 +130,41 @@
 
                                 <td class="text-center">
                                     <div class="btn-group btn-group-sm" role="group">
-                                        <a href="{{ route('courses.show', $course) }}" class="btn btn-outline-info" title="View">
+
+                                        {{-- Everyone can VIEW --}}
+                                        <a href="{{ route('courses.show', $course) }}"
+                                           class="btn btn-outline-info"
+                                           title="View">
                                             <i class="fas fa-eye"></i>
                                         </a>
-                                        <a href="{{ route('courses.edit', $course) }}" class="btn btn-outline-warning" title="Edit">
+
+                                        {{-- ONLY SUPERADMIN can EDIT / DELETE --}}
+                                        @role('superadmin')
+                                        <a href="{{ route('courses.edit', $course) }}"
+                                           class="btn btn-outline-warning"
+                                           title="Edit">
                                             <i class="fas fa-edit"></i>
                                         </a>
-                                        <form action="{{ route('courses.delete', $course) }}" method="POST"
+
+                                        <form action="{{ route('courses.delete', $course) }}"
+                                              method="POST"
                                               class="d-inline js-confirm-form"
                                               data-confirm-title="Delete Course?"
                                               data-confirm-text="Delete '{{ $course->course_name }}'? Action cannot be undone."
                                               data-confirm-icon="warning">
-                                            @csrf @method('DELETE')
-                                            <button type="submit" class="btn btn-outline-danger" title="Delete">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                    class="btn btn-outline-danger"
+                                                    title="Delete">
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         </form>
+                                        @endrole
+
                                     </div>
                                 </td>
+
 
                             </tr>
                         @endforeach

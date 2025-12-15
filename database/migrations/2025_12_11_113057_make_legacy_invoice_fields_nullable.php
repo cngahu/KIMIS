@@ -2,65 +2,36 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        Schema::table('invoices', function (Blueprint $table) {
-            // Drop foreign keys first
-            $table->dropForeign(['application_id']);
-            $table->dropForeign(['course_id']);
-        });
+        // Find FK name for invoices.application_id (if it exists)
+        $dbName = DB::getDatabaseName();
 
-        Schema::table('invoices', function (Blueprint $table) {
-            // Make columns nullable
-            $table->unsignedBigInteger('application_id')->nullable()->change();
-            $table->unsignedBigInteger('course_id')->nullable()->change();
-        });
+        $fkName = DB::table('information_schema.KEY_COLUMN_USAGE')
+            ->where('TABLE_SCHEMA', $dbName)
+            ->where('TABLE_NAME', 'invoices')
+            ->where('COLUMN_NAME', 'application_id')
+            ->whereNotNull('REFERENCED_TABLE_NAME')   // ensures it's a real FK
+            ->value('CONSTRAINT_NAME');
 
-        Schema::table('invoices', function (Blueprint $table) {
-            // Re-add FKs with ON DELETE SET NULL
-            $table->foreign('application_id')
-                ->references('id')->on('applications')
-                ->onDelete('set null');
+        Schema::table('invoices', function (Blueprint $table) use ($fkName) {
+            if ($fkName) {
+                $table->dropForeign($fkName);
+            }
 
-            $table->foreign('course_id')
-                ->references('id')->on('courses')
-                ->onDelete('set null');
+            // ✅ Put your nullable changes here, example:
+            // $table->unsignedBigInteger('application_id')->nullable()->change();
+            // $table->string('legacy_invoice_no')->nullable()->change();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::table('invoices', function (Blueprint $table) {
-            // Drop modified FKs
-            $table->dropForeign(['application_id']);
-            $table->dropForeign(['course_id']);
-        });
-
-        Schema::table('invoices', function (Blueprint $table) {
-            // Revert to NOT NULL
-            $table->unsignedBigInteger('application_id')->nullable(false)->change();
-            $table->unsignedBigInteger('course_id')->nullable(false)->change();
-        });
-
-        Schema::table('invoices', function (Blueprint $table) {
-            // Restore original FK behavior (CASCADE / SET NULL depending on old state)
-            $table->foreign('application_id')
-                ->references('id')->on('applications')
-                ->onDelete('cascade');
-
-            $table->foreign('course_id')
-                ->references('id')->on('courses')
-                ->onDelete('set null');
-        });
+        // Optional: revert changes here if you want
     }
 };

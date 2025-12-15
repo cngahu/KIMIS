@@ -10,7 +10,10 @@ use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use Illuminate\Support\Str;
 use App\Models\College;
-
+use Illuminate\Support\Facades\Mail;
+use App\Mail\UserAccountCreatedMail;
+use App\Models\Course;
+use App\Models\Departmentt;
 class UserManagementController extends Controller
 {
     public function index(Request $request)
@@ -77,18 +80,21 @@ class UserManagementController extends Controller
             'city'        => 'nullable|string|max:255',
             'nationalid'  => 'nullable|string|max:100',
             'national_id' => 'nullable|string|max:100',
-            'campus_id'   => 'nullable|exists:colleges,id',
+
+            'role'        => 'required|exists:roles,name',
+            'campus_id'   => 'required_if:role,hod|exists:colleges,id',
 
             'code'        => 'nullable|string|max:50|unique:users,code',
-
             'status'      => 'required|in:active,inactive',
 
-            // roles are passed as NAMES from the form
-            'roles'       => 'array',
-            'roles.*'     => 'exists:roles,name',
+            // NEW
+            'department_ids'   => 'required_if:role,hod|array',
+            'department_ids.*' => 'integer|exists:departmentts,id',
+
+            'course_ids'       => 'nullable|array',
+            'course_ids.*'     => 'integer|exists:courses,id',
         ]);
 
-        // Generate code if not provided
         $code = $data['code'] ?? strtoupper(Str::random(8));
 
         $user = new User();
@@ -106,19 +112,45 @@ class UserManagementController extends Controller
         $user->campus_id   = $data['campus_id'] ?? null;
 
         $user->must_change_password = 1;
-        $user->password             = Hash::make($code); // login using code as first password
-
+        $user->password = Hash::make($code);
         $user->save();
 
-        // Attach roles by NAME (Spatie will give all permissions from those roles)
-        if (!empty($data['roles'])) {
-            $user->syncRoles($data['roles']); // already names
+        $user->syncRoles([$data['role']]);
+
+        if ($data['role'] === 'hod') {
+
+            // ✅ Only departments from the selected campus are allowed
+            $validDepartmentIds = Departmentt::where('college_id', $user->campus_id)
+                ->whereIn('id', $data['department_ids'])
+                ->pluck('id')
+                ->toArray();
+
+            $user->departments()->sync($validDepartmentIds);
+
+            // ✅ Courses must belong to those departments AND campus
+            $validCourseIds = Course::where('college_id', $user->campus_id)
+                ->whereIn('department_id', $validDepartmentIds)
+                ->whereIn('id', $data['course_ids'] ?? [])
+                ->pluck('id')
+                ->toArray();
+
+            $user->courses()->sync($validCourseIds);
+
+        } else {
+            $user->departments()->sync([]);
+            $user->courses()->sync([]);
         }
 
-        return redirect()
-            ->route('admin.users.index')
+        if (!empty($user->email)) {
+            Mail::to($user->email)->send(new UserAccountCreatedMail($user, $code));
+        }
+
+        return redirect()->route('admin.users.index')
             ->with('success', 'User created successfully. Login code: '.$code);
     }
+
+
+
 //    public function edit(User $user)
 //    {
 //        $roles    = \Spatie\Permission\Models\Role::orderBy('name')->get();
@@ -129,26 +161,14 @@ class UserManagementController extends Controller
 
     public function edit(User $user)
     {
-        $roles = Role::all();
-        $permissions = Permission::all();
+        $roles = Role::orderBy('name')->get();
         $campuses = College::orderBy('name')->get();
-        // Add these two lines:
-        $userRoleNames = $user->roles->pluck('name')->toArray();
-        $userPermissionNames = $user->permissions->pluck('name')->toArray();
 
-        return view('admin.users.edit', compact(
-            'user',
-            'roles',
-            'permissions',
-            'userRoleNames',
-            'campuses',
-            'userPermissionNames'
-        ));
+        $userRole = $user->roles()->pluck('name')->first();
+        $userCourseIds = $user->courses()->pluck('courses.id')->toArray();
+
+        return view('admin.users.edit', compact('user','roles','campuses','userRole','userCourseIds'));
     }
-
-
-
-
 
     public function update(Request $request, User $user)
     {
@@ -162,37 +182,61 @@ class UserManagementController extends Controller
             'city'       => 'nullable|string|max:255',
             'nationalid' => 'nullable|string|max:100',
             'national_id'=> 'nullable|string|max:100',
-            'campus_id'  => 'nullable|exists:colleges,id',
             'status'     => 'required|in:active,inactive',
 
-            // 🔑 IMPORTANT
-            'roles'      => 'nullable|array',
-            'roles.*'    => 'string|exists:roles,name',
+            'role'       => 'required|exists:roles,name',
+            'campus_id'  => 'required_if:role,hod|exists:colleges,id',
+
+            'department_ids'   => 'required_if:role,hod|array',
+            'department_ids.*' => 'integer|exists:departmentts,id',
+
+            'course_ids'       => 'nullable|array',
+            'course_ids.*'     => 'integer|exists:courses,id',
         ]);
 
-        $user->surname     = $data['surname'];
-        $user->firstname   = $data['firstname'];
-        $user->othername   = $data['othername'] ?? null;
-        $user->email       = $data['email'] ?? null;
-        $user->phone       = $data['phone'] ?? null;
-        $user->address     = $data['address'] ?? null;
-        $user->city        = $data['city'] ?? null;
-        $user->status      = $data['status'];
-        $user->nationalid  = $data['nationalid'] ?? null;
-        $user->national_id = $data['national_id'] ?? null;
-        $user->campus_id   = $data['campus_id'] ?? null;
+        $user->fill([
+            'surname'     => $data['surname'],
+            'firstname'   => $data['firstname'],
+            'othername'   => $data['othername'] ?? null,
+            'email'       => $data['email'] ?? null,
+            'phone'       => $data['phone'] ?? null,
+            'address'     => $data['address'] ?? null,
+            'city'        => $data['city'] ?? null,
+            'status'      => $data['status'],
+            'nationalid'  => $data['nationalid'] ?? null,
+            'national_id' => $data['national_id'] ?? null,
+            'campus_id'   => $data['campus_id'] ?? null,
+        ])->save();
 
-        $user->save();
+        $user->syncRoles([$data['role']]);
 
-        // 🔑 ROLES: use names directly, no query by id
-        $roles = $data['roles'] ?? [];   // if nothing selected, empty array
+        if ($data['role'] === 'hod') {
 
-        $user->syncRoles($roles);
+            $validDepartmentIds = Departmentt::where('college_id', $user->campus_id)
+                ->whereIn('id', $data['department_ids'])
+                ->pluck('id')
+                ->toArray();
 
-        return redirect()
-            ->route('admin.users.index')
+            $user->departments()->sync($validDepartmentIds);
+
+            $validCourseIds = Course::where('college_id', $user->campus_id)
+                ->whereIn('department_id', $validDepartmentIds)
+                ->whereIn('id', $data['course_ids'] ?? [])
+                ->pluck('id')
+                ->toArray();
+
+            $user->courses()->sync($validCourseIds);
+
+        } else {
+            $user->departments()->sync([]);
+            $user->courses()->sync([]);
+        }
+
+        return redirect()->route('admin.users.index')
             ->with('success', 'User updated successfully.');
     }
+
+
 
 
 

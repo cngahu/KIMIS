@@ -1,5 +1,6 @@
 <?php
-
+use App\Models\Course;
+use App\Models\Departmentt;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Backend\RoleController;
 use App\Http\Controllers\Constants\CountryController;
@@ -30,6 +31,7 @@ use App\Http\Controllers\Admin\BiodataImportController;
 use App\Http\Controllers\Payment\PaymentSimulationController;
 use App\Http\Controllers\Report\ShortCoursesReportsController;
 use App\Http\Controllers\Report\FinanceReportController;
+use App\Http\Controllers\Auth\ForcePasswordController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -45,6 +47,20 @@ if (app()->environment('local')) {
     Route::get('/simulate-payment/{invoice}', [PaymentSimulationController::class, 'simulate'])
         ->name('simulate.payment');
 }
+
+
+
+Route::middleware(['auth', 'force.password'])->group(function () {
+    // your protected routes here (dashboards etc.)
+});
+
+// change password screen (must be accessible even when forced)
+Route::middleware(['auth'])->group(function () {
+    Route::get('/force-password-change', [ForcePasswordController::class, 'show'])->name('password.force');
+    Route::post('/force-password-change', [ForcePasswordController::class, 'update'])->name('password.force.update');
+});
+
+
 
 
 Route::get('/', function () {
@@ -90,7 +106,7 @@ Route::get('/admin/registrar/applications/{application}',
     [RegistrarApplicationController::class, 'view'])
     ->name('registrar.applications.view');
 
-Route::middleware(['auth','history','verified'])->group(function () {
+Route::middleware(['auth','history','verified','force.password'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
@@ -367,6 +383,34 @@ Route::middleware(['auth','history','verified'])->group(function () {
                 //Route::get('/users/delete/{user}', 'destroy')->name('admin.users.destroy');
                 Route::delete('/users/{user}', 'destroy')->name('admin.users.destroy');
             });
+
+            Route::get('/courses/by-campus/{college}', function ($college) {
+                return Course::where('college_id', $college)
+                    ->orderBy('course_name')
+                    ->get(['id','course_name','course_code']);
+            })->name('admin.courses.byCampus');
+
+
+            Route::get('/admin/departments/by-campus/{college}', function ($college) {
+                return Departmentt::where('college_id', $college)
+                    ->orderBy('name')
+                    ->get(['id','name','code']);
+            })->name('admin.departments.byCampus');
+
+            Route::post('/admin/courses/by-departments', function (\Illuminate\Http\Request $request) {
+                $data = $request->validate([
+                    'campus_id' => 'required|exists:colleges,id',
+                    'department_ids' => 'required|array',
+                    'department_ids.*' => 'integer|exists:departmentts,id',
+                ]);
+
+                return Course::where('college_id', $data['campus_id'])
+                    ->whereIn('department_id', $data['department_ids'])
+                    ->orderBy('course_name')
+                    ->get(['id','course_name','course_code']);
+            })->name('admin.courses.byDepartments');
+
+
 
         });
 
