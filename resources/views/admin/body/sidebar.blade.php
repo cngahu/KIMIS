@@ -222,12 +222,32 @@
                         </a>
                     </li>
 
+                    <li>
+                        <a href="{{ route('course_cohorts.index') }}">
+                            <i class="bx bx-right-arrow-alt"></i>Course Cohorts
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('course_stages.index') }}">
+                            <i class="bx bx-right-arrow-alt"></i>Course Stages
+                        </a>
+                    </li>
+{{--                    <li>--}}
+{{--                        <a href="{{ route('cohort_timelines.index') }}">--}}
+{{--                            <i class="bx bx-right-arrow-alt"></i>Course Timelines--}}
+{{--                        </a>--}}
+{{--                    </li>--}}
 
 
 
                 </ul>
             </li>
 
+            <li>
+                <a href="{{ route('timeline.global') }}">
+                    <i class="bx bx-right-arrow-alt"></i> Academic Timeline (Horizontal)
+                </a>
+            </li>
 
             <li class="menu-label">User Management</li>
             <li>

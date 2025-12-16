@@ -674,3 +674,4 @@ require __DIR__.'/auth.php';
 require __DIR__.'/application.php';
 require __DIR__.'/student.php';
 require __DIR__.'/finance.php';
+require __DIR__.'/ongoing.php';
