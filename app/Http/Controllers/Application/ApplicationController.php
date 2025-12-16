@@ -534,6 +534,7 @@ class ApplicationController extends Controller
         }
 
         $payload = [
+            'salutation' => $validated['salutation'],
             'course_id'             => $validated['course_id'],
             'full_name'             => $validated['full_name'],
             'id_number'             => $validated['id_number'] ?? null,

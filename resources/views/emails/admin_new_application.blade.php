@@ -23,7 +23,11 @@
         <p>A new applicant has successfully submitted and paid for a course application.</p>
 
         <div style="background:#F5F7FA; padding:15px; border-left:4px solid #F4B400; margin:20px 0;">
-            <p><strong>Applicant Name:</strong> {{ $application->full_name }}</p>
+            <p>
+                <strong>Applicant Name:</strong>
+                {{ $application->salutation ? $application->salutation.' ' : '' }}{{ $application->full_name }}
+            </p>
+
             <p><strong>Course Applied:</strong> {{ $application->course->course_name }}</p>
             <p><strong>Reference No:</strong> {{ $application->reference }}</p>
             <p><strong>Date Submitted:</strong> {{ $application->created_at->format('d M Y, h:i A') }}</p>

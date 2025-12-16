@@ -141,7 +141,19 @@
 
             <div class="acct-card">
                 <span class="acct-icon"><i class="la la-calendar-check"></i></span>
-                <h3 class="acct-title">Course Application</h3>
+                <h3 class="acct-title">Short Course Application</h3>
+                <p class="acct-desc">
+                    Browse and  Apply for available training programs across all KIHBT campuses.
+                </p>
+
+                <a href="{{ route('public.trainings') }}" class="btn-primary d-inline-flex align-items-center gap-2">
+                    <i class="la la-arrow-right"></i> View Trainings
+                </a>
+            </div>
+
+            <div class="acct-card">
+                <span class="acct-icon"><i class="la la-calendar-check"></i></span>
+                <h3 class="acct-title">KNEC Course Application</h3>
                 <p class="acct-desc">
                     Browse and  Apply for available training programs across all KIHBT campuses.
                 </p>

@@ -110,4 +110,27 @@ class Training extends Model
     {
         return $this->hasMany(\App\Models\TrainingRejection::class);
     }
+
+    // App\Models\Training.php
+
+    public function hodApprover()
+    {
+        return $this->belongsTo(User::class, 'hod_approver_id');
+    }
+
+    public function registrarApprover()
+    {
+        return $this->belongsTo(User::class, 'registrar_approver_id');
+    }
+
+    public function kihbtRegistrarApprover()
+    {
+        return $this->belongsTo(User::class, 'kihbt_registrar_approver_id');
+    }
+
+    public function directorApprover()
+    {
+        return $this->belongsTo(User::class, 'director_approver_id');
+    }
+
 }

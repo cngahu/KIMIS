@@ -192,6 +192,18 @@ class TrainingController extends Controller
      * Display the specified training.
      * (Optional: add visibility check if needed)
      */
+//    public function show(Training $training)
+//    {
+//        $training->load([
+//            'course',
+//            'college',
+//            'user',
+//            'rejections.rejectedByUser',
+//        ]);
+//
+//        return view('admin.trainings.show', compact('training'));
+//    }
+
     public function show(Training $training)
     {
         $training->load([
@@ -199,10 +211,17 @@ class TrainingController extends Controller
             'college',
             'user',
             'rejections.rejectedByUser',
+
+            // ✅ approvers (add these relationships in Training model)
+            'hodApprover',
+            'registrarApprover',
+            'kihbtRegistrarApprover',
+            'directorApprover',
         ]);
 
         return view('admin.trainings.show', compact('training'));
     }
+
 
     /**
      * Show the form for editing the specified training.
@@ -305,11 +324,19 @@ class TrainingController extends Controller
             return back()->with('error', 'Only Draft or Rejected trainings can be submitted for approval.');
         }
 
+        // Capture HOD approver id
+        if ($user->hasRole('hod')) {
+            $this->setApprover($training, 'hod');
+        }
+
         $training->status            = Training::STATUS_PENDING_REGISTRAR;
+
+        // Clear old rejection info when resubmitting
         $training->rejection_comment = null;
         $training->rejection_stage   = null;
         $training->rejected_by       = null;
         $training->rejected_at       = null;
+
         $training->save();
 
         return back()->with('success', 'Training sent to Campus Registrar for approval.');
@@ -386,11 +413,18 @@ class TrainingController extends Controller
             return back()->with('error', 'Only trainings pending Registrar approval can be approved.');
         }
 
+        // Capture Registrar approver id
+        if ($user->hasRole('campus_registrar')) {
+            $this->setApprover($training, 'campus_registrar');
+        }
+
         $training->status = Training::STATUS_REGISTRAR_APPROVED_HQ;
+
         $training->rejection_comment = null;
         $training->rejection_stage   = null;
         $training->rejected_by       = null;
         $training->rejected_at       = null;
+
         $training->save();
 
         return back()->with('success', 'Training approved and sent to HQ for review.');
@@ -435,11 +469,18 @@ class TrainingController extends Controller
             return back()->with('error', 'Only Registrar-approved trainings can be reviewed by HQ.');
         }
 
+        // Capture HQ Registrar approver id
+        if ($user->hasRole('kihbt_registrar')) {
+            $this->setApprover($training, 'kihbt_registrar');
+        }
+
         $training->status = Training::STATUS_HQ_REVIEWED;
+
         $training->rejection_comment = null;
         $training->rejection_stage   = null;
         $training->rejected_by       = null;
         $training->rejected_at       = null;
+
         $training->save();
 
         return back()->with('success', 'Training marked as HQ Reviewed.');
@@ -481,7 +522,13 @@ class TrainingController extends Controller
             return back()->with('error', 'Only HQ Reviewed trainings can be finally approved.');
         }
 
-        DB::transaction(function () use ($training) {
+        DB::transaction(function () use ($training, $user) {
+
+            // Capture Director approver id
+            if ($user->hasRole('director')) {
+                $this->setApprover($training, 'director');
+            }
+
             if (empty($training->series_code)) {
                 $training->series_code = $this->generateSeriesCode($training);
             }
@@ -491,6 +538,7 @@ class TrainingController extends Controller
             $training->rejection_stage   = null;
             $training->rejected_by       = null;
             $training->rejected_at       = null;
+
             $training->save();
         });
 
@@ -548,7 +596,29 @@ class TrainingController extends Controller
 
         return $prefix . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
     }
+    protected function setApprover(Training $training, string $stageRole): void
+    {
+        $userId = auth()->id();
 
+        // Only set once (don’t overwrite who approved earlier)
+        switch ($stageRole) {
+            case 'hod':
+                $training->hod_approver_id ??= $userId;
+                break;
+
+            case 'campus_registrar':
+                $training->registrar_approver_id ??= $userId;
+                break;
+
+            case 'kihbt_registrar':
+                $training->kihbt_registrar_approver_id ??= $userId;
+                break;
+
+            case 'director':
+                $training->director_approver_id ??= $userId;
+                break;
+        }
+    }
     protected function rejectTraining(Training $training, string $stage, string $reason, int $userId): void
     {
         DB::transaction(function () use ($training, $stage, $reason, $userId) {

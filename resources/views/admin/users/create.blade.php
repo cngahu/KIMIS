@@ -17,7 +17,8 @@
                 <form action="{{ route('admin.users.store') }}" method="POST">
                     @csrf
 
-                    <div class="row g-3">
+
+
 
                         {{-- Row 1 --}}
                         <div class="col-md-3">

@@ -294,6 +294,89 @@
                         </p>
                     </div>
                 </div>
+
+                {{-- ✅ Approvals --}}
+                <div class="card shadow-sm border-0 mb-3">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">Approval Trail</h5>
+                        <small class="text-muted">Shows who approved this training at each stage.</small>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="row g-3">
+
+                            {{-- HOD --}}
+                            <div class="col-md-6">
+                                <div class="border rounded p-3 h-100">
+                                    <div class="fw-semibold mb-1">HOD Approval</div>
+                                    @if($training->hodApprover)
+                                        <div>
+                                            {{ $training->hodApprover->surname }}
+                                            {{ $training->hodApprover->firstname }}
+                                            {{ $training->hodApprover->othername ?? '' }}
+                                        </div>
+                                        <small class="text-muted">{{ $training->hodApprover->email }}</small>
+                                    @else
+                                        <span class="text-muted">Not approved yet.</span>
+                                    @endif
+                                </div>
+                            </div>
+
+                            {{-- Campus Registrar --}}
+                            <div class="col-md-6">
+                                <div class="border rounded p-3 h-100">
+                                    <div class="fw-semibold mb-1">Campus Registrar Approval</div>
+                                    @if($training->registrarApprover)
+                                        <div>
+                                            {{ $training->registrarApprover->surname }}
+                                            {{ $training->registrarApprover->firstname }}
+                                            {{ $training->registrarApprover->othername ?? '' }}
+                                        </div>
+                                        <small class="text-muted">{{ $training->registrarApprover->email }}</small>
+                                    @else
+                                        <span class="text-muted">Not approved yet.</span>
+                                    @endif
+                                </div>
+                            </div>
+
+                            {{-- KIHBT Registrar --}}
+                            <div class="col-md-6">
+                                <div class="border rounded p-3 h-100">
+                                    <div class="fw-semibold mb-1">KIHBT Registrar (HQ) Review</div>
+                                    @if($training->kihbtRegistrarApprover)
+                                        <div>
+                                            {{ $training->kihbtRegistrarApprover->surname }}
+                                            {{ $training->kihbtRegistrarApprover->firstname }}
+                                            {{ $training->kihbtRegistrarApprover->othername ?? '' }}
+                                        </div>
+                                        <small class="text-muted">{{ $training->kihbtRegistrarApprover->email }}</small>
+                                    @else
+                                        <span class="text-muted">Not reviewed yet.</span>
+                                    @endif
+                                </div>
+                            </div>
+
+                            {{-- Director --}}
+                            <div class="col-md-6">
+                                <div class="border rounded p-3 h-100">
+                                    <div class="fw-semibold mb-1">Director Final Approval</div>
+                                    @if($training->directorApprover)
+                                        <div>
+                                            {{ $training->directorApprover->surname }}
+                                            {{ $training->directorApprover->firstname }}
+                                            {{ $training->directorApprover->othername ?? '' }}
+                                        </div>
+                                        <small class="text-muted">{{ $training->directorApprover->email }}</small>
+                                    @else
+                                        <span class="text-muted">Not approved yet.</span>
+                                    @endif
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
 

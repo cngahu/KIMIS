@@ -32,6 +32,7 @@ class ApplicationService
             // 1. Create application record
             $application = Application::create([
                 'course_id'             => $data['course_id'],
+                'salutation'             => $data['salutation'],
                 'full_name'             => $data['full_name'],
                 'id_number'             => $data['id_number'] ?? null,
                 'phone'                 => $data['phone'],

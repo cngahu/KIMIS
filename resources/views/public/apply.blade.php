@@ -30,6 +30,22 @@
 
                             <div class="row g-4">
 
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Salutation *</label>
+                                        <select name="salutation"
+                                                class="form-select @error('salutation') is-invalid @enderror"
+                                                required>
+                                            <option value="">Choose...</option>
+                                            @foreach(['Mr.', 'Mrs.', 'Miss', 'Ms.', 'Dr.', 'Prof.', 'Rev.', 'Eng.', 'Hon.', 'Sir', 'Madam'] as $sal)
+                                                <option value="{{ $sal }}" {{ old('salutation') === $sal ? 'selected' : '' }}>
+                                                    {{ $sal }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        @error('salutation') <span class="text-danger small">{{ $message }}</span> @enderror
+                                    </div>
+
                                 <div class="col-md-6">
                                     <label class="form-label">Full Name *</label>
                                     <input type="text" name="full_name" value="{{ old('full_name') }}"

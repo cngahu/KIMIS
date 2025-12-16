@@ -28,7 +28,11 @@
                         <h5 class="mb-3">Invoice Details</h5>
 
                         <p><strong>Invoice Number:</strong> {{ $application->invoice->invoice_number }}</p>
-                        <p><strong>Applicant Name:</strong> {{ $application->full_name }}</p>
+                        <p>
+                            <strong>Applicant Name:</strong>
+                            {{ $application->salutation ? $application->salutation.' ' : '' }}{{ $application->full_name }}
+                        </p>
+
                         <p><strong>Course:</strong> {{ $application->course->course_name }}</p>
 
                         @if($isShort && $appCount && $amountPerApplicant)

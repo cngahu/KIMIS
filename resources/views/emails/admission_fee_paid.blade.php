@@ -1,4 +1,7 @@
-<p>Dear {{ $admission->application->full_name }},</p>
+<p>
+    Dear {{ trim(($admission->application->salutation ?? '').' '.$admission->application->full_name) }},
+</p>
+
 
 <p>Your admission fee payment has been received successfully.</p>
 

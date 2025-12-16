@@ -209,6 +209,7 @@
 
                                     <div class="row g-3">
                                         {{-- Personal Information --}}
+                                        
                                         <div class="col-md-6">
                                             <label class="form-label">Full Name *</label>
                                             <input type="text"

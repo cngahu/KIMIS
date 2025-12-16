@@ -24,6 +24,7 @@ class StoreApplicationRequest extends FormRequest
 
             // Course
             'course_id' => 'required|exists:courses,id',
+            'salutation' => 'required|in:Mr.,Mrs.,Miss,Ms.,Dr.,Prof.,Rev.,Eng.,Hon.,Sir,Madam',
 
             // Personal info
             'full_name' => 'required|string|max:255',
