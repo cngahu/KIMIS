@@ -9,7 +9,9 @@
         </div>
 
         @if($errors->any())
-            <div class="alert alert-danger">Please correct the errors below.</div>
+            <div class="alert alert-danger">
+                Please correct the errors below.
+            </div>
         @endif
 
         <div class="card radius-10">
@@ -17,73 +19,94 @@
                 <form action="{{ route('admin.users.store') }}" method="POST">
                     @csrf
 
+                    <div class="row g-3">
 
-
-
-                        {{-- Row 1 --}}
-                        <div class="col-md-3">
-                            <label class="form-label">Surname *</label>
-                            <input type="text" name="surname" value="{{ old('surname') }}"
-                                   class="form-control @error('surname') is-invalid @enderror">
+                        {{-- Surname --}}
+                        <div class="col-md-6">
+                            <label class="form-label">Surname <span class="text-danger">*</span></label>
+                            <input type="text"
+                                   name="surname"
+                                   value="{{ old('surname') }}"
+                                   class="form-control @error('surname') is-invalid @enderror"
+                                   required>
                             @error('surname') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
 
-                        <div class="col-md-3">
-                            <label class="form-label">First Name *</label>
-                            <input type="text" name="firstname" value="{{ old('firstname') }}"
-                                   class="form-control @error('firstname') is-invalid @enderror">
+                        {{-- Firstname --}}
+                        <div class="col-md-6">
+                            <label class="form-label">First Name <span class="text-danger">*</span></label>
+                            <input type="text"
+                                   name="firstname"
+                                   value="{{ old('firstname') }}"
+                                   class="form-control @error('firstname') is-invalid @enderror"
+                                   required>
                             @error('firstname') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
 
-                        <div class="col-md-3">
+                        {{-- Othername --}}
+                        <div class="col-md-6">
                             <label class="form-label">Other Name</label>
-                            <input type="text" name="othername" value="{{ old('othername') }}"
+                            <input type="text"
+                                   name="othername"
+                                   value="{{ old('othername') }}"
                                    class="form-control @error('othername') is-invalid @enderror">
                             @error('othername') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
 
-                        <div class="col-md-3">
+                        {{-- Email --}}
+                        <div class="col-md-6">
                             <label class="form-label">Email</label>
-                            <input type="email" name="email" value="{{ old('email') }}"
+                            <input type="email"
+                                   name="email"
+                                   value="{{ old('email') }}"
                                    class="form-control @error('email') is-invalid @enderror">
                             @error('email') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
 
-                        {{-- Row 2 --}}
-                        <div class="col-md-3">
+                        {{-- Phone --}}
+                        <div class="col-md-6">
                             <label class="form-label">Phone</label>
-                            <input type="text" name="phone" value="{{ old('phone') }}"
+                            <input type="text"
+                                   name="phone"
+                                   value="{{ old('phone') }}"
                                    class="form-control @error('phone') is-invalid @enderror">
                             @error('phone') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
 
-                        <div class="col-md-3">
+                        {{-- City --}}
+                        <div class="col-md-6">
                             <label class="form-label">City</label>
-                            <input type="text" name="city" value="{{ old('city') }}"
+                            <input type="text"
+                                   name="city"
+                                   value="{{ old('city') }}"
                                    class="form-control @error('city') is-invalid @enderror">
                             @error('city') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
 
-                        <div class="col-md-3">
+                        {{-- Address --}}
+                        <div class="col-md-6">
                             <label class="form-label">Address</label>
-                            <input type="text" name="address" value="{{ old('address') }}"
+                            <input type="text"
+                                   name="address"
+                                   value="{{ old('address') }}"
                                    class="form-control @error('address') is-invalid @enderror">
                             @error('address') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
 
-                        <div class="col-md-3">
-                            <label class="form-label">Status *</label>
-                            <select name="status" class="form-select @error('status') is-invalid @enderror">
-                                <option value="active" {{ old('status') === 'active' ? 'selected' : '' }}>Active</option>
+                        {{-- Status --}}
+                        <div class="col-md-6">
+                            <label class="form-label">Status <span class="text-danger">*</span></label>
+                            <select name="status" class="form-select @error('status') is-invalid @enderror" required>
+                                <option value="active" {{ old('status','active') === 'active' ? 'selected' : '' }}>Active</option>
                                 <option value="inactive" {{ old('status') === 'inactive' ? 'selected' : '' }}>Inactive</option>
                             </select>
                             @error('status') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
 
-                        {{-- Row 3 --}}
-                        <div class="col-md-3">
-                            <label class="form-label fw-semibold">Role *</label>
-                            <select name="role" class="form-select @error('role') is-invalid @enderror">
+                        {{-- Role --}}
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Role <span class="text-danger">*</span></label>
+                            <select name="role" class="form-select @error('role') is-invalid @enderror" required>
                                 <option value="">-- Select Role --</option>
                                 @foreach($roles as $role)
                                     <option value="{{ $role->name }}"
@@ -95,8 +118,12 @@
                             @error('role') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
 
-                        <div class="col-md-3">
-                            <label class="form-label">Campus</label>
+                        {{-- Campus --}}
+                        <div class="col-md-6">
+                            <label class="form-label">
+                                Campus
+                                <span id="campusRequiredMark" class="text-danger" style="display:none">*</span>
+                            </label>
                             <select name="campus_id" class="form-select @error('campus_id') is-invalid @enderror">
                                 <option value="">-- Select Campus --</option>
                                 @foreach($campuses as $campus)
@@ -107,38 +134,35 @@
                                 @endforeach
                             </select>
                             @error('campus_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                            <small class="text-muted">Campus is required for HOD accounts.</small>
                         </div>
 
-                        {{-- Courses (HOD only) --}}
                         {{-- Departments (HOD only) --}}
-                        <div class="col-md-6" id="departments_wrapper" style="display:none;">
-                            <label class="form-label">Departments (HOD only)</label>
+                        <div class="col-12" id="departments_wrapper" style="display:none;">
+                            <label class="form-label">Departments (HOD only) <span class="text-danger">*</span></label>
 
-                            <div id="departments_box" class="border rounded p-2" style="max-height: 220px; overflow:auto;">
+                            <div id="departments_box" class="border rounded p-2"
+                                 style="max-height: 240px; overflow:auto; background:#fafafa;">
                                 <div class="text-muted small">Select campus to load departments…</div>
                             </div>
 
-                            @error('department_ids') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
-                            <small class="text-muted">Tick one or more departments the HOD manages.</small>
+                            @error('department_ids')
+                            <div class="text-danger small mt-1">{{ $message }}</div>
+                            @enderror
+
+                            <small class="text-muted">
+                                Tick one or more departments the HOD manages. <strong>All courses under selected departments will be auto-assigned.</strong>
+                            </small>
                         </div>
-
-                        {{-- Courses (auto from departments) --}}
-                        <div class="col-md-6" id="courses_wrapper" style="display:none;">
-                            <label class="form-label">Courses (from selected departments)</label>
-
-                            <div id="courses_box" class="border rounded p-2" style="max-height: 220px; overflow:auto;">
-                                <div class="text-muted small">Select department(s) to load courses…</div>
-                            </div>
-
-                            @error('course_ids') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
-                            <small class="text-muted">Tick one or more courses under those departments.</small>
-                        </div>
-
 
                     </div>
 
+                    <hr class="my-4">
 
-                    <div class="mt-4 d-flex justify-content-end">
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{{ route('admin.users.index') }}" class="btn btn-light border">
+                            Cancel
+                        </a>
                         <button type="submit" class="btn btn-primary">
                             Save User
                         </button>
@@ -155,131 +179,84 @@
             const roleSelect   = document.querySelector('select[name="role"]');
             const campusSelect = document.querySelector('select[name="campus_id"]');
 
+            const campusRequiredMark = document.getElementById('campusRequiredMark');
+
             const depWrap = document.getElementById('departments_wrapper');
             const depBox  = document.getElementById('departments_box');
 
-            const courseWrap = document.getElementById('courses_wrapper');
-            const courseBox  = document.getElementById('courses_box');
-
-            function showForHod(show) {
-                depWrap.style.display = show ? '' : 'none';
-                courseWrap.style.display = show ? '' : 'none';
-                if (!show) {
-                    depBox.innerHTML = '<div class="text-muted small">Departments hidden (role not HOD).</div>';
-                    courseBox.innerHTML = '<div class="text-muted small">Courses hidden (role not HOD).</div>';
-                }
+            function isHod() {
+                return roleSelect.value === 'hod';
             }
 
-            function renderMessage(el, msg) {
-                el.innerHTML = `<div class="text-muted small">${msg}</div>`;
+            function renderMessage(msg) {
+                depBox.innerHTML = `<div class="text-muted small">${msg}</div>`;
             }
 
-            function renderCheckboxList(el, items, name, selectedIds, labelFn) {
-                if (!items.length) {
-                    renderMessage(el, 'No records found.');
+            function renderDepartments(departments, selectedIds) {
+                if (!departments.length) {
+                    renderMessage('No departments found for this campus.');
                     return;
                 }
-                el.innerHTML = items.map(x => {
-                    const checked = selectedIds.includes(String(x.id)) ? 'checked' : '';
+
+                depBox.innerHTML = departments.map(d => {
+                    const checked = selectedIds.includes(String(d.id)) ? 'checked' : '';
+                    const code = d.code ? `<span class="text-muted">(${d.code})</span>` : '';
                     return `
-              <label class="d-flex align-items-start gap-2 py-1">
-                <input type="checkbox" name="${name}[]" value="${x.id}" ${checked} class="mt-1">
-                <span>${labelFn(x)}</span>
-              </label>
-            `;
+                        <label class="d-flex align-items-start gap-2 py-1">
+                            <input type="checkbox" name="department_ids[]" value="${d.id}" ${checked} class="mt-1">
+                            <span>${d.name} ${code}</span>
+                        </label>
+                    `;
                 }).join('');
             }
 
-            function getCheckedValues(name) {
-                return [...document.querySelectorAll(`input[name="${name}[]"]:checked`)].map(i => i.value);
+            function toggleHodUI() {
+                depWrap.style.display = isHod() ? '' : 'none';
+                campusRequiredMark.style.display = isHod() ? 'inline' : 'none';
+
+                if (!isHod()) {
+                    depBox.innerHTML = '<div class="text-muted small">Departments hidden (role not HOD).</div>';
+                }
             }
 
             async function loadDepartments() {
-                const isHod = roleSelect.value === 'hod';
-                const campusId = campusSelect.value;
-
-                showForHod(isHod);
-                if (!isHod) return;
-
-                if (!campusId) {
-                    renderMessage(depBox, 'Select campus to load departments…');
-                    renderMessage(courseBox, 'Select department(s) to load courses…');
-                    return;
-                }
-
-                renderMessage(depBox, 'Loading departments...');
-                renderMessage(courseBox, 'Select department(s) to load courses…');
-
-                const url = `{{ route('admin.departments.byCampus', ':id') }}`.replace(':id', campusId);
-                const res = await fetch(url, { headers: { 'Accept': 'application/json' }});
-
-                if (!res.ok) {
-                    renderMessage(depBox, 'Failed to load departments.');
-                    return;
-                }
-
-                const departments = await res.json();
-
-                const oldDepartments = @json(old('department_ids', [])).map(String);
-                renderCheckboxList(depBox, departments, 'department_ids', oldDepartments, d => `${d.name} (${d.code ?? ''})`);
-
-                // attach listeners to newly rendered department checkboxes
-                depBox.querySelectorAll('input[name="department_ids[]"]').forEach(cb => {
-                    cb.addEventListener('change', loadCourses);
-                });
-
-                // load courses after restoring old department selections
-                await loadCourses();
-            }
-
-            async function loadCourses() {
-                const isHod = roleSelect.value === 'hod';
-                if (!isHod) return;
+                toggleHodUI();
+                if (!isHod()) return;
 
                 const campusId = campusSelect.value;
-                const departmentIds = getCheckedValues('department_ids');
 
                 if (!campusId) {
-                    renderMessage(courseBox, 'Select campus to load courses…');
+                    renderMessage('Select campus to load departments…');
                     return;
                 }
 
-                if (!departmentIds.length) {
-                    renderMessage(courseBox, 'Select department(s) to load courses…');
-                    return;
+                renderMessage('Loading departments...');
+
+                try {
+                    const url = `{{ route('admin.departments.byCampus', ':id') }}`.replace(':id', campusId);
+                    const res = await fetch(url, { headers: { 'Accept': 'application/json' }});
+
+                    if (!res.ok) {
+                        renderMessage('Failed to load departments.');
+                        return;
+                    }
+
+                    const departments = await res.json();
+                    const oldDepartments = @json(old('department_ids', [])).map(String);
+
+                    renderDepartments(departments, oldDepartments);
+
+                } catch (e) {
+                    console.error(e);
+                    renderMessage('Error loading departments.');
                 }
-
-                renderMessage(courseBox, 'Loading courses...');
-
-                const url = `{{ route('admin.courses.byDepartments') }}`;
-                const res = await fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    },
-                    body: JSON.stringify({ campus_id: campusId, department_ids: departmentIds })
-                });
-
-                if (!res.ok) {
-                    renderMessage(courseBox, 'Failed to load courses.');
-                    return;
-                }
-
-                const courses = await res.json();
-                const oldCourses = @json(old('course_ids', [])).map(String);
-
-                renderCheckboxList(courseBox, courses, 'course_ids', oldCourses, c => `${c.course_name} (${c.course_code})`);
             }
 
             roleSelect.addEventListener('change', loadDepartments);
             campusSelect.addEventListener('change', loadDepartments);
 
+            // initial
             loadDepartments();
         })();
     </script>
-
-
-
 @endsection

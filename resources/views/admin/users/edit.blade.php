@@ -9,7 +9,9 @@
         </div>
 
         @if($errors->any())
-            <div class="alert alert-danger">Please correct the errors below.</div>
+            <div class="alert alert-danger">
+                Please correct the errors below.
+            </div>
         @endif
 
         <div class="card radius-10">
@@ -20,75 +22,98 @@
 
                     <div class="row g-3">
 
-                        {{-- Row 1 --}}
-                        <div class="col-md-3">
-                            <label class="form-label">Surname *</label>
-                            <input type="text" name="surname" value="{{ old('surname', $user->surname) }}"
-                                   class="form-control @error('surname') is-invalid @enderror">
+                        {{-- Surname --}}
+                        <div class="col-md-6">
+                            <label class="form-label">Surname <span class="text-danger">*</span></label>
+                            <input type="text"
+                                   name="surname"
+                                   value="{{ old('surname', $user->surname) }}"
+                                   class="form-control @error('surname') is-invalid @enderror"
+                                   required>
                             @error('surname') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
 
-                        <div class="col-md-3">
-                            <label class="form-label">First Name *</label>
-                            <input type="text" name="firstname" value="{{ old('firstname', $user->firstname) }}"
-                                   class="form-control @error('firstname') is-invalid @enderror">
+                        {{-- Firstname --}}
+                        <div class="col-md-6">
+                            <label class="form-label">First Name <span class="text-danger">*</span></label>
+                            <input type="text"
+                                   name="firstname"
+                                   value="{{ old('firstname', $user->firstname) }}"
+                                   class="form-control @error('firstname') is-invalid @enderror"
+                                   required>
                             @error('firstname') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
 
-                        <div class="col-md-3">
+                        {{-- Othername --}}
+                        <div class="col-md-6">
                             <label class="form-label">Other Name</label>
-                            <input type="text" name="othername" value="{{ old('othername', $user->othername) }}"
+                            <input type="text"
+                                   name="othername"
+                                   value="{{ old('othername', $user->othername) }}"
                                    class="form-control @error('othername') is-invalid @enderror">
                             @error('othername') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
 
-                        <div class="col-md-3">
+                        {{-- Email --}}
+                        <div class="col-md-6">
                             <label class="form-label">Email</label>
-                            <input type="email" name="email" value="{{ old('email', $user->email) }}"
+                            <input type="email"
+                                   name="email"
+                                   value="{{ old('email', $user->email) }}"
                                    class="form-control @error('email') is-invalid @enderror">
                             @error('email') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
 
-                        {{-- Row 2 --}}
-                        <div class="col-md-3">
+                        {{-- Phone --}}
+                        <div class="col-md-6">
                             <label class="form-label">Phone</label>
-                            <input type="text" name="phone" value="{{ old('phone', $user->phone) }}"
+                            <input type="text"
+                                   name="phone"
+                                   value="{{ old('phone', $user->phone) }}"
                                    class="form-control @error('phone') is-invalid @enderror">
                             @error('phone') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
 
-                        <div class="col-md-3">
+                        {{-- City --}}
+                        <div class="col-md-6">
                             <label class="form-label">City</label>
-                            <input type="text" name="city" value="{{ old('city', $user->city) }}"
+                            <input type="text"
+                                   name="city"
+                                   value="{{ old('city', $user->city) }}"
                                    class="form-control @error('city') is-invalid @enderror">
                             @error('city') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
 
-                        <div class="col-md-3">
+                        {{-- Address --}}
+                        <div class="col-md-6">
                             <label class="form-label">Address</label>
-                            <input type="text" name="address" value="{{ old('address', $user->address) }}"
+                            <input type="text"
+                                   name="address"
+                                   value="{{ old('address', $user->address) }}"
                                    class="form-control @error('address') is-invalid @enderror">
                             @error('address') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
 
-                        <div class="col-md-3">
-                            <label class="form-label">Status *</label>
-                            <select name="status" class="form-select @error('status') is-invalid @enderror">
+                        {{-- Status --}}
+                        <div class="col-md-6">
+                            <label class="form-label">Status <span class="text-danger">*</span></label>
+                            <select name="status" class="form-select @error('status') is-invalid @enderror" required>
                                 <option value="active" {{ old('status', $user->status) === 'active' ? 'selected' : '' }}>Active</option>
                                 <option value="inactive" {{ old('status', $user->status) === 'inactive' ? 'selected' : '' }}>Inactive</option>
                             </select>
                             @error('status') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
 
-                        {{-- Row 3 --}}
-                        <div class="col-md-3">
-                            <label class="form-label fw-semibold">Role *</label>
-                            <select name="role" id="role"
-                                    class="form-select @error('role') is-invalid @enderror">
+                        {{-- Role --}}
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Role <span class="text-danger">*</span></label>
+                            <select name="role" class="form-select @error('role') is-invalid @enderror" required>
                                 <option value="">-- Select Role --</option>
                                 @foreach($roles as $role)
-                                    <option value="{{ $role->name }}"
-                                        {{ old('role', $userRole) === $role->name ? 'selected' : '' }}>
+                                    @php
+                                        $selectedRole = old('role', $userRole);
+                                    @endphp
+                                    <option value="{{ $role->name }}" {{ $selectedRole === $role->name ? 'selected' : '' }}>
                                         {{ ucfirst($role->name) }}
                                     </option>
                                 @endforeach
@@ -96,40 +121,62 @@
                             @error('role') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
 
-                        <div class="col-md-3">
-                            <label class="form-label">Campus</label>
-                            <select name="campus_id" id="campus_id"
-                                    class="form-select @error('campus_id') is-invalid @enderror">
+                        {{-- Campus --}}
+                        <div class="col-md-6">
+                            <label class="form-label">
+                                Campus
+                                <span id="campusRequiredMark" class="text-danger" style="display:none">*</span>
+                            </label>
+                            <select name="campus_id" class="form-select @error('campus_id') is-invalid @enderror">
                                 <option value="">-- Select Campus --</option>
                                 @foreach($campuses as $campus)
-                                    <option value="{{ $campus->id }}"
-                                        {{ (int)old('campus_id', $user->campus_id ?? 0) === $campus->id ? 'selected' : '' }}>
+                                    @php
+                                        $selectedCampus = (int) old('campus_id', $user->campus_id);
+                                    @endphp
+                                    <option value="{{ $campus->id }}" {{ $selectedCampus === (int)$campus->id ? 'selected' : '' }}>
                                         {{ $campus->name }} ({{ $campus->code }})
                                     </option>
                                 @endforeach
                             </select>
                             @error('campus_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                            <small class="text-muted">Campus is required for HOD accounts.</small>
                         </div>
 
-                        {{-- Courses (HOD only) --}}
-                        <div class="col-md-3" id="courses_wrapper" style="display:none;">
-                            <label class="form-label">Courses (HOD only)</label>
+                        {{-- Departments (HOD only) --}}
+                        <div class="col-12" id="departments_wrapper" style="display:none;">
+                            <label class="form-label">
+                                Departments (HOD only) <span class="text-danger">*</span>
+                            </label>
 
-                            <div id="courses_box" class="border rounded p-2" style="max-height:220px; overflow:auto;">
-                                <div class="text-muted small">Select campus to load courses…</div>
+                            <div id="departments_box"
+                                 class="border rounded p-2"
+                                 style="max-height: 240px; overflow:auto; background:#fafafa;">
+                                <div class="text-muted small">Select campus to load departments…</div>
                             </div>
 
-                            @error('course_ids') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
-                            <small class="text-muted">Tick one or more courses the HOD manages.</small>
+                            @error('department_ids')
+                            <div class="text-danger small mt-1">{{ $message }}</div>
+                            @enderror
+
+                            <small class="text-muted">
+                                Tick one or more departments the HOD manages.
+                                <strong>All courses under selected departments will be auto-assigned.</strong>
+                            </small>
                         </div>
 
-
-
                     </div>
 
-                    <div class="mt-4 d-flex justify-content-end">
-                        <button type="submit" class="btn btn-primary">Update User</button>
+                    <hr class="my-4">
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{{ route('admin.users.index') }}" class="btn btn-light border">
+                            Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            Update User
+                        </button>
                     </div>
+
                 </form>
             </div>
         </div>
@@ -138,79 +185,92 @@
 
     <script>
         (function () {
-            const roleSelect = document.getElementById('role');
-            const campusSelect = document.getElementById('campus_id');
-            const wrapper = document.getElementById('courses_wrapper');
-            const box = document.getElementById('courses_box');
+            const roleSelect   = document.querySelector('select[name="role"]');
+            const campusSelect = document.querySelector('select[name="campus_id"]');
 
-            function showCourses(show) {
-                wrapper.style.display = show ? '' : 'none';
-                if (!show) box.innerHTML = '<div class="text-muted small">Courses hidden (role not HOD).</div>';
+            const campusRequiredMark = document.getElementById('campusRequiredMark');
+
+            const depWrap = document.getElementById('departments_wrapper');
+            const depBox  = document.getElementById('departments_box');
+
+            function isHod() {
+                return roleSelect.value === 'hod';
             }
 
             function renderMessage(msg) {
-                box.innerHTML = `<div class="text-muted small">${msg}</div>`;
+                depBox.innerHTML = `<div class="text-muted small">${msg}</div>`;
             }
 
-            function renderCourses(courses, selectedIds) {
-                if (!courses.length) {
-                    renderMessage('No courses found for this campus.');
+            function renderDepartments(departments, selectedIds) {
+                if (!departments.length) {
+                    renderMessage('No departments found for this campus.');
                     return;
                 }
 
-                box.innerHTML = courses.map(c => {
-                    const checked = selectedIds.includes(String(c.id)) ? 'checked' : '';
+                depBox.innerHTML = departments.map(d => {
+                    const checked = selectedIds.includes(String(d.id)) ? 'checked' : '';
+                    const code = d.code ? `<span class="text-muted">(${d.code})</span>` : '';
                     return `
-                <label class="d-flex align-items-start gap-2 py-1">
-                    <input type="checkbox" name="course_ids[]" value="${c.id}" ${checked} class="mt-1">
-                    <span>${c.course_name} <span class="text-muted">(${c.course_code})</span></span>
-                </label>
-            `;
+                        <label class="d-flex align-items-start gap-2 py-1">
+                            <input type="checkbox" name="department_ids[]" value="${d.id}" ${checked} class="mt-1">
+                            <span>${d.name} ${code}</span>
+                        </label>
+                    `;
                 }).join('');
             }
 
-            async function loadCourses() {
-                const isHod = roleSelect.value === 'hod';
-                const campusId = campusSelect.value;
+            function toggleHodUI() {
+                depWrap.style.display = isHod() ? '' : 'none';
+                campusRequiredMark.style.display = isHod() ? 'inline' : 'none';
 
-                showCourses(isHod);
-                if (!isHod) return;
-
-                if (!campusId) {
-                    renderMessage('Select campus to load courses…');
-                    return;
-                }
-
-                renderMessage('Loading courses...');
-
-                try {
-                    const url = `{{ route('admin.courses.byCampus', ':id') }}`.replace(':id', campusId);
-                    const res = await fetch(url, { headers: { 'Accept': 'application/json' }});
-
-                    if (!res.ok) {
-                        const text = await res.text();
-                        console.error('Courses fetch failed:', res.status, text);
-                        renderMessage('Failed to load courses.');
-                        return;
-                    }
-
-                    const courses = await res.json();
-
-                    // old() first (validation error), else DB values
-                    const selectedIds = @json(old('course_ids', $userCourseIds)).map(String);
-
-                    renderCourses(courses, selectedIds);
-
-                } catch (e) {
-                    console.error(e);
-                    renderMessage('Error loading courses.');
+                if (!isHod()) {
+                    depBox.innerHTML = '<div class="text-muted small">Departments hidden (role not HOD).</div>';
                 }
             }
 
-            roleSelect.addEventListener('change', loadCourses);
-            campusSelect.addEventListener('change', loadCourses);
+            async function loadDepartments() {
+                toggleHodUI();
+                if (!isHod()) return;
 
-            loadCourses();
+                const campusId = campusSelect.value;
+
+                if (!campusId) {
+                    renderMessage('Select campus to load departments…');
+                    return;
+                }
+
+                renderMessage('Loading departments...');
+
+                try {
+                    const url = `{{ route('admin.departments.byCampus', ':id') }}`.replace(':id', campusId);
+                    const res = await fetch(url, { headers: { 'Accept': 'application/json' }});
+
+                    if (!res.ok) {
+                        renderMessage('Failed to load departments.');
+                        return;
+                    }
+
+                    const departments = await res.json();
+
+                    // Priority: old() after validation error; else use assigned departments from DB
+                    const oldDepartments = @json(old('department_ids', null));
+                    const selectedIds = (oldDepartments !== null)
+                        ? oldDepartments.map(String)
+                        : @json($userDepartmentIds ?? []).map(String);
+
+                    renderDepartments(departments, selectedIds);
+
+                } catch (e) {
+                    console.error(e);
+                    renderMessage('Error loading departments.');
+                }
+            }
+
+            roleSelect.addEventListener('change', loadDepartments);
+            campusSelect.addEventListener('change', loadDepartments);
+
+            // initial
+            loadDepartments();
         })();
     </script>
 @endsection

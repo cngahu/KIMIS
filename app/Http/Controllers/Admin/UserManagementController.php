@@ -88,11 +88,12 @@ class UserManagementController extends Controller
             'status'      => 'required|in:active,inactive',
 
             // NEW
+
             'department_ids'   => 'required_if:role,hod|array',
             'department_ids.*' => 'integer|exists:departmentts,id',
 
-            'course_ids'       => 'nullable|array',
-            'course_ids.*'     => 'integer|exists:courses,id',
+//            'course_ids'       => 'nullable|array',
+//            'course_ids.*'     => 'integer|exists:courses,id',
         ]);
 
         $code = $data['code'] ?? strtoupper(Str::random(8));
@@ -127,14 +128,13 @@ class UserManagementController extends Controller
 
             $user->departments()->sync($validDepartmentIds);
 
-            // ✅ Courses must belong to those departments AND campus
-            $validCourseIds = Course::where('college_id', $user->campus_id)
+            // ✅ AUTO: assign ALL courses under selected departments (and campus)
+            $autoCourseIds = Course::where('college_id', $user->campus_id)
                 ->whereIn('department_id', $validDepartmentIds)
-                ->whereIn('id', $data['course_ids'] ?? [])
                 ->pluck('id')
                 ->toArray();
 
-            $user->courses()->sync($validCourseIds);
+            $user->courses()->sync($autoCourseIds);
 
         } else {
             $user->departments()->sync([]);
@@ -159,15 +159,28 @@ class UserManagementController extends Controller
 //        return view('admin.users.edit', compact('user', 'roles', 'campuses'));
 //    }
 
+//    public function edit(User $user)
+//    {
+//        $roles = Role::orderBy('name')->get();
+//        $campuses = College::orderBy('name')->get();
+//
+//        $userRole = $user->roles()->pluck('name')->first();
+//        $userCourseIds = $user->courses()->pluck('courses.id')->toArray();
+//
+//        return view('admin.users.edit', compact('user','roles','campuses','userRole','userCourseIds'));
+//    }
+
     public function edit(User $user)
     {
-        $roles = Role::orderBy('name')->get();
+        $roles    = Role::orderBy('name')->get();
         $campuses = College::orderBy('name')->get();
 
         $userRole = $user->roles()->pluck('name')->first();
-        $userCourseIds = $user->courses()->pluck('courses.id')->toArray();
 
-        return view('admin.users.edit', compact('user','roles','campuses','userRole','userCourseIds'));
+        // NEW
+        $userDepartmentIds = $user->departments()->pluck('departmentts.id')->toArray();
+
+        return view('admin.users.edit', compact('user','roles','campuses','userRole','userDepartmentIds'));
     }
 
     public function update(Request $request, User $user)
@@ -187,11 +200,8 @@ class UserManagementController extends Controller
             'role'       => 'required|exists:roles,name',
             'campus_id'  => 'required_if:role,hod|exists:colleges,id',
 
-            'department_ids'   => 'required_if:role,hod|array',
+            'department_ids'   => 'required_if:role,hod|array|min:1',
             'department_ids.*' => 'integer|exists:departmentts,id',
-
-            'course_ids'       => 'nullable|array',
-            'course_ids.*'     => 'integer|exists:courses,id',
         ]);
 
         $user->fill([
@@ -219,13 +229,12 @@ class UserManagementController extends Controller
 
             $user->departments()->sync($validDepartmentIds);
 
-            $validCourseIds = Course::where('college_id', $user->campus_id)
+            $autoCourseIds = Course::where('college_id', $user->campus_id)
                 ->whereIn('department_id', $validDepartmentIds)
-                ->whereIn('id', $data['course_ids'] ?? [])
                 ->pluck('id')
                 ->toArray();
 
-            $user->courses()->sync($validCourseIds);
+            $user->courses()->sync($autoCourseIds);
 
         } else {
             $user->departments()->sync([]);
@@ -235,6 +244,7 @@ class UserManagementController extends Controller
         return redirect()->route('admin.users.index')
             ->with('success', 'User updated successfully.');
     }
+
 
 
 
