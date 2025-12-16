@@ -426,6 +426,36 @@
                 </div>
             </div>
 
+            <!-- Student Activation -->
+            <div class="service-card">
+                <div class="service-badge">ACTIVATION</div>
+
+                <div class="service-icon">
+                    <i class="la la-user-check"></i>
+                </div>
+
+                <h3 class="service-title">Student Activation</h3>
+
+                <p class="service-desc">
+                    Activate your student portal account using your admission number.
+                    Secure access to services and reset password on first login.
+                </p>
+
+                <ul class="mini-list">
+                    <li><i class="la la-check-circle"></i> Admission number validation</li>
+                    <li><i class="la la-check-circle"></i> Phone & email confirmation</li>
+                    <li><i class="la la-check-circle"></i> OTP-secured first login</li>
+                </ul>
+
+                <div class="service-actions">
+                    <a href="{{ route('student.activation.start') }}"
+                       class="btn-primary-kihbt d-inline-flex align-items-center gap-2">
+                        <i class="la la-unlock"></i> Activate Account
+                    </a>
+
+                </div>
+            </div>
+
             <!-- Student Management -->
             <div class="service-card">
                 <div class="service-badge">STUDENTS</div>
