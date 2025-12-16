@@ -239,7 +239,9 @@
 {{--                    </li>--}}
 
 
-
+                    <a href="{{ route('masterdata.index') }}">
+                        <i class="bx bx-right-arrow-alt"></i>Upload Master Data
+                    </a>
                 </ul>
             </li>
 
