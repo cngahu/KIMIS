@@ -4,6 +4,7 @@ use App\Http\Controllers\UsersController;
 use App\Http\Controllers\Student\StudentController;
 use App\Http\Controllers\Student\AdmissionController;
 use App\Http\Controllers\Student\FeeStatementController;
+use App\Http\Controllers\Student\StudentActivationController;
 
 // DEVELOPMENT PAYMENT SIMULATION ENDPOINT
 // ----------- SIMPLE PAYMENT SIMULATOR (DEV ONLY) ----------
@@ -104,3 +105,14 @@ Route::match(['GET', 'POST'], '/payments/success', [
 
 Route::post('/payments/notify', [\App\Http\Controllers\Application\PaymentController::class, 'notify'])
     ->name('payments.notify');
+
+
+
+Route::get('/student-activation', [StudentActivationController::class, 'start'])->name('student.activation.start');
+
+Route::post('/student-activation/verify', [StudentActivationController::class, 'verifyAdmission'])->name('student.activation.verify');
+
+Route::post('/student-activation/complete', [StudentActivationController::class, 'complete'])->name('student.activation.complete');
+Route::get('/student-activation/success', function () {return view('student.activation.success');
+})->name('student.activation.success');
+
