@@ -32,6 +32,7 @@ use App\Http\Controllers\Payment\PaymentSimulationController;
 use App\Http\Controllers\Report\ShortCoursesReportsController;
 use App\Http\Controllers\Report\FinanceReportController;
 use App\Http\Controllers\Auth\ForcePasswordController;
+use App\Http\Controllers\Admin\MasterdataController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -237,6 +238,14 @@ Route::middleware(['auth','history','verified','force.password'])->group(functio
 
         Route::get('/biodata', [BiodataImportController::class, 'index'])
             ->name('admin.biodata.index');
+
+
+
+        Route::get('/masterdata', [MasterdataController::class, 'index'])->name('masterdata.index');
+
+        Route::post('/masterdata/import', [MasterdataController::class, 'import'])->name('masterdata.import');
+
+        Route::post('/masterdata/truncate', [MasterdataController::class, 'truncate'])->name('masterdata.truncate');
 
     });
 
