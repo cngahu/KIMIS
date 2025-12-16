@@ -118,6 +118,57 @@ class TrainingController extends Controller
         ));
     }
 
+    public function longTerm(Request $request)
+    {
+        $search   = $request->input('search');
+        $campusId = $request->input('college_id');
+
+        $trainings = Training::with(['course.requirements', 'college'])
+            ->where('status', 'Approved')
+            ->whereHas('course', fn($q) => $q->where('course_mode', 'Long Term'))
+            ->when($search, function ($q) use ($search) {
+                $q->whereHas('course', function ($courseQuery) use ($search) {
+                    $courseQuery->where('course_name', 'like', "%{$search}%")
+                        ->orWhere('course_code', 'like', "%{$search}%");
+                });
+            })
+            ->when($campusId, fn($q) => $q->where('college_id', $campusId))
+            ->orderBy('start_date', 'asc')
+            ->paginate(9)
+            ->appends($request->query());
+
+        $colleges = \App\Models\College::orderBy('name')->get();
+
+        return view('training_long_term', compact('trainings', 'colleges', 'search', 'campusId'));
+    }
+
+    public function shortTerm(Request $request)
+    {
+        $search   = $request->input('search');
+        $campusId = $request->input('college_id');
+
+        $trainings = Training::with(['course.requirements', 'college'])
+            ->where('status', 'Approved')
+            ->whereHas('course', fn($q) => $q->where('course_mode', 'Short Term'))
+            ->when($search, function ($q) use ($search) {
+                $q->whereHas('course', function ($courseQuery) use ($search) {
+                    $courseQuery->where('course_name', 'like', "%{$search}%")
+                        ->orWhere('course_code', 'like', "%{$search}%");
+                });
+            })
+            ->when($campusId, fn($q) => $q->where('college_id', $campusId))
+            ->orderBy('start_date', 'asc')
+            ->paginate(9)
+            ->appends($request->query());
+
+        $colleges = \App\Models\College::orderBy('name')->get();
+
+        return view('training_short_term', compact('trainings', 'colleges', 'search', 'campusId'));
+    }
+
+
+
+
     /**
      * Show the form for creating a new training.
      * Only HOD & superadmin.
