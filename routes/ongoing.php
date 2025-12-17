@@ -5,9 +5,11 @@ use App\Http\Controllers\Admin\CourseStageController;
 use App\Http\Controllers\Admin\CohortStageTimelineController;
 use App\Http\Controllers\Admin\AcademicTimelineController;
 use App\Http\Controllers\Admin\AcademicTimelineExportController;
+use App\Http\Controllers\Admin\CourseStageFeeController;
+use App\Http\Controllers\Admin\CourseStageMappingController;
 
 
-Route::middleware(['role:superadmin|registrar'])->group(function () {
+Route::middleware(['auth','role:superadmin|registrar'])->group(function () {
 
 
     // Course Cohorts
@@ -62,5 +64,46 @@ Route::middleware(['role:superadmin|registrar'])->group(function () {
         '/academic-timeline-horizontal/pdf',
         [AcademicTimelineExportController::class, 'globalPdf']
     )->name('timeline.global.pdf');
+
+
+    Route::prefix('admin/course-fees')->group(function () {
+
+        // Fee home – list ONLY long-term courses
+        Route::get(
+            '/home',
+            [CourseStageFeeController::class, 'home']
+        )->name('course_fees.home');
+        Route::get(
+            '/{course}',
+            [CourseStageFeeController::class, 'index']
+        )->name('course_fees.index');
+
+        // Store new / changed fee
+        Route::post(
+            '/{course}/store',
+            [CourseStageFeeController::class, 'store']
+        )->name('course_fees.store');
+    });
+
+    Route::prefix('admin/course-structure')->middleware('auth')->group(function () {
+
+        // Home – select course
+        Route::get(
+            '/home',
+            [CourseStageMappingController::class, 'home']
+        )->name('course_structure.home');
+
+        // View / manage structure for a course
+        Route::get(
+            '/{course}',
+            [CourseStageMappingController::class, 'index']
+        )->name('course_structure.index');
+
+        // Store mappings (create / replace)
+        Route::post(
+            '/{course}/store',
+            [CourseStageMappingController::class, 'store']
+        )->name('course_structure.store');
+    });
 
 });

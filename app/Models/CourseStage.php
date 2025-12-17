@@ -14,4 +14,21 @@ class CourseStage extends Model
         'stage_type',
         'is_billable',
     ];
+
+//    protected $fillable = [
+//        'code',
+//        'name',
+//        'sequence_number',
+//    ];
+
+    /**
+     * Fees defined for this stage (scoped by course in queries)
+     */
+    public function fees()
+    {
+        return $this->hasMany(
+            CourseStageFee::class,
+            'course_stage_id'
+        );
+    }
 }

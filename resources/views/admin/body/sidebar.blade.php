@@ -244,6 +244,26 @@
                     </a>
                 </ul>
             </li>
+            <li>
+                <a href="javascript:;" class="has-arrow">
+                    <div class="parent-icon"><i class='bx bx-dollar-circle'></i></div>
+                    <div class="menu-title">Fee Structure</div>
+                </a>
+                <ul>
+
+                    <li>
+                        <a href="{{ route('course_structure.home') }}">
+                            <i class="bx bx-right-arrow-alt"></i>Course Structure
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('course_fees.home') }}">
+                            <i class="bx bx-right-arrow-alt"></i>Fee Structure
+                        </a>
+                    </li>
+
+                </ul>
+            </li>
 
             <li>
                 <a href="{{ route('timeline.global') }}">

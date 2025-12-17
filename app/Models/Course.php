@@ -16,6 +16,20 @@ class Course extends Model
         return $this->hasMany(Requirement::class);
     }
 
+    public function stageMappings()
+    {
+        return $this->hasMany(CourseStageMapping::class)
+            ->orderBy('sequence_number');
+    }
+
+    public function stages()
+    {
+        return $this->belongsToMany(
+            CourseStage::class,
+            'course_stage_mappings'
+        )->withPivot('sequence_number')
+            ->orderBy('pivot_sequence_number');
+    }
 
 //    public function college()
 //    {
