@@ -17,4 +17,22 @@ class Student extends Model
         'admitted_at',
         'status',
     ];
+    public function openingBalance()
+    {
+        return $this->hasOne(StudentOpeningBalance::class);
+    }
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function enrollments()
+    {
+        return $this->hasMany(Enrollment::class);
+    }
+
+    public function course()
+    {
+        return $this->belongsTo(Course::class);
+    }
 }

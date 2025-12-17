@@ -1,6 +1,8 @@
 @extends('admin.admin_dashboard')
 
 @section('admin')
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+
     <div class="container-fluid">
 
         <h5 class="mb-3">
@@ -12,7 +14,9 @@
             <div class="card-body">
 
                 <div class="table-responsive">
-                    <table class="table table-hover align-middle">
+{{--                    <table class="table table-hover align-middle">--}}
+                        <table id="coursesTable" class="table table-hover align-middle">
+
                         <thead class="table-dark">
                         <tr>
                             <th width="40%">Course</th>
@@ -60,4 +64,27 @@
         </div>
 
     </div>
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    @push('scripts')
+        <script>
+            $(document).ready(function () {
+                $('#coursesTable').DataTable({
+                    responsive: true,
+                    pageLength: 10,
+                    lengthChange: false,
+                    ordering: true,
+                    language: {
+                        search: "Search courses:",
+                        emptyTable: "No long-term courses found"
+                    },
+                    columnDefs: [
+                        { orderable: false, targets: 3 } // Disable sorting on Action column
+                    ]
+                });
+            });
+        </script>
+    @endpush
+
 @endsection

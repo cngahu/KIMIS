@@ -101,65 +101,65 @@
 
     @endif
 
-    {{-- ADMITTED STATUSES --}}
-    @if(in_array($admission->status, ['admission_number_assigned', 'admitted']))
-
-        <li>
-            <a href="{{ route('student.dashboard') }}">
-                <div class="parent-icon"><i class="bx bx-home"></i></div>
-                <div class="menu-title">Dashboard</div>
-            </a>
-        </li>
-
-        <li>
-            <a href="{{ route('student.dashboard') }}">
-                <div class="parent-icon"><i class="bx bx-user"></i></div>
-                <div class="menu-title">My Profile</div>
-            </a>
-        </li>
-
-        <li>
-            <a href="{{ route('student.fee.statement') }}">
-                <div class="parent-icon"><i class="bx bx-money"></i></div>
-                <div class="menu-title">Fees & Payments</div>
-            </a>
-        </li>
-
-        <li>
-            <a href="{{ route('student.dashboard') }}">
-                <div class="parent-icon"><i class="bx bx-book"></i></div>
-                <div class="menu-title">Course Units</div>
-            </a>
-        </li>
-
-        <li>
-            <a href="{{ route('student.dashboard') }}">
-                <div class="parent-icon"><i class="bx bx-award"></i></div>
-                <div class="menu-title">Exam Results</div>
-            </a>
-        </li>
-
-        <li>
-            <a href="{{ route('student.dashboard') }}">
-                <div class="parent-icon"><i class="bx bx-calendar"></i></div>
-                <div class="menu-title">Class Timetable</div>
-            </a>
-        </li>
-
-        <li>
-            <a href="{{ route('student.dashboard') }}">
-                <div class="parent-icon"><i class="bx bx-bell"></i></div>
-                <div class="menu-title">Notices</div>
-            </a>
-        </li>
-
-        <li>
-            <a href="#">
-                <div class="parent-icon"><i class="bx bx-help-circle"></i></div>
-                <div class="menu-title">Help & Support</div>
-            </a>
-        </li>
-
-    @endif
 
 @endif
+{{-- ADMITTED STATUSES --}}
+{{--    @if(in_array($admission->status, ['admission_number_assigned', 'admitted']) || $students)--}}
+{{--    @if( $student->status='active')--}}
+<li>
+    <a href="{{ route('student.dashboard') }}">
+        <div class="parent-icon"><i class="bx bx-home"></i></div>
+        <div class="menu-title">Dashboard</div>
+    </a>
+</li>
+
+<li>
+    <a href="{{ route('student.dashboard') }}">
+        <div class="parent-icon"><i class="bx bx-user"></i></div>
+        <div class="menu-title">My Profile</div>
+    </a>
+</li>
+
+<li>
+    <a href="{{ route('student.fee.statement') }}">
+        <div class="parent-icon"><i class="bx bx-money"></i></div>
+        <div class="menu-title">Fees & Payments</div>
+    </a>
+</li>
+
+<li>
+    <a href="{{ route('student.dashboard') }}">
+        <div class="parent-icon"><i class="bx bx-book"></i></div>
+        <div class="menu-title">Course Units</div>
+    </a>
+</li>
+
+<li>
+    <a href="{{ route('student.dashboard') }}">
+        <div class="parent-icon"><i class="bx bx-award"></i></div>
+        <div class="menu-title">Exam Results</div>
+    </a>
+</li>
+
+<li>
+    <a href="{{ route('student.dashboard') }}">
+        <div class="parent-icon"><i class="bx bx-calendar"></i></div>
+        <div class="menu-title">Class Timetable</div>
+    </a>
+</li>
+
+<li>
+    <a href="{{ route('student.dashboard') }}">
+        <div class="parent-icon"><i class="bx bx-bell"></i></div>
+        <div class="menu-title">Notices</div>
+    </a>
+</li>
+
+<li>
+    <a href="#">
+        <div class="parent-icon"><i class="bx bx-help-circle"></i></div>
+        <div class="menu-title">Help & Support</div>
+    </a>
+</li>
+
+{{--    @endif--}}

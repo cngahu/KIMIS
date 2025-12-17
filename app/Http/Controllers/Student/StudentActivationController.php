@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Student;
 use App\Http\Controllers\Controller;
 use App\Models\Masterdata;
 use App\Models\User;
+use App\Services\ContinuingStudentActivationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\StudentActivationCredentialsMail;
@@ -44,7 +46,7 @@ class StudentActivationController extends Controller
     /**
      * STEP 3: Create student user account
      */
-    public function complete(Request $request)
+    public function complete0(Request $request)
     {
         $request->validate([
             'admissionno' => ['required'],
@@ -53,6 +55,8 @@ class StudentActivationController extends Controller
         ]);
 
         $student = Masterdata::where('admissionNo', $request->admissionno)->firstOrFail();
+
+
 
         // Prevent double activation
         if (User::where('username', $student->admissionNo)->exists()) {
@@ -94,4 +98,33 @@ class StudentActivationController extends Controller
             ->route('student.activation.success')
             ->with('activation_email', $request->email);
     }
+
+
+    public function complete(Request $request)
+    {
+        $validated = $request->validate([
+            'admissionno' => ['required'],
+            'email'       => ['required', 'email'],
+            'phone'       => ['required'],
+        ]);
+
+        try {
+            $student = app(ContinuingStudentActivationService::class)
+                ->activate($validated);
+
+            return redirect()
+                ->route('student.activation.success')
+                ->with('success', 'Account activated successfully. Please check your email.');
+
+        } catch (\Throwable $e) {
+
+            Log::error('Student activation failed', [
+                'admissionno' => $validated['admissionno'],
+                'error' => $e->getMessage(),
+            ]);
+
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
 }

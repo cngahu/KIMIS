@@ -41,4 +41,9 @@ class StudentProfile extends Model
 
         'extra_data',
     ];
+
+    protected $casts = [
+        'extra_data' => 'array',
+    ];
+
 }

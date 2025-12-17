@@ -1,6 +1,12 @@
 @extends('admin.admin_dashboard')
 
 @section('admin')
+{{--    @php--}}
+{{--        // Prefer student if exists, otherwise derive from admission--}}
+{{--        $studentModel = $student--}}
+{{--            ?? optional($admission)->student--}}
+{{--            ?? null;--}}
+{{--    @endphp--}}
 
     <div class="page-content">
 
@@ -11,9 +17,11 @@
 
             {{-- Admission Number --}}
             <div class="col">
-                <div class="card radius-10 p-4 shadow-sm" style="background:linear-gradient(135deg,#003366,#009FE3);color:#fff;">
-                    <h6 class="fw-bold">Admission Number</h6>
-                    <h3 class="fw-bold">{{ $admission->admission_number ?? 'Pending' }}</h3>
+                <div class="card radius-10 p-4 shadow-sm" style="background:linear-gradient(135deg,#003666,#009FE3);color:#fff;">
+
+
+                    <h6 class="fw-bold" style="color: whitesmoke">Admission Number</h6>
+                    <h3 class="fw-bold" style="color: whitesmoke">{{ $student->student_number ?? 'Pending' }}</h3>
                 </div>
             </div>
 
@@ -21,7 +29,7 @@
             <div class="col">
                 <div class="card radius-10 p-4 shadow-sm">
                     <h6 class="fw-bold">Fee Balance</h6>
-                    <h3 class="fw-bold text-danger">KES 0.00</h3>
+                    <h3 class="fw-bold text-danger">KES 30210.00</h3>
                     <small class="text-muted">Fully cleared</small>
                 </div>
             </div>
@@ -30,7 +38,7 @@
             <div class="col">
                 <div class="card radius-10 p-4 shadow-sm">
                     <h6 class="fw-bold">Course</h6>
-                    <h5>{{ optional($admission->application->course)->course_name }}</h5>
+                    <h5>{{ optional($student->course)->course_name }}</h5>
                 </div>
             </div>
 
