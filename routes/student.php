@@ -5,7 +5,9 @@ use App\Http\Controllers\Student\StudentController;
 use App\Http\Controllers\Student\AdmissionController;
 use App\Http\Controllers\Student\FeeStatementController;
 use App\Http\Controllers\Student\StudentActivationController;
-
+use App\Http\Controllers\Student\StudentCycleRegistrationController;
+use App\Http\Controllers\Student\StudentPaymentController;
+use App\Http\Controllers\Student\StudentFeesController;
 // DEVELOPMENT PAYMENT SIMULATION ENDPOINT
 // ----------- SIMPLE PAYMENT SIMULATOR (DEV ONLY) ----------
 Route::get('/simulate-payment', function() {
@@ -15,6 +17,43 @@ Route::get('/simulate-payment', function() {
 Route::post('/simulate-payment', [App\Http\Controllers\Student\AdmissionController::class, 'simulateAdmissionPayment'])
     ->name('simulate.payment');
 
+
+
+
+Route::middleware(['auth', 'role:student'])->prefix('student')->group(function () {
+
+    // Register & redirect to payment
+    Route::post(
+        '/cycle/register',
+        [StudentCycleRegistrationController::class, 'register']
+    )->name('student.cycle.register');
+
+    // Unified payment iframe (admission, cycle, others later)
+    Route::get(
+        '/payments/{invoice}/iframe',
+        [StudentPaymentController::class, 'paymentIframe']
+    )->name('student.payments.iframe');
+
+});
+Route::middleware(['auth', 'role:student'])
+    ->prefix('student/fees')
+    ->group(function () {
+
+        Route::get('/', [StudentFeesController::class, 'index'])
+            ->name('student.fees.index');
+
+        Route::get('/invoice/{invoice}', [StudentFeesController::class, 'showInvoice'])
+            ->name('student.fees.invoice.show');
+
+        Route::get('/invoice/{invoice}/pdf', [StudentFeesController::class, 'downloadInvoice'])
+            ->name('student.fees.invoice.pdf');
+
+        Route::get('/receipt/{invoice}', [StudentFeesController::class, 'downloadReceipt'])
+            ->name('student.fees.receipt.pdf');
+
+        Route::get('/statement', [StudentFeesController::class, 'statement'])
+            ->name('student.fees.statement');
+    });
 
 Route::group(['middleware' => ['role:student','auth','history','verified','force.password']], function () {
     //

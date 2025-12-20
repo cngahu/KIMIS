@@ -6,6 +6,7 @@ use App\Models\AdmissionFeePayment;
 use App\Models\Invoice;
 use App\Models\Application;
 use App\Models\ShortTrainingApplication;
+use App\Models\StudentCycleRegistration;
 use App\Services\Audit\AuditLogService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -37,7 +38,9 @@ class PaymentProcessingService
             case 'admission_fee':  // 🔥 new case
                 $this->handleAdmissionFeePaid($billable, $invoice);
                 break;
-
+            case 'tuition_fee': // 🔥 NEW
+                $this->handleTuitionFeePaid($billable, $invoice);
+                break;
             // future:
             // case 'hostel_fee':
             // case 'admission_fee':
@@ -137,6 +140,32 @@ class PaymentProcessingService
             'paid_total'   => $paidTotal,
             'course_fee'   => $courseFee,
             'invoice_id'   => $invoice->id,
+        ]);
+    }
+    protected function handleTuitionFeePaid(StudentCycleRegistration $registration, Invoice $invoice)
+    {
+        // 1. Mark registration as confirmed
+        $registration->update([
+            'status'       => 'confirmed',
+            'confirmed_at' => now(),
+        ]);
+
+        // 2. Advance enrollment stage (if applicable)
+        $enrollment = $registration->enrollment;
+
+        if ($enrollment && $enrollment->course_stage_id !== $registration->course_stage_id) {
+            $enrollment->update([
+                'course_stage_id' => $registration->course_stage_id,
+            ]);
+        }
+
+        // 3. Audit
+        app(AuditLogService::class)->log('tuition_fee_paid', $invoice, [
+            'student_id'      => $registration->student_id,
+            'enrollment_id'   => $registration->enrollment_id,
+            'cycle_year'      => $registration->cycle_year,
+            'cycle_term'      => $registration->cycle_term,
+            'invoice_id'      => $invoice->id,
         ]);
     }
 

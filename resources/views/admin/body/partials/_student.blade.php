@@ -120,12 +120,19 @@
     </a>
 </li>
 
+{{--<li>--}}
+{{--    <a href="{{ route('student.fee.statement') }}">--}}
+{{--        <div class="parent-icon"><i class="bx bx-money"></i></div>--}}
+{{--        <div class="menu-title">Fees & Payments</div>--}}
+{{--    </a>--}}
+{{--</li>--}}
 <li>
-    <a href="{{ route('student.fee.statement') }}">
-        <div class="parent-icon"><i class="bx bx-money"></i></div>
-        <div class="menu-title">Fees & Payments</div>
+    <a href="{{ route('student.fees.index') }}">
+        <i class="fas fa-money-bill-wave"></i>
+        <span>Fees & Statements</span>
     </a>
 </li>
+
 
 <li>
     <a href="{{ route('student.dashboard') }}">

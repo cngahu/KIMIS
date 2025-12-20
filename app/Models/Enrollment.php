@@ -37,4 +37,9 @@ class Enrollment extends Model
     {
         return $this->belongsTo(Course::class);
     }
+
+    public function campus()
+    {
+        return $this->belongsTo(College::class,'campus_id');
+    }
 }

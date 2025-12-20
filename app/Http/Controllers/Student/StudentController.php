@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Admission;
 use App\Models\Student;
 use App\Models\User;
+use App\Services\Student\StudentDashboardService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -157,7 +158,7 @@ class StudentController extends Controller
          */
         return view('student.dashboard.no_admission');
     }
-    public function dashboard()
+    public function dashboard1B()
     {
         $userId = auth()->id();
 
@@ -209,6 +210,20 @@ class StudentController extends Controller
         // 3. Fallback
         return view('student.dashboard.no_admission');
     }
+
+    public function dashboard()
+    {
+        $student = Student::where('user_id', auth()->id())->first();
+
+        if (!$student) {
+            return view('student.dashboard.no_admission');
+        }
+
+        $data = app(StudentDashboardService::class)->build($student);
+
+        return view('student.dashboard.full_student', $data);
+    }
+
 
     public function index()
     {
