@@ -46,4 +46,9 @@ class Student extends Model
 
         return $openingBalance + $unpaidInvoices;
     }
+    public function profile()
+    {
+        return $this->hasOne(StudentProfile::class);
+    }
+
 }

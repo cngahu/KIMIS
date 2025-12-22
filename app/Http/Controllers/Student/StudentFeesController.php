@@ -7,6 +7,7 @@ use App\Models\Invoice;
 use App\Models\Student;
 use App\Services\FeeStatementService;
 use App\Services\InvoicePdfService;
+use App\Services\ReceiptPdfService;
 use Illuminate\Http\Request;
 
 class StudentFeesController extends Controller

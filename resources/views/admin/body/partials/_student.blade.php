@@ -114,7 +114,7 @@
 </li>
 
 <li>
-    <a href="{{ route('student.dashboard') }}">
+    <a href="{{ route('student.profile.show') }}">
         <div class="parent-icon"><i class="bx bx-user"></i></div>
         <div class="menu-title">My Profile</div>
     </a>
@@ -128,32 +128,32 @@
 {{--</li>--}}
 <li>
     <a href="{{ route('student.fees.index') }}">
-        <i class="fas fa-money-bill-wave"></i>
-        <span>Fees & Statements</span>
+       <div class="parent-icon"> <i class="fas fa-money-bill-wave"></i></div>
+       <div class="menu-title">Fees & Statements</div>
     </a>
 </li>
 
 
-<li>
-    <a href="{{ route('student.dashboard') }}">
-        <div class="parent-icon"><i class="bx bx-book"></i></div>
-        <div class="menu-title">Course Units</div>
-    </a>
-</li>
+{{--<li>--}}
+{{--    <a href="{{ route('student.dashboard') }}">--}}
+{{--        <div class="parent-icon"><i class="bx bx-book"></i></div>--}}
+{{--        <div class="menu-title">Course Units</div>--}}
+{{--    </a>--}}
+{{--</li>--}}
 
-<li>
-    <a href="{{ route('student.dashboard') }}">
-        <div class="parent-icon"><i class="bx bx-award"></i></div>
-        <div class="menu-title">Exam Results</div>
-    </a>
-</li>
+{{--<li>--}}
+{{--    <a href="{{ route('student.dashboard') }}">--}}
+{{--        <div class="parent-icon"><i class="bx bx-award"></i></div>--}}
+{{--        <div class="menu-title">Exam Results</div>--}}
+{{--    </a>--}}
+{{--</li>--}}
 
-<li>
-    <a href="{{ route('student.dashboard') }}">
-        <div class="parent-icon"><i class="bx bx-calendar"></i></div>
-        <div class="menu-title">Class Timetable</div>
-    </a>
-</li>
+{{--<li>--}}
+{{--    <a href="{{ route('student.dashboard') }}">--}}
+{{--        <div class="parent-icon"><i class="bx bx-calendar"></i></div>--}}
+{{--        <div class="menu-title">Class Timetable</div>--}}
+{{--    </a>--}}
+{{--</li>--}}
 
 <li>
     <a href="{{ route('student.dashboard') }}">

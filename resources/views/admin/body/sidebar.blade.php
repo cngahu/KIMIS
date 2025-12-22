@@ -79,13 +79,23 @@
         padding: 0.75rem 1.2rem 0.25rem;
     }
 </style>
-
+@php $user = \Illuminate\Support\Facades\Auth::user(); @endphp
 <div class="sidebar-wrapper kihbt-sidebar" data-simplebar="true">
     <div class="sidebar-header">
         <div>
-            <a href="{{ route('dashboard') }}">
-                <img src="{{ asset('adminbackend/assets/images/logokihbt.png') }}" class="logo-icon" alt="logo icon">
-            </a>
+
+            @if($user->hasRole('student'))
+
+                <a href="{{ route('student.dashboard') }}">
+                    <img src="{{ asset('adminbackend/assets/images/logokihbt.png') }}" class="logo-icon" alt="logo icon">
+                </a>
+            @else
+                <a href="{{ route('dashboard') }}">
+                    <img src="{{ asset('adminbackend/assets/images/logokihbt.png') }}" class="logo-icon" alt="logo icon">
+                </a>
+            @endif
+
+
         </div>
         <div>
             <h4 class="logo-text">Dashboard</h4>
@@ -97,13 +107,18 @@
 
     <!--navigation-->
     <ul class="metismenu" id="menu">
-        @php $user = \Illuminate\Support\Facades\Auth::user(); @endphp
+
 
 
 
         {{-- STUDENT --}}
         @if($user->hasRole('student'))
             @include('admin.body.partials._student')
+        @endif
+
+        {{-- STUDENT --}}
+        @if($user->hasRole('hod'))
+            @include('admin.body.partials._hod')
         @endif
         {{-- Roles & Permissions (permission-based, not role-based) --}}
         @if(Auth::user()->can('roles.menu'))
@@ -161,6 +176,8 @@
         {{-- SUPERADMIN MENU --}}
         @if(Auth::user()->hasRole('superadmin'))
 
+
+
             <li>
                 <a href="javascript:;" class="has-arrow">
                     <div class="parent-icon"><i class='bx bx-home-circle'></i></div>
@@ -182,7 +199,11 @@
                     <div class="menu-title">Constants</div>
                 </a>
                 <ul>
-
+                    <li>
+                        <a href="{{ route('departments.index') }}">
+                            <i class="bx bx-right-arrow-alt"></i>Departments
+                        </a>
+                    </li>
                     <li>
                         <a href="{{ route('all.courses') }}">
                             <i class="bx bx-right-arrow-alt"></i>Courses
@@ -232,11 +253,7 @@
                             <i class="bx bx-right-arrow-alt"></i>Course Stages
                         </a>
                     </li>
-{{--                    <li>--}}
-{{--                        <a href="{{ route('cohort_timelines.index') }}">--}}
-{{--                            <i class="bx bx-right-arrow-alt"></i>Course Timelines--}}
-{{--                        </a>--}}
-{{--                    </li>--}}
+
 
 
                     <a href="{{ route('masterdata.index') }}">
@@ -264,12 +281,17 @@
 
                 </ul>
             </li>
-
+            <li>
+                <a href="{{ route('admin.dashboard.master') }}">
+                    <i class="bx bx-right-arrow-alt"></i> Master Dashboard
+                </a>
+            </li>
             <li>
                 <a href="{{ route('timeline.global') }}">
                     <i class="bx bx-right-arrow-alt"></i> Academic Timeline (Horizontal)
                 </a>
             </li>
+
 
             <li class="menu-label">User Management</li>
             <li>

@@ -8,14 +8,22 @@ use Illuminate\Database\Eloquent\Model;
 class Departmentt extends Model
 {
     use HasFactory;
-    protected $guarded = [];
+    protected $table = 'departmentts';
+
+    protected $fillable = [
+        'college_id',
+        'name',
+        'code',
+    ];
+
+
 
     public function college()
     {
         return $this->belongsTo(College::class, 'college_id');
     }
 
-    public function courses()
+    public function courses0()
     {
         return $this->hasMany(Course::class);
     }
@@ -24,4 +32,11 @@ class Departmentt extends Model
     {
         return $this->belongsToMany(User::class, 'department_user');
     }
+    public function courses()
+    {
+        return $this->hasMany(Course::class, 'department_id');
+    }
+
+
+
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Backend;
 
 use App\Http\Controllers\Controller;
+use App\Models\College;
 use Illuminate\Http\Request;
 use App\Models\Course;
 
@@ -30,7 +31,7 @@ class CourseController extends Controller
         return view('admin.courses.index', compact('courses', 'search'));
     }
 
-    public function create()
+    public function create0()
     {
         abort_unless(auth()->user()?->hasRole('superadmin'), 403);
 
@@ -39,8 +40,23 @@ class CourseController extends Controller
 
         return view('admin.courses.create', compact('categories', 'modes'));
     }
+    public function create()
+    {
+        abort_unless(auth()->user()?->hasRole('superadmin'), 403);
 
-    public function store(Request $request)
+        $categories = ['Diploma', 'Craft', 'Higher Diploma', 'Proficiency'];
+        $modes      = ['Long Term', 'Short Term'];
+
+        $colleges = College::orderBy('name')->get();
+
+        return view('admin.courses.create', compact(
+            'categories',
+            'modes',
+            'colleges'
+        ));
+    }
+
+    public function store0(Request $request)
     {
         abort_unless(auth()->user()?->hasRole('superadmin'), 403);
 
@@ -61,6 +77,43 @@ class CourseController extends Controller
 
         // If requirement is "Yes" (1), go to requirement capture page
         if ((int)$course->requirement === 1) {
+            return redirect()
+                ->route('courses.requirements.create', $course->id)
+                ->with('success', 'Course created. Please add the course requirements.');
+        }
+
+        return redirect()
+            ->route('all.courses')
+            ->with('success', 'Course created successfully.');
+    }
+    public function store(Request $request)
+    {
+        abort_unless(auth()->user()?->hasRole('superadmin'), 403);
+
+        $data = $request->validate([
+            'college_id'       => ['required', 'exists:colleges,id'],
+            'department_id'    => ['required', 'exists:departmentts,id'],
+
+            'course_name'      => ['required', 'string', 'max:255'],
+            'course_category'  => ['required', 'in:Diploma,Craft,Higher Diploma,Proficiency'],
+            'course_code'      => ['required', 'string', 'max:255', 'unique:courses,course_code'],
+            'course_mode'      => ['required', 'in:Long Term,Short Term'],
+            'course_duration'  => ['required', 'integer', 'min:1'], // months
+            'cost'             => ['nullable', 'numeric', 'min:0'],
+            'target_group'     => ['nullable', 'string', 'max:255'],
+            'requirement'      => ['required', 'boolean'],
+        ]);
+
+        // Convert duration from months → years
+        $data['duration_years'] = round($data['course_duration'] / 12, 2);
+
+        // Audit / ownership
+        $data['user_id'] = auth()->id();
+
+        $course = Course::create($data);
+
+        // Redirect based on requirement flag
+        if ((int) $course->requirement === 1) {
             return redirect()
                 ->route('courses.requirements.create', $course->id)
                 ->with('success', 'Course created. Please add the course requirements.');

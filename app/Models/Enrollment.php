@@ -42,4 +42,14 @@ class Enrollment extends Model
     {
         return $this->belongsTo(College::class,'campus_id');
     }
+
+    public function student()
+    {
+        return $this->belongsTo(Student::class);
+    }
+
+    public function cycleRegistrations()
+    {
+        return $this->hasMany(StudentCycleRegistration::class);
+    }
 }

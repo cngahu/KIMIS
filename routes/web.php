@@ -33,6 +33,8 @@ use App\Http\Controllers\Report\ShortCoursesReportsController;
 use App\Http\Controllers\Report\FinanceReportController;
 use App\Http\Controllers\Auth\ForcePasswordController;
 use App\Http\Controllers\Admin\MasterdataController;
+use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\DepartmentController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -395,6 +397,7 @@ Route::middleware(['auth','history','verified','force.password'])->group(functio
                 Route::delete('/users/{user}', 'destroy')->name('admin.users.destroy');
             });
 
+
             Route::get('/courses/by-campus/{college}', function ($college) {
                 return Course::where('college_id', $college)
                     ->orderBy('course_name')
@@ -517,6 +520,19 @@ Route::middleware(['auth','history','verified','force.password'])->group(functio
         Route::post('/training/{training}/director-reject', 'directorReject')->name('trainings.director_reject');
 
 
+
+
+        Route::prefix('admin-departments')->middleware(['auth'])->group(function () {
+
+            Route::get('/departments', [DepartmentController::class, 'index'])->name('departments.index');
+            Route::get('/departments/create', [DepartmentController::class, 'create'])->name('departments.create');
+            Route::post('/departments', [DepartmentController::class, 'store'])->name('departments.store');
+
+            Route::get('/departments/{department}/edit', [DepartmentController::class, 'edit'])->name('departments.edit');
+            Route::put('/departments/{department}', [DepartmentController::class, 'update'])->name('departments.update');
+
+            Route::delete('/departments/{department}', [DepartmentController::class, 'destroy'])->name('departments.destroy');
+        });
     });
 
 
@@ -673,6 +689,20 @@ Route::group(['middleware' => ['role:applicant','auth','history','verified']], f
 
 
 
+Route::middleware(['auth', 'role:registrar|superadmin'])
+    ->prefix('admin/dashboard')
+    ->group(function () {
+
+        Route::get('/master', [AdminDashboardController::class, 'index'])
+            ->name('admin.dashboard.master');
+
+    });
+
+Route::get('/admin/colleges/{college}/departments', function ($collegeId) {
+    return Departmentt::where('college_id', $collegeId)
+        ->orderBy('name')
+        ->get(['id', 'name']);
+});
 
 
 
@@ -684,3 +714,4 @@ require __DIR__.'/application.php';
 require __DIR__.'/student.php';
 require __DIR__.'/finance.php';
 require __DIR__.'/ongoing.php';
+require __DIR__.'/hod.php';

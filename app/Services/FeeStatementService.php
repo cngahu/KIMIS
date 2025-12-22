@@ -69,8 +69,13 @@ class FeeStatementService
         $pdf = Pdf::loadView('student.fees.pdf.statement', $data)
             ->setPaper('a4');
 
-        return $pdf->download(
-            'Fee_Statement_' . $student->student_number . '.pdf'
-        );
+//        return $pdf->download(
+//            'Fee_Statement_' . $student->student_number . '.pdf'
+//        );
+
+        $filename = 'Fee_Statement_' . str_replace(['/', '\\'], '-', $student->student_number) . '.pdf';
+
+        return $pdf->download($filename);
+
     }
 }

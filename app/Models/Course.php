@@ -52,5 +52,24 @@ class Course extends Model
         return $this->belongsTo(\App\Models\Departmentt::class, 'department_id');
     }
 
+    public function enrollments()
+    {
+        return $this->hasMany(Enrollment::class);
+    }
 
+    public function students()
+    {
+        return $this->hasManyThrough(
+            Student::class,
+            Enrollment::class,
+            'course_id',   // enrollments.course_id
+            'id',          // students.id
+            'id',          // courses.id
+            'student_id'   // enrollments.student_id
+        );
+    }
+    public function masterdata()
+    {
+        return $this->hasMany(Masterdata::class, 'course_id');
+    }
 }

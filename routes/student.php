@@ -8,6 +8,7 @@ use App\Http\Controllers\Student\StudentActivationController;
 use App\Http\Controllers\Student\StudentCycleRegistrationController;
 use App\Http\Controllers\Student\StudentPaymentController;
 use App\Http\Controllers\Student\StudentFeesController;
+use App\Http\Controllers\Student\StudentProfileController;
 // DEVELOPMENT PAYMENT SIMULATION ENDPOINT
 // ----------- SIMPLE PAYMENT SIMULATOR (DEV ONLY) ----------
 Route::get('/simulate-payment', function() {
@@ -35,6 +36,17 @@ Route::middleware(['auth', 'role:student'])->prefix('student')->group(function (
     )->name('student.payments.iframe');
 
 });
+
+Route::middleware(['auth', 'role:student'])
+    ->prefix('student/profile')
+    ->group(function () {
+
+        Route::get('/', [StudentProfileController::class, 'show'])
+            ->name('student.profile.show');
+
+        Route::post('/photo', [StudentProfileController::class, 'updatePhoto'])
+            ->name('student.profile.photo');
+    });
 Route::middleware(['auth', 'role:student'])
     ->prefix('student/fees')
     ->group(function () {

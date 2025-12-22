@@ -31,4 +31,10 @@ class CourseStage extends Model
             'course_stage_id'
         );
     }
+
+    public function label()
+    {
+        return "{$this->code} – {$this->name}";
+    }
+
 }
