@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\CohortStageTimeline;
 use App\Models\CourseCohort;
 use App\Models\CourseStage;
 use App\Services\Audit\AuditLogService;
@@ -79,5 +80,35 @@ class CohortStageTimelineController extends Controller
             ->route('cohort_timelines.index', $cohort)
             ->with('success', 'Stage added to cohort timeline.');
     }
+
+    public function edit(CourseCohort $cohort, CohortStageTimeline $timeline)
+    {
+        $stages = CourseStage::orderBy('code')->get();
+
+        return view(
+            'admin.cohort_timelines.edit',
+            compact('cohort', 'timeline', 'stages')
+        );
+    }
+    public function update(Request $request, CourseCohort $cohort, CohortStageTimeline $timeline)
+    {
+        $validated = $request->validate([
+            'course_stage_id' => 'required|exists:course_stages,id',
+            'cycle_month'     => 'required|in:1,5,9',
+            'cycle_year'      => 'required|digits:4',
+        ]);
+
+        $updated = $this->service->updateFromCycle(
+            $timeline,
+            $validated
+        );
+
+        $this->auditLog->logModelChange('Updated cohort stage timeline', $updated);
+
+        return redirect()
+            ->route('cohort_timelines.index', $cohort)
+            ->with('success', 'Stage timeline updated.');
+    }
+
 }
 

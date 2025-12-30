@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\CohortStageTimeline;
 use App\Models\CourseCohort;
+use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -101,5 +102,28 @@ class CohortStageTimelineService
             ]);
         });
     }
+
+    public function updateFromCycle(
+        CohortStageTimeline $timeline,
+        array $data
+    ): CohortStageTimeline {
+
+        return DB::transaction(function () use ($timeline, $data) {
+
+            $dates = $this->resolveDates(
+                (int) $data['cycle_year'],
+                (int) $data['cycle_month']
+            );
+
+            $timeline->update([
+                'course_stage_id' => $data['course_stage_id'],
+                'start_date'      => $dates['start'],
+                'end_date'        => $dates['end'],
+            ]);
+
+            return $timeline;
+        });
+    }
+
 }
 

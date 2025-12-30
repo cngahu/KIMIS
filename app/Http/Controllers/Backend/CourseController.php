@@ -6,11 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Models\College;
 use Illuminate\Http\Request;
 use App\Models\Course;
+use Illuminate\Validation\Rule;
 
 class CourseController extends Controller
 {
-    public function index(Request $request)
+    public function index0(Request $request)
     {
+
         $search = $request->input('search');
 
         $perPage = (int) $request->input('per_page', 10);
@@ -29,6 +31,14 @@ class CourseController extends Controller
             ->appends($request->query());
 
         return view('admin.courses.index', compact('courses', 'search'));
+    }
+    public function index()
+    {
+        $courses = Course::with('college')
+            ->orderBy('course_name', 'asc')
+            ->get();
+
+        return view('admin.courses.index', compact('courses'));
     }
 
     public function create0()
@@ -88,6 +98,7 @@ class CourseController extends Controller
     }
     public function store(Request $request)
     {
+
         abort_unless(auth()->user()?->hasRole('superadmin'), 403);
 
         $data = $request->validate([
@@ -96,12 +107,20 @@ class CourseController extends Controller
 
             'course_name'      => ['required', 'string', 'max:255'],
             'course_category'  => ['required', 'in:Diploma,Craft,Higher Diploma,Proficiency'],
-            'course_code'      => ['required', 'string', 'max:255', 'unique:courses,course_code'],
+//            'course_code'      => ['required', 'string', 'max:255', 'unique:courses,course_code'],
             'course_mode'      => ['required', 'in:Long Term,Short Term'],
             'course_duration'  => ['required', 'integer', 'min:1'], // months
             'cost'             => ['nullable', 'numeric', 'min:0'],
             'target_group'     => ['nullable', 'string', 'max:255'],
             'requirement'      => ['required', 'boolean'],
+            'course_code' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('courses', 'course_code')
+                    ->where(fn ($q) => $q->where('college_id', $request->college_id)),
+            ],
+
         ]);
 
         // Convert duration from months → years

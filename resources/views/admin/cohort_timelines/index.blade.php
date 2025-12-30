@@ -31,6 +31,8 @@
                         <th>Stage</th>
                         <th>Period</th>
                         <th>Status</th>
+                        <th>Action</th>
+
                     </tr>
                     </thead>
 
@@ -47,6 +49,15 @@
                                 –
                                 {{ $row['timeline']->end_date->format('d M Y') }}
                             </td>
+{{--                            <td>--}}
+{{--                                @if($row['status'] === 'current')--}}
+{{--                                    <span class="badge bg-success">Current</span>--}}
+{{--                                @elseif($row['status'] === 'completed')--}}
+{{--                                    <span class="badge bg-secondary">Completed</span>--}}
+{{--                                @else--}}
+{{--                                    <span class="badge bg-warning text-dark">Upcoming</span>--}}
+{{--                                @endif--}}
+{{--                            </td>--}}
                             <td>
                                 @if($row['status'] === 'current')
                                     <span class="badge bg-success">Current</span>
@@ -56,6 +67,14 @@
                                     <span class="badge bg-warning text-dark">Upcoming</span>
                                 @endif
                             </td>
+
+                            <td>
+                                <a href="{{ route('cohort_timelines.edit', [$cohort, $row['timeline']]) }}"
+                                   class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                            </td>
+
                         </tr>
                     @endforeach
                     </tbody>

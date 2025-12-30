@@ -98,6 +98,41 @@
     });
 </script>
 
+<script>
+    $(document).ready(function () {
+
+        $('.datatable').each(function () {
+
+            const table = $(this);
+
+            // Prevent double initialization
+            if ($.fn.DataTable.isDataTable(table)) {
+                return;
+            }
+
+            table.DataTable({
+                responsive: true,
+
+                pageLength: table.data('page-length') || 100,
+                lengthMenu: table.data('length-menu') || [10, 25, 50, 100],
+                ordering: table.data('ordering') !== false,
+                searching: table.data('searching') !== false,
+                info: table.data('info') !== false,
+                paging: table.data('paging') !== false,
+                order: table.data('order') || [[1, 'asc']],
+                language: {
+                    search: "_INPUT_",
+                    searchPlaceholder: table.data('search-placeholder') || "Search..."
+                },
+                columnDefs: table.data('column-defs') || []
+            });
+
+        });
+
+    });
+</script>
+
+
 <script src="{{ asset('adminbackend/assets/js/index.js') }}"></script>
 <script src="{{ asset('adminbackend/assets/js/validate.min.js') }}"></script>
 

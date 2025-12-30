@@ -19,7 +19,7 @@ class CourseCohortService
         });
     }
 
-    public function list(array $filters = [])
+    public function list0(array $filters = [])
     {
         return CourseCohort::with('course.college')
             ->when($filters['course_id'] ?? null, fn ($q, $v) => $q->where('course_id', $v))
@@ -27,5 +27,15 @@ class CourseCohortService
             ->latest()
             ->paginate($filters['per_page'] ?? 10);
     }
+
+    public function list(array $filters = [])
+    {
+        return CourseCohort::with('course.college')
+            ->when($filters['course_id'] ?? null, fn ($q, $v) => $q->where('course_id', $v))
+            ->when($filters['year'] ?? null, fn ($q, $v) => $q->where('intake_year', $v))
+            ->latest()
+            ->get(); // ✅ NOT paginate
+    }
+
 }
 

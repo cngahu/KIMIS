@@ -31,6 +31,17 @@ Route::middleware(['auth','role:superadmin|registrar'])->group(function () {
     )->name('cohort_timelines.index');
 
     Route::get(
+        '/course-cohorts/{cohort}/timelines/{timeline}/edit',
+        [CohortStageTimelineController::class, 'edit']
+    )->name('cohort_timelines.edit');
+
+    Route::put(
+        '/course-cohorts/{cohort}/timelines/{timeline}',
+        [CohortStageTimelineController::class, 'update']
+    )->name('cohort_timelines.update');
+
+
+    Route::get(
         '/course-cohorts/{cohort}/timelines/create',
         [CohortStageTimelineController::class, 'create']
     )->name('cohort_timelines.create');

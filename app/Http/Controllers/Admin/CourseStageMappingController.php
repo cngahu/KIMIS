@@ -20,13 +20,16 @@ class CourseStageMappingController extends Controller
      */
     public function home()
     {
-        $courses = Course::orderBy('course_name')->get();
+        $courses = Course::withCount('stageMappings')
+            ->orderBy('course_name')
+            ->get();
 
         return view(
             'admin.course_structure.home',
             compact('courses')
         );
     }
+
 
     /**
      * Show mapper for a course

@@ -72,4 +72,5 @@ class Course extends Model
     {
         return $this->hasMany(Masterdata::class, 'course_id');
     }
+    
 }
