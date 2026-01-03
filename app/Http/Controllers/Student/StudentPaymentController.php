@@ -46,19 +46,65 @@ class StudentPaymentController extends Controller
             $clientIDNumber = $application->id_number ?? $clientIDNumber;
         }
 
+//        if ($invoice->billable_type === StudentCycleRegistration::class) {
+//            $registration = $invoice->billable;
+//
+//            $billDesc = "Tuition Fee – {$registration->cycle_term} {$registration->cycle_year}";
+//        }
+
+        $campusId = null;
+
+        if ($invoice->billable_type === Admission::class) {
+            $admission = $invoice->billable;
+            $application = $admission->application;
+
+            $billDesc = 'Admission Fee – ' . ($application->full_name ?? '');
+            $clientName = $application->full_name ?? $clientName;
+            $clientEmail = $application->email ?? $clientEmail;
+            $clientMSISDN = $application->phone ?? $clientMSISDN;
+            $clientIDNumber = $application->id_number ?? $clientIDNumber;
+
+            // ✅ Campus from admission
+            $campusId = $admission->campus_id ?? null;
+        }
+
         if ($invoice->billable_type === StudentCycleRegistration::class) {
             $registration = $invoice->billable;
 
             $billDesc = "Tuition Fee – {$registration->cycle_term} {$registration->cycle_year}";
+
+            // ✅ Campus from enrollment
+            $campusId = $registration->enrollment->campus_id ?? null;
         }
 
+
+
         // -------------------------------------------------
-        // Pesaflow / eCitizen config
+        // Pesaflow / eCitizen config test
         // -------------------------------------------------
-        $apiClientID = env('PF_CLIENT_ID', '35');
-        $secret      = env('PF_SECRET', '7UiF90LT3RkIkala3FAxcwzYEXiy8Ztw');
-        $key         = env('PF_KEY', 'Fhtuo4tuMATrqmtL');
-        $serviceID   = env('PF_SERVICE_ID', '234330');
+//        $apiClientID = env('PF_CLIENT_ID', '35');
+//        $secret      = env('PF_SECRET', '7UiF90LT3RkIkala3FAxcwzYEXiy8Ztw');
+//        $key         = env('PF_KEY', 'Fhtuo4tuMATrqmtL');
+//        $serviceID   = env('PF_SERVICE_ID', '234330');
+
+
+
+
+        // -------------------------------------------------
+        // Pesaflow / eCitizen config live
+        // -------------------------------------------------
+        $apiClientID = env('PF_CLIENT_ID', '145');
+        $secret      = env('PF_SECRET', 'dn3ngJmaoGfMK8+NqIFns8b06a8bMARI');
+        $key         = env('PF_KEY', 'jVMRIYcb456ERAk9');
+//        $serviceID   = env('PF_SERVICE_ID', '234330');
+
+        if (!$campusId) {
+            abort(500, 'Unable to resolve campus for payment.');
+        }
+
+        $serviceID = ($campusId == 3)
+            ? '15248135'
+            : '15248134';
 
         $amountExpected = $invoice->amount;
         $billRefNumber  = $invoice->invoice_number;

@@ -7,7 +7,9 @@
 
 
     @endphp
-    <form action="https://test.pesaflow.com/PaymentAPI/iframev2.1.php" method="post" target="my_iframe">
+{{--    <form action="https://test.pesaflow.com/PaymentAPI/iframev2.1.php" method="post" target="my_iframe">--}}
+        <form action="https://payments.ecitizen.go.ke/PaymentAPI/iframev2.1.php" method="post" target="my_iframe">
+
         <input type="hidden" name="secureHash" value="{{ $my_secureHash }}">
         <input type="hidden" name="apiClientID" value="{{ $apiClientID }}">
         <input type="hidden" name="sendSTK" value="True">

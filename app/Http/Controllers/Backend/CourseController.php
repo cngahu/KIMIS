@@ -103,7 +103,7 @@ class CourseController extends Controller
 
         $data = $request->validate([
             'college_id'       => ['required', 'exists:colleges,id'],
-            'department_id'    => ['required', 'exists:departmentts,id'],
+            'academic_department_id'    => ['required', 'exists:academic_departments,id'],
 
             'course_name'      => ['required', 'string', 'max:255'],
             'course_category'  => ['required', 'in:Diploma,Craft,Higher Diploma,Proficiency'],
@@ -157,7 +157,8 @@ class CourseController extends Controller
         $categories = ['Diploma', 'Craft', 'Higher Diploma', 'Proficiency'];
         $modes      = ['Long Term', 'Short Term'];
 
-        return view('admin.courses.edit', compact('course', 'categories', 'modes'));
+        $colleges = College::orderBy('name')->get();
+        return view('admin.courses.edit', compact('course', 'categories', 'modes','colleges'));
     }
 
     public function update(Request $request, Course $course)
@@ -165,16 +166,27 @@ class CourseController extends Controller
         abort_unless(auth()->user()?->hasRole('superadmin'), 403);
 
         $data = $request->validate([
+            'college_id'       => ['required', 'exists:colleges,id'],
             'course_name'     => 'required|string|max:255',
             'course_category' => 'required|in:Diploma,Craft,Higher Diploma,Proficiency',
-            'course_code'     => 'required|string|max:255|unique:courses,course_code,' . $course->id,
+//            'course_code'     => 'required|string|max:255|unique:courses,course_code,' . $course->id,
+        'academic_department_id'=> 'required|exists:academic_departments,id',
             'course_mode'     => 'required|in:Long Term,Short Term',
             'course_duration' => 'required|integer|min:1',
             'cost'            => 'nullable|numeric|min:0',
             'target_group'    => 'nullable|string|max:255',
             'requirement'     => 'required|boolean',
+            'course_code' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('courses', 'course_code')
+                    ->where(fn ($q) => $q->where('college_id', $request->college_id))
+                    ->ignore($course->id),
+            ],
         ]);
-
+        // Recalculate years in case duration changed
+        $data['duration_years'] = round($data['course_duration'] / 12, 2);
         $course->update($data);
 
         return redirect()

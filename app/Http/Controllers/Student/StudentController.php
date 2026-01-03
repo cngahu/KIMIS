@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
 use App\Models\Admission;
+use App\Models\Masterdata;
 use App\Models\Student;
 use App\Models\User;
 use App\Services\Student\StudentDashboardService;
@@ -56,6 +57,7 @@ class StudentController extends Controller
             'admission_number_assigned',
             'admitted'
         ])) {
+//            $master=Masterdata::where('admi')
             return view('student.dashboard.full_student', compact('admission'));
         }
     }

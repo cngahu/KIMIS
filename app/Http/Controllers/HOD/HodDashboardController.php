@@ -1,14 +1,17 @@
 <?php
 
-namespace App\Http\Controllers\HOD;
+namespace App\Http\Controllers\Hod;
 
 use App\Http\Controllers\Controller;
+use App\Models\AcademicDepartment;
 use App\Models\Course;
 use App\Services\HodQualityCheckService;
 use App\Services\NominalRollService;
 use Illuminate\Http\Request;
 
 use App\Services\HodDashboardService;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 
 class HodDashboardController extends Controller
@@ -20,6 +23,31 @@ class HodDashboardController extends Controller
         return view('hod.dashboard.index', compact('dashboardData'));
     }
 
+
+    public function indexMaster()
+    {
+        $user = Auth::user();
+
+        $departments = AcademicDepartment::with([
+            'college',
+            'courses.courseCohorts'
+        ])
+            ->where('hod_user_id', $user->id)
+            ->get();
+
+        // Attach student counts per cohort
+        foreach ($departments as $department) {
+            foreach ($department->courses as $course) {
+                foreach ($course->courseCohorts as $cohort) {
+                    $cohort->students_count = DB::table('masterdata')
+                        ->where('cohort_id_provisional', $cohort->id)
+                        ->count();
+                }
+            }
+        }
+
+        return view('hod.dashboard.master_index', compact('departments'));
+    }
 
     public function nominalRoll(
         Course $course,

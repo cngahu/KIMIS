@@ -51,6 +51,14 @@ class ForcePasswordController extends Controller
 
         $user->save();
 
-        return redirect()->route('dashboard')->with('success', 'Password updated. It will expire in 30 days.');
+        if(Auth::user()->hasRole('student')){
+            return redirect()->route('student.dashboard')->with('success', 'Password updated. It will expire in 30 days.');
+        }
+        else
+        {
+            return redirect()->route('dashboard')->with('success', 'Password updated. It will expire in 30 days.');
+        }
+
+//        return redirect()->route('dashboard')->with('success', 'Password updated. It will expire in 30 days.');
     }
 }

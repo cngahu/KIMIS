@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Student;
 use App\Services\CycleRegistrationService;
+use Illuminate\Support\Facades\Log;
 
 class StudentCycleRegistrationController extends Controller
 {
@@ -63,14 +64,18 @@ class StudentCycleRegistrationController extends Controller
     }
     public function register(Request $request)
     {
+
         $student = Student::with('enrollments')
             ->where('user_id', auth()->id())
             ->firstOrFail();
+
 
         $enrollment = $student->enrollments()
             ->where('status', 'active')
             ->latest()
             ->first();
+
+
 
         if (!$enrollment) {
             return back()->with('error', 'No active enrollment found.');
@@ -99,9 +104,28 @@ class StudentCycleRegistrationController extends Controller
                 $registration->invoice_id
             );
 
-        } catch (\Exception $e) {
-            return back()->with('error', $e->getMessage());
         }
+//        catch (\Exception $e) {
+//            return back()->with('error', $e->getMessage());
+//        }
+        catch (\Throwable $e) {
+
+            Log::error('Cycle registration failed', [
+                'student_id' => $student->id,
+                'enrollment_id' => $enrollment->id ?? null,
+                'cycle_year' => $cycleYear,
+                'cycle_term' => $cycleTerm,
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return back()->with(
+                'error',
+                'An error occurred while registering. Please try again or contact support.'
+            );
+        }
+
+
     }
 
 }

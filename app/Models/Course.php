@@ -40,6 +40,11 @@ class Course extends Model
     {
         return $this->belongsTo(\App\Models\College::class, 'college_id');
     }
+// 🔗 Course → Academic Department
+    public function academicDepartment()
+    {
+        return $this->belongsTo(AcademicDepartment::class, 'academic_department_id');
+    }
 
     public function hods()
     {
@@ -72,5 +77,9 @@ class Course extends Model
     {
         return $this->hasMany(Masterdata::class, 'course_id');
     }
-    
+    public function courseCohorts()
+    {
+        return $this->hasMany(CourseCohort::class, 'course_id');
+    }
+
 }

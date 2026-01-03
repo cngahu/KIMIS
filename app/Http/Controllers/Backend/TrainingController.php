@@ -230,7 +230,8 @@ class TrainingController extends Controller
             ? (Course::find($data['course_id'])->college_id ?? null) // optional: use course college
             : $user->campus_id;
 
-        $data['status'] = Training::STATUS_DRAFT;
+//        $data['status'] = Training::STATUS_DRAFT;
+        $data['status'] = Training::STATUS_APPROVED;
 
         Training::create($data);
 

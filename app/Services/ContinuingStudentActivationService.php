@@ -1,6 +1,8 @@
 <?php
 
 namespace App\Services;
+use App\Mail\UserAccountCreatedMail;
+use App\Models\CohortStageTimeline;
 use App\Models\Masterdata;
 use App\Models\User;
 use App\Models\Student;
@@ -13,6 +15,8 @@ use App\Services\Audit\AuditLogService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 class ContinuingStudentActivationService
 {
@@ -88,10 +92,12 @@ class ContinuingStudentActivationService
             /** ------------------------------------------------
              * 5. Resolve cohort
              * ------------------------------------------------ */
-            $cohort = CourseCohort::where('course_id', $master->course_id)
-                ->where('label', 'like', "%{$master->intake}%")
-                ->first();
+//            $cohort = CourseCohort::where('course_id', $master->course_id)
+//                ->where('label', 'like', "%{$master->intake}%")
+//                ->first();
 
+            $cohort=$master->cohort_id_provisional;
+//            ? CourseCohort::find($master->cohort_id_provisional):$cohort;
             if (!$cohort) {
                 throw new \Exception('Unable to resolve cohort.');
             }
@@ -188,6 +194,12 @@ class ContinuingStudentActivationService
                 $user->assignRole('student');
             }
 
+            if (!empty($user->email)) {
+                Mail::to($user->email)->send(
+                    new UserAccountCreatedMail($user, $temporaryPassword)
+                );
+            }
+
             // 3. Create student
             $student = Student::create([
                 'user_id'        => $user->id,
@@ -214,10 +226,14 @@ class ContinuingStudentActivationService
             ]);
 
             // ✅ 5. Resolve cohort (HERE)
-            $cohortId = $this->resolveCohort($master);
+//            $cohortId = $this->resolveCohort($master);
+            $cohortId=$master->cohort_id_provisional;
 
             // ✅ 6. Resolve stage
-            $stageId = $this->resolveStage($master);
+//            $stageId = $this->resolveStage($master);
+
+            // 6. Resolve stage (NEW)
+            $stageId = $this->resolveCurrentTimelineStage($cohortId);
 
             // 7. Enrollment
             Enrollment::create([
@@ -234,6 +250,7 @@ class ContinuingStudentActivationService
                 'course_cohort_id'  => $cohortId,
                 'course_stage_id'   => $stageId,
 
+
                 'status'            => 'active',
                 'source'            => 'legacy',
                 'activated_at'      => now(),
@@ -249,6 +266,16 @@ class ContinuingStudentActivationService
                     'source'     => 'legacy_masterdata',
                 ]);
             }
+
+            $legacyStageId = $this->resolveStage($master);
+
+//            if ($legacyStageId !== $stageId) {
+//                Log::warning('Legacy vs timeline stage mismatch', [
+//                    'admissionNo' => $master->admissionNo,
+//                    'legacy_stage' => $master->current,
+//                    'timeline_stage_id' => $stageId,
+//                ]);
+//            }
 
             // 9. Mark activated
             $master->update(['activated_at' => now()]);
@@ -300,4 +327,21 @@ class ContinuingStudentActivationService
 
         return $mapping->course_stage_id;
     }
+
+    private function resolveCurrentTimelineStage(int $cohortId): int
+    {
+        $timeline = CohortStageTimeline::where('course_cohort_id', $cohortId)
+            ->whereDate('start_date', '<=', now())
+            ->whereDate('end_date', '>=', now())
+            ->first();
+
+        if (!$timeline) {
+            throw new \Exception(
+                'No active stage found for cohort timeline.'
+            );
+        }
+
+        return $timeline->course_stage_id;
+    }
+
 }

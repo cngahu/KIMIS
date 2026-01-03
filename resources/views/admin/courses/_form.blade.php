@@ -224,9 +224,9 @@
                     Department <span class="text-danger">*</span>
                 </label>
                 <select
-                    name="department_id"
-                    id="department_id"
-                    class="form-select @error('department_id') is-invalid @enderror"
+                    name="academic_department_id"
+                    id="academic_department_id"
+                    class="form-select @error('academic_department_id') is-invalid @enderror"
                     disabled
                 >
                     <option value="">-- Select Department --</option>
@@ -425,8 +425,8 @@
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const collegeSelect = document.getElementById('college_id');
-        const departmentSelect = document.getElementById('department_id');
-        const oldDepartmentId = "{{ old('department_id', $course->department_id ?? '') }}";
+        const departmentSelect = document.getElementById('academic_department_id');
+        const oldDepartmentId = "{{ old('academic_department_id', $course->department_id ?? '') }}";
 
         function loadDepartments(collegeId, selectedDepartmentId = null) {
             departmentSelect.innerHTML = '<option value="">-- Select Department --</option>';

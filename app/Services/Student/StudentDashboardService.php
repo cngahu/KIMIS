@@ -31,6 +31,7 @@ class StudentDashboardService
             ->where('cycle_term', $currentCycle['term'])
             ->first();
 
+
         return [
             'student'           => $student,
             'enrollment'        => $enrollment,

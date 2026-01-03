@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AcademicDepartment;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -89,9 +90,10 @@ class UserManagementController extends Controller
 
             // NEW
 
-            'department_ids'   => 'required_if:role,hod|array',
-            'department_ids.*' => 'integer|exists:departmentts,id',
-
+//            'department_ids'   => 'required_if:role,hod|array',
+//            'department_ids.*' => 'integer|exists:departmentts,id',
+            'academic_department_ids'   => 'required_if:role,hod|array',
+            'academic_department_ids.*' => 'integer|exists:academic_departments,id',
 //            'course_ids'       => 'nullable|array',
 //            'course_ids.*'     => 'integer|exists:courses,id',
         ]);
@@ -118,27 +120,41 @@ class UserManagementController extends Controller
 
         $user->syncRoles([$data['role']]);
 
+//        if ($data['role'] === 'hod') {
+//
+//            // ✅ Only departments from the selected campus are allowed
+//            $validDepartmentIds = Departmentt::where('college_id', $user->campus_id)
+//                ->whereIn('id', $data['department_ids'])
+//                ->pluck('id')
+//                ->toArray();
+//
+////            $user->departments()->sync($validDepartmentIds);
+//
+//            // ✅ AUTO: assign ALL courses under selected departments (and campus)
+//            $autoCourseIds = Course::where('college_id', $user->campus_id)
+//                ->whereIn('department_id', $validDepartmentIds)
+//                ->pluck('id')
+//                ->toArray();
+//
+////            $user->courses()->sync($autoCourseIds);
+//
+//        } else {
+//            $user->departments()->sync([]);
+//            $user->courses()->sync([]);
+//        }
+
         if ($data['role'] === 'hod') {
 
-            // ✅ Only departments from the selected campus are allowed
-            $validDepartmentIds = Departmentt::where('college_id', $user->campus_id)
-                ->whereIn('id', $data['department_ids'])
-                ->pluck('id')
-                ->toArray();
+            // ✅ Ensure departments belong to selected campus
+            $validDepartments = AcademicDepartment::where('college_id', $user->campus_id)
+                ->whereIn('id', $data['academic_department_ids'])
+                ->get();
 
-            $user->departments()->sync($validDepartmentIds);
-
-            // ✅ AUTO: assign ALL courses under selected departments (and campus)
-            $autoCourseIds = Course::where('college_id', $user->campus_id)
-                ->whereIn('department_id', $validDepartmentIds)
-                ->pluck('id')
-                ->toArray();
-
-            $user->courses()->sync($autoCourseIds);
-
-        } else {
-            $user->departments()->sync([]);
-            $user->courses()->sync([]);
+            foreach ($validDepartments as $department) {
+                $department->update([
+                    'hod_user_id' => $user->id,
+                ]);
+            }
         }
 
         if (!empty($user->email)) {

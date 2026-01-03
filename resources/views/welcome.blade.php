@@ -302,9 +302,9 @@
                                 <li class="nav-item"><a class="nav-link" href="{{ url('/dashboard') }}">Dashboard</a></li>
                             @else
                                 <li class="nav-item"><a class="nav-link" href="{{ route('login') }}">Log in</a></li>
-                                @if (Route::has('register'))
-                                    <li class="nav-item"><a class="nav-link" href="{{ route('register') }}">Register</a></li>
-                                @endif
+{{--                                @if (Route::has('register'))--}}
+{{--                                    <li class="nav-item"><a class="nav-link" href="{{ route('register') }}">Register</a></li>--}}
+{{--                                @endif--}}
                             @endauth
                         @endif
                     </ul>
@@ -328,9 +328,9 @@
                         <i class="la la-calendar-check"></i> Short Courses
                     </a>
 
-                    <a href="{{ route('public.trainings.long') }}" class="btn-primary-kihbt d-inline-flex align-items-center gap-2">
-                        <i class="la la-graduation-cap"></i> Long Term / KNEC
-                    </a>
+{{--                    <a href="{{ route('public.trainings.long') }}" class="btn-primary-kihbt d-inline-flex align-items-center gap-2">--}}
+{{--                        <i class="la la-graduation-cap"></i> Long Term / KNEC--}}
+{{--                    </a>--}}
 
                     <a href="{{ route('certificates.verify') }}" class="btn-primary-kihbt d-inline-flex align-items-center gap-2" style="background:#099139;">
                         <i class="la la-certificate"></i> Verify Certificate
@@ -376,24 +376,24 @@
                 </div>
             </div>
 
-            <!-- Long Term / KNEC -->
-            <div class="service-card">
-                <div class="service-badge">LONG TERM</div>
-                <div class="service-icon"><i class="la la-graduation-cap"></i></div>
-                <h3 class="service-title">KNEC / Long Course Application</h3>
-                <p class="service-desc">
-                    Browse long term programmes (KNEC) and apply using the online application process.
-                </p>
+{{--            <!-- Long Term / KNEC -->--}}
+{{--            <div class="service-card">--}}
+{{--                <div class="service-badge">LONG TERM</div>--}}
+{{--                <div class="service-icon"><i class="la la-graduation-cap"></i></div>--}}
+{{--                <h3 class="service-title">KNEC / Long Course Application</h3>--}}
+{{--                <p class="service-desc">--}}
+{{--                    Browse long term programmes (KNEC) and apply using the online application process.--}}
+{{--                </p>--}}
 
-                <div class="service-actions">
-                    <a href="{{ route('public.trainings.long') }}" class="btn-primary-kihbt d-inline-flex align-items-center gap-2">
-                        <i class="la la-arrow-right"></i> View Programmes
-                    </a>
-                    <a class="service-link" href="{{ route('public.trainings.long') }}">
-                        Learn more <i class="la la-angle-right"></i>
-                    </a>
-                </div>
-            </div>
+{{--                <div class="service-actions">--}}
+{{--                    <a href="{{ route('public.trainings.long') }}" class="btn-primary-kihbt d-inline-flex align-items-center gap-2">--}}
+{{--                        <i class="la la-arrow-right"></i> View Programmes--}}
+{{--                    </a>--}}
+{{--                    <a class="service-link" href="{{ route('public.trainings.long') }}">--}}
+{{--                        Learn more <i class="la la-angle-right"></i>--}}
+{{--                    </a>--}}
+{{--                </div>--}}
+{{--            </div>--}}
 
             <!-- Certificate Verification -->
             <div class="service-card">
@@ -457,23 +457,23 @@
             </div>
 
             <!-- Student Management -->
-            <div class="service-card">
-                <div class="service-badge">STUDENTS</div>
-                <div class="service-icon"><i class="la la-users-cog"></i></div>
-                <h3 class="service-title">Student Management</h3>
-                <p class="service-desc">
-                    Manage student records, enrollments and academic profiles efficiently.
-                </p>
+{{--            <div class="service-card">--}}
+{{--                <div class="service-badge">STUDENTS</div>--}}
+{{--                <div class="service-icon"><i class="la la-users-cog"></i></div>--}}
+{{--                <h3 class="service-title">Student Management</h3>--}}
+{{--                <p class="service-desc">--}}
+{{--                    Manage student records, enrollments and academic profiles efficiently.--}}
+{{--                </p>--}}
 
-                <div class="service-actions">
-                    <a href="#" class="btn-primary-kihbt d-inline-flex align-items-center gap-2">
-                        <i class="la la-user"></i> Get Started
-                    </a>
-                    <a class="service-link" href="#">
-                        Learn more <i class="la la-angle-right"></i>
-                    </a>
-                </div>
-            </div>
+{{--                <div class="service-actions">--}}
+{{--                    <a href="#" class="btn-primary-kihbt d-inline-flex align-items-center gap-2">--}}
+{{--                        <i class="la la-user"></i> Get Started--}}
+{{--                    </a>--}}
+{{--                    <a class="service-link" href="#">--}}
+{{--                        Learn more <i class="la la-angle-right"></i>--}}
+{{--                    </a>--}}
+{{--                </div>--}}
+{{--            </div>--}}
 
         </div>
     </section>

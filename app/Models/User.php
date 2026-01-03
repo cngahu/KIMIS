@@ -109,14 +109,24 @@ class User extends Authenticatable implements MustVerifyEmail
             ->where('college_id', $this->campus_id);
     }
 
-    public function departments()
+    public function departments0()
     {
         return $this->belongsToMany(\App\Models\Departmentt::class, 'department_user', 'user_id', 'department_id');
+    }
+    public function departments()
+    {
+        return $this->hasMany(AcademicDepartment::class, 'hod_user_id');
     }
 
     public function courses()
     {
         return $this->belongsToMany(\App\Models\Course::class, 'course_user', 'user_id', 'course_id');
+    }
+
+    // 🔗 User (HOD) → Departments
+    public function academicDepartments()
+    {
+        return $this->hasMany(AcademicDepartment::class, 'hod_user_id');
     }
 
 }

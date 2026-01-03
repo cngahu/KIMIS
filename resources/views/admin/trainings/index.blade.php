@@ -20,13 +20,15 @@
         <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
             <h1 class="mb-0">Trainings</h1>
 
-            {{-- 👇 Only HOD can add trainings --}}
-            @if($isHod)
-                <a href="{{ route('trainings.create') }}" class="btn btn-primary btn-sm">
-                    Add Training
+            {{-- Create New Training --}}
+            @if($isHod || $isSuper)
+                <a href="{{ route('trainings.create') }}"
+                   class="btn btn-primary btn-sm">
+                    <i class="fa-solid fa-plus me-1"></i> Create New Training
                 </a>
             @endif
         </div>
+
 
         {{-- Filters & search --}}
         <form action="{{ route('all.trainings') }}" method="GET" class="w-100 mb-3">

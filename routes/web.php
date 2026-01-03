@@ -35,6 +35,7 @@ use App\Http\Controllers\Auth\ForcePasswordController;
 use App\Http\Controllers\Admin\MasterdataController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\DepartmentController;
+use App\Http\Controllers\Backend\AcademicDepartmentController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -45,6 +46,14 @@ use App\Http\Controllers\Admin\DepartmentController;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
+Route::get(
+    '/academic-departments/by-campus/{campus}',
+    function ($campus) {
+        return \App\Models\AcademicDepartment::where('college_id', $campus)
+            ->orderBy('name')
+            ->get(['id', 'name']);
+    }
+)->name('admin.academic-departments.byCampus');
 
 if (app()->environment('local')) {
     Route::get('/simulate-payment/{invoice}', [PaymentSimulationController::class, 'simulate'])
@@ -133,6 +142,60 @@ Route::middleware(['auth','history','verified','force.password'])->group(functio
 ////            ->name('registrar.applications.view');
 //
 //    });
+
+
+    Route::prefix('backend')->name('backend.')->group(function () {
+
+        // List departments
+        Route::get(
+            '/academic-departments',
+            [AcademicDepartmentController::class, 'index']
+        )->name('academic-departments.index');
+
+        // Show create form
+        Route::get(
+            '/academic-departments/create',
+            [AcademicDepartmentController::class, 'create']
+        )->name('academic-departments.create');
+
+        // Store new department
+        Route::post(
+            '/academic-departments',
+            [AcademicDepartmentController::class, 'store']
+        )->name('academic-departments.store');
+
+        // Show edit form
+        Route::get(
+            '/academic-departments/{id}/edit',
+            [AcademicDepartmentController::class, 'edit']
+        )->name('academic-departments.edit');
+
+        // Update department
+        Route::put(
+            '/academic-departments/{id}',
+            [AcademicDepartmentController::class, 'update']
+        )->name('academic-departments.update');
+
+        // Delete department
+        Route::delete(
+            '/academic-departments/{id}',
+            [AcademicDepartmentController::class, 'destroy']
+        )->name('academic-departments.destroy');
+
+        // Assign HOD form
+        Route::get(
+            '/academic-departments/{id}/assign-hod',
+            [AcademicDepartmentController::class, 'assignHodForm']
+        )->name('academic-departments.assign-hod');
+
+        // Save HOD assignment
+        Route::post(
+            '/academic-departments/{id}/assign-hod',
+            [AcademicDepartmentController::class, 'assignHod']
+        )->name('academic-departments.assign-hod.store');
+
+    });
+
 
     Route::prefix('admin/accounts')->name('accounts.')->middleware(['role:superadmin'])->group(function () {
 
@@ -699,14 +762,22 @@ Route::middleware(['auth', 'role:registrar|superadmin'])
     });
 
 Route::get('/admin/colleges/{college}/departments', function ($collegeId) {
-    return Departmentt::where('college_id', $collegeId)
+
+
+    return \App\Models\AcademicDepartment::where('college_id', $collegeId)
         ->orderBy('name')
         ->get(['id', 'name']);
 });
 
 
-
-
+Route::get(
+    '/academic-departments/by-campus/{campus}',
+    function ($campus) {
+        return \App\Models\AcademicDepartment::where('college_id', $campus)
+            ->orderBy('name')
+            ->get(['id', 'name']);
+    }
+)->name('admin.academic-departments.byCampus');
 
 
 require __DIR__.'/auth.php';

@@ -161,6 +161,7 @@ class CycleRegistrationService
             'course_id'     => $enrollment->course_id,
             'category' => 'tuition_fee',
 
+
             'invoice_number'=> $this->generateInvoiceNumber(),
             'amount'        => $total,
             'status'        => 'pending',

@@ -161,7 +161,11 @@ Route::post('/payments/notify', [\App\Http\Controllers\Application\PaymentContro
 
 Route::get('/student-activation', [StudentActivationController::class, 'start'])->name('student.activation.start');
 
+
 Route::post('/student-activation/verify', [StudentActivationController::class, 'verifyAdmission'])->name('student.activation.verify');
+
+Route::post('/student-activation-verification', [StudentActivationController::class, 'verifyAdmission'])->name('student.activation.verify.new');
+
 
 Route::post('/student-activation/complete', [StudentActivationController::class, 'complete'])->name('student.activation.complete');
 Route::get('/student-activation/success', function () {return view('student.activation.success');

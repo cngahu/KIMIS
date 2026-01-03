@@ -68,6 +68,30 @@ class InvoiceController extends Controller
                 $billDesc = $app->course->course_name ?? "Application Payment";
                 break;
 
+//            case 'short_course':
+//                // ShortTrainingApplication model
+//                $short = $billable;
+//
+//                $participants = $short->participants;
+//
+//                if ($short->financier === 'employer') {
+//                    $clientName   = $short->employer_name;
+//                    $clientEmail  = $short->employer_email;
+//                    $clientMSISDN = $short->employer_phone;
+//                } else {
+//                    $first = $participants->first();
+//                    $clientName   = $first->full_name;
+//                    $clientEmail  = $first->email;
+//                    $clientMSISDN = $first->phone;
+//                    $clientIDNumber = $first->id_no ?? "A12345678";
+//                }
+//
+//                $training = \App\Models\Training::find($short->training_id);
+//
+//                $billDesc = "Short Course: " .
+//                    optional($training->course)->course_name .
+//                    " - " . ($training->schedule_label ?? "");
+//                break;
             case 'short_course':
                 // ShortTrainingApplication model
                 $short = $billable;
@@ -80,18 +104,28 @@ class InvoiceController extends Controller
                     $clientMSISDN = $short->employer_phone;
                 } else {
                     $first = $participants->first();
-                    $clientName   = $first->full_name;
-                    $clientEmail  = $first->email;
-                    $clientMSISDN = $first->phone;
-                    $clientIDNumber = $first->id_no ?? "A12345678";
+                    $clientName      = $first->full_name;
+                    $clientEmail     = $first->email;
+                    $clientMSISDN    = $first->phone;
+                    $clientIDNumber  = $first->id_no ?? "A12345678";
                 }
 
                 $training = \App\Models\Training::find($short->training_id);
+
+                // 🔑 SERVICE CODE SELECTION BASED ON COLLEGE
+                if ($training) {
+                    if (in_array($training->college_id, [1, 2])) {
+                        $serviceID = '15248134';
+                    } elseif ($training->college_id == 3) {
+                        $serviceID = '15248135';
+                    }
+                }
 
                 $billDesc = "Short Course: " .
                     optional($training->course)->course_name .
                     " - " . ($training->schedule_label ?? "");
                 break;
+
 
             default:
                 $billDesc = "Invoice Payment";
@@ -101,15 +135,21 @@ class InvoiceController extends Controller
         // -----------------------------
         // 2. Payment configuration
         // -----------------------------
-        $apiClientID       = env('PF_CLIENT_ID', '580');
-        $secret            = env('PF_SECRET', '');
-        $key               = env('PF_KEY', '');
-        $serviceID         = env('PF_SERVICE_ID', '234330');
-        $callBackURLOnSuccess = route('payments.success');
-        $notificationURL   = env('PF_NOTIFICATION_URL', "https://uat.kims.kihbt.ac.ke/api/pesaflow/confirm");
+//        $apiClientID       = env('PF_CLIENT_ID', '580');
+//        $secret            = env('PF_SECRET', '');
+//        $key               = env('PF_KEY', '');
+//        $serviceID         = env('PF_SERVICE_ID', '234330');
 
-//        $amountExpected    = $invoice->amount; // REAL AMOUNT
-        $amountExpected    = 1; // REAL AMOUNT
+        $apiClientID = env('PF_CLIENT_ID', '145');
+        $secret      = env('PF_SECRET', 'dn3ngJmaoGfMK8+NqIFns8b06a8bMARI');
+        $key         = env('PF_KEY', 'jVMRIYcb456ERAk9');
+
+        $callBackURLOnSuccess = route('payments.success');
+//        $notificationURL   = env('PF_NOTIFICATION_URL', "https://uat.kims.kihbt.ac.ke/api/pesaflow/confirm");
+        $notificationURL     = route('payments.notify');
+
+        $amountExpected    = $invoice->amount; // REAL AMOUNT
+//        $amountExpected    = 1; // REAL AMOUNT
         $billRefNumber     = $invoice->invoice_number;
         $currency          = "KES";
 

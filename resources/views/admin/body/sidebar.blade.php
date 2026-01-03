@@ -190,25 +190,40 @@
                     <i class="bx bx-right-arrow-alt"></i>Training Schedules
                 </a>
             </li>
-                </ul>
-            </li>
-
-            <li>
-                <a href="javascript:;" class="has-arrow">
-                    <div class="parent-icon"><i class='bx bx-home-circle'></i></div>
-                    <div class="menu-title">Constants</div>
-                </a>
-                <ul>
-                    <li>
-                        <a href="{{ route('departments.index') }}">
-                            <i class="bx bx-right-arrow-alt"></i>Departments
-                        </a>
-                    </li>
                     <li>
                         <a href="{{ route('all.courses') }}">
                             <i class="bx bx-right-arrow-alt"></i>Courses
                         </a>
                     </li>
+                </ul>
+
+            </li>
+
+            <li>
+                <a href="javascript:;" class="has-arrow">
+                    <div class="parent-icon"><i class='bx bx-book-open'></i></div>
+                    <div class="menu-title">Academic Setup</div>
+                </a>
+                <ul>
+                    <li>
+                        <a href="{{ route('course_cohorts.index') }}">
+                            <i class="bx bx-right-arrow-alt"></i>Course Cohorts
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('course_stages.index') }}">
+                            <i class="bx bx-right-arrow-alt"></i>Course Stages
+                        </a>
+                    </li>
+
+                </ul>
+            </li>
+            <li>
+                <a href="javascript:;" class="has-arrow">
+                    <div class="parent-icon"><i class='bx bx-map'></i></div>
+                    <div class="menu-title">Geographical Data</div>
+                </a>
+                <ul>
                     <li>
                         <a href="{{ route('backend.counties.index') }}">
                             <i class="bx bx-right-arrow-alt"></i>Counties
@@ -224,43 +239,37 @@
                             <i class="bx bx-right-arrow-alt"></i>Postal Codes
                         </a>
                     </li>
-
-                    <li>
-                        <a href="{{ route('admin.shortcourses.import.form') }}">
-                            <i class="bx bx-right-arrow-alt"></i>Upload completed Short Courses Certificates
-                        </a>
-                    </li>
-
-                    <li>
-                        <a href="{{ route('admin.admissions.import.form') }}">
-                            <i class="bx bx-right-arrow-alt"></i>Upload Admissions Data
-                        </a>
-                    </li>
-
-                    <li>
-                        <a href="{{ route('admin.biodata.import.form') }}">
-                            <i class="bx bx-right-arrow-alt"></i>Upload Student Bio Data
-                        </a>
-                    </li>
-
-                    <li>
-                        <a href="{{ route('course_cohorts.index') }}">
-                            <i class="bx bx-right-arrow-alt"></i>Course Cohorts
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('course_stages.index') }}">
-                            <i class="bx bx-right-arrow-alt"></i>Course Stages
-                        </a>
-                    </li>
-
-
-
-                    <a href="{{ route('masterdata.index') }}">
-                        <i class="bx bx-right-arrow-alt"></i>Upload Master Data
-                    </a>
                 </ul>
             </li>
+            <li>
+                <a href="javascript:;" class="has-arrow">
+                    <div class="parent-icon"><i class='bx bx-cloud-upload'></i></div>
+                    <div class="menu-title">Data Imports</div>
+                </a>
+                <ul>
+                    <li>
+                        <a href="{{ route('admin.admissions.import.form') }}">
+                            <i class="bx bx-right-arrow-alt"></i>Admissions Data
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('admin.biodata.import.form') }}">
+                            <i class="bx bx-right-arrow-alt"></i>Student Bio Data
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('admin.shortcourses.import.form') }}">
+                            <i class="bx bx-right-arrow-alt"></i>Short Course Certificates
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('masterdata.index') }}">
+                            <i class="bx bx-right-arrow-alt"></i>Master Data
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
             <li>
                 <a href="javascript:;" class="has-arrow">
                     <div class="parent-icon"><i class='bx bx-dollar-circle'></i></div>
@@ -282,8 +291,18 @@
                 </ul>
             </li>
             <li>
+                <a href="{{ route('backend.academic-departments.index') }}">
+                    <i class="bx bx-right-arrow-alt"></i>Academic Departments
+                </a>
+            </li>
+            <li>
                 <a href="{{ route('admin.dashboard.master') }}">
                     <i class="bx bx-right-arrow-alt"></i> Master Dashboard
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('admin.class-lists.index') }}">
+                    <i class="bx bx-right-arrow-alt"></i> Master Class Lists
                 </a>
             </li>
             <li>

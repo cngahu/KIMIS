@@ -28,6 +28,7 @@ class StudentActivationController extends Controller
      */
     public function verifyAdmission(Request $request)
     {
+
         $request->validate([
             'admissionno' => ['required'],
         ]);
@@ -123,7 +124,18 @@ class StudentActivationController extends Controller
                 'error' => $e->getMessage(),
             ]);
 
-            return back()->with('error', $e->getMessage());
+//            return back()->with('error', $e->getMessage());
+            Log::error('Student activation failed', [
+                'admissionno' => $validated['admissionno'],
+                'exception' => $e,
+            ]);
+
+            return redirect()
+                ->route('student.activation.start')
+                ->withInput()
+                ->with('activation_error', true);
+
+
         }
     }
 

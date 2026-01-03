@@ -19,6 +19,7 @@ class StudentCycleRegistration extends Model
         'invoice_id',
     ];
 
+
     public function student()
     {
         return $this->belongsTo(Student::class);
