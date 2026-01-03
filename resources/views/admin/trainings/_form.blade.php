@@ -25,7 +25,7 @@
                     @foreach($courses as $courseItem)
                         <option value="{{ $courseItem->id }}"
                             {{ (int) old('course_id', $training->course_id ?? 0) === $courseItem->id ? 'selected' : '' }}>
-                            {{ $courseItem->course_name }} ({{ $courseItem->course_code }})
+                            {{ $courseItem->course_name }} ({{ $courseItem->course_code }})-{{$courseItem->college->name}}
                         </option>
                     @endforeach
                 </select>

@@ -5,6 +5,9 @@ use App\Http\Controllers\Hod\HodDashboardController;
 use App\Http\Controllers\Hod\HodParticipantController;
 use App\Http\Controllers\Admin\AdminClassListController;
 use App\Http\Controllers\Admin\AdminClassListParticipantController;
+use App\Http\Controllers\Hod\HodShortCourseController;
+use App\Http\Controllers\Hod\HodShortCourseApplicationController;
+use App\Http\Controllers\Hod\HodShortCourseParticipantController;
 
 Route::middleware(['auth', 'role:hod'])->prefix('hod')->group(function () {
 
@@ -78,3 +81,42 @@ Route::middleware(['auth', 'role:registrar|superadmin|admin'])
 
 
     });
+
+
+// routes/web.php
+
+Route::middleware(['auth', 'role:hod'])
+    ->prefix('hod/short-courses')
+    ->name('hod.short_courses.')
+    ->group(function () {
+
+        // Dashboard: list short courses
+        Route::get('/', [HodShortCourseController::class, 'index'])
+            ->name('index');
+
+        // View schedules for a specific course
+        Route::get('{course}', [HodShortCourseController::class, 'schedules'])
+            ->name('schedules');
+
+        // 🔥 NEW — Applications per schedule
+        Route::get(
+            'schedules/{training}/applications',
+            [HodShortCourseApplicationController::class, 'index']
+        )->name('applications');
+
+        // 🔥 NEW — Revenue dashboard per schedule
+        Route::get(
+            'schedules/{training}/revenue',
+            [HodShortCourseApplicationController::class, 'revenue']
+        )->name('revenue');
+
+        Route::get(
+            'schedules/{training}/participants',
+            [HodShortCourseParticipantController::class, 'index']
+        )->name('participants');
+
+    });
+
+
+// routes/web.php
+

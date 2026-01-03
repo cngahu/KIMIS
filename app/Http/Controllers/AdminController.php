@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AcademicDepartment;
+use App\Models\Course;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -63,6 +65,13 @@ class AdminController extends Controller
 
         // Start from the same base for "recent" list
         $recentQuery = (clone $baseQuery);
+        $hodDepartments=[];
+        $hodCourses=[];
+        $hodOfficialName='';
+        $hodTotalCourses =0;
+        $hodLongCourses  = 0;
+        $hodShortCourses = 0;
+
 
         // === ROLE-SPECIFIC SCOPE ON TOP OF CAMPUS FILTER ===
         if ($user->hasRole('hod')) {
@@ -74,6 +83,25 @@ class AdminController extends Controller
             $hodRejectedTrainings = (clone $hodBase)->where('status', Training::STATUS_REJECTED)->count();
 
             $recentQuery = $hodBase;
+            $hodDepartments = AcademicDepartment::with(['college'])
+                ->where('hod_user_id', $user->id)
+                ->get();
+
+            $hodCourses = Course::with(['academicDepartment', 'college'])
+                ->whereIn(
+                    'academic_department_id',
+                    $hodDepartments->pluck('id')
+                )
+                ->get()
+                ->groupBy('course_mode'); // Long Term | Short Term
+
+            $hodOfficialName = trim(
+                "{$user->surname} {$user->firstname} {$user->othername}"
+            );
+            $hodTotalCourses = $hodCourses->flatten()->count();
+            $hodLongCourses  = $hodCourses->get('Long Term')?->count() ?? 0;
+            $hodShortCourses = $hodCourses->get('Short Term')?->count() ?? 0;
+
 
         } elseif ($user->hasRole('campus_registrar')) {
 
@@ -148,6 +176,14 @@ class AdminController extends Controller
             // 👇 NEW
             'globalApprovedTrainings',
             'globalRejectedTrainings',
+            'hodDepartments',
+            'hodCourses',
+            'hodOfficialName',
+            'hodTotalCourses',
+            'hodLongCourses',
+            'hodShortCourses',
+
+
         ));
     }
 

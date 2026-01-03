@@ -182,10 +182,10 @@ class TrainingController extends Controller
         }
 
         if ($user->hasRole('superadmin')) {
-            $courses = Course::orderBy('course_name')->get();
+            $courses = Course::orderBy('course_name')->where('course_mode','Short Term')->get();
         } else {
             // ✅ only assigned courses
-            $courses = $user->courses()->orderBy('course_name')->get();
+            $courses = $user->courses()->orderBy('course_name')->where('course_mode','Short Term')->get();
         }
 
         return view('admin.trainings.create', compact('courses'));

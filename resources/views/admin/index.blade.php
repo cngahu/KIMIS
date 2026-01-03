@@ -33,6 +33,166 @@
                 </p>
             </div>
         </div>
+        {{-- ===================== --}}
+        {{-- HOD DASHBOARD SNAPSHOT --}}
+        {{-- ===================== --}}
+        @if(Auth::user()->hasRole('hod'))
+
+            {{-- HOD PROFILE + STATS --}}
+            <div class="row g-3 mb-3">
+
+                {{-- PROFILE CARD --}}
+                <div class="col-12 col-xl-4">
+                    <div class="card radius-10 h-100"
+                         style="border-left:4px solid #3b2818;">
+                        <div class="card-body">
+                            <h6 class="fw-bold mb-2 text-uppercase text-muted">
+                                Head of Department
+                            </h6>
+
+                            <h5 class="fw-bold mb-1">{{ $hodOfficialName }}</h5>
+                            <p class="mb-2 text-muted small">{{ Auth::user()->email }}</p>
+
+                            <div class="mt-2">
+                        <span class="fw-semibold small d-block mb-1">
+                            Academic Departments
+                        </span>
+
+                                @forelse($hodDepartments as $dept)
+                                    <span class="badge bg-secondary me-1 mb-1">
+                                {{ $dept->name }}
+                            </span>
+                                @empty
+                                    <span class="text-muted small">None assigned</span>
+                                @endforelse
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- KPI: TOTAL COURSES --}}
+                <div class="col-12 col-md-4 col-xl-2">
+                    <div class="card radius-10 h-100"
+                         style="background:linear-gradient(135deg,#3b2818,#5a3b23);">
+                        <div class="card-body text-white text-center">
+                            <div class="kpi-value">{{ $hodTotalCourses }}</div>
+                            <div class="kpi-label">Total Courses</div>
+                            <small class="text-white-50">Under your oversight</small>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- KPI: LONG TERM --}}
+                <div class="col-12 col-md-4 col-xl-3">
+                    <div class="card radius-10 h-100"
+                         style="background:linear-gradient(135deg,#2b9348,#4bb368);">
+                        <div class="card-body text-white text-center">
+                            <div class="kpi-value">{{ $hodLongCourses }}</div>
+                            <div class="kpi-label">Long Term Courses</div>
+                            <small class="text-white-50">Diploma / Craft / Grade</small>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- KPI: SHORT TERM --}}
+                <div class="col-12 col-md-4 col-xl-3">
+                    <div class="card radius-10 h-100"
+                         style="background:linear-gradient(135deg,#f39c12,#f7c65f);">
+                        <div class="card-body text-white text-center">
+                            <div class="kpi-value">{{ $hodShortCourses }}</div>
+                            <div class="kpi-label">Short Term Courses</div>
+                            <small class="text-white-50">Trainings & certifications</small>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            {{-- COURSE LISTS --}}
+            <div class="row g-3 mb-3">
+
+                {{-- LONG TERM --}}
+                <div class="col-12 col-xl-6">
+                    <div class="card radius-10 h-100">
+                        <div class="card-body">
+                            <h6 class="fw-bold mb-2">
+                                Long Term Courses
+                                <span class="badge bg-success ms-1">{{ $hodLongCourses }}</span>
+                            </h6>
+
+                            @if($hodLongCourses)
+                                <div class="table-responsive">
+                                    <table class="table table-sm align-middle mb-0">
+                                        <thead class="table-light">
+                                        <tr>
+                                            <th>Course</th>
+                                            <th>Code</th>
+                                            <th>Department</th>
+                                            <th>Campus</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        @foreach($hodCourses['Long Term'] as $course)
+                                            <tr>
+                                                <td>{{ $course->course_name }}</td>
+                                                <td><code>{{ $course->course_code }}</code></td>
+                                                <td>{{ optional($course->academicDepartment)->name }}</td>
+                                                <td>{{ optional($course->college)->name }}</td>
+                                            </tr>
+                                        @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            @else
+                                <p class="text-muted mb-0">No long term courses.</p>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
+                {{-- SHORT TERM --}}
+                <div class="col-12 col-xl-6">
+                    <div class="card radius-10 h-100">
+                        <div class="card-body">
+                            <h6 class="fw-bold mb-2">
+                                Short Term Courses
+                                <span class="badge bg-warning text-dark ms-1">{{ $hodShortCourses }}</span>
+                            </h6>
+
+                            @if($hodShortCourses)
+                                <div class="table-responsive">
+                                    <table class="table table-sm align-middle mb-0">
+                                        <thead class="table-light">
+                                        <tr>
+                                            <th>Course</th>
+                                            <th>Code</th>
+                                            <th>Department</th>
+                                            <th>Campus</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        @foreach($hodCourses['Short Term'] as $course)
+                                            <tr>
+                                                <td>{{ $course->course_name }}</td>
+                                                <td><code>{{ $course->course_code }}</code></td>
+                                                <td>{{ optional($course->academicDepartment)->name }}</td>
+                                                <td>{{ optional($course->college)->name }}</td>
+                                            </tr>
+                                        @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            @else
+                                <p class="text-muted mb-0">No short term courses.</p>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        @endif
+
 
         {{-- ROLE-BASED KPI CARDS --}}
         <div class="row row-cols-1 row-cols-md-2 row-cols-xl-4 g-3 mb-3">

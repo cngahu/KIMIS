@@ -81,5 +81,12 @@ class Course extends Model
     {
         return $this->hasMany(CourseCohort::class, 'course_id');
     }
+    public function trainings()
+    {
+        return $this->hasMany(
+            \App\Models\Training::class,
+            'course_id'
+        );
+    }
 
 }

@@ -132,5 +132,12 @@ class Training extends Model
     {
         return $this->belongsTo(User::class, 'director_approver_id');
     }
+    public function applications()
+    {
+        return $this->hasMany(
+            ShortTrainingApplication::class,
+            'training_id'
+        );
+    }
 
 }

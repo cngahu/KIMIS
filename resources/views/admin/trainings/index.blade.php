@@ -116,6 +116,7 @@
             <div class="alert alert-success py-2">{{ session('success') }}</div>
         @endif
 
+
         @if($trainings->count())
             <div class="table-responsive">
                 <table class="table table-bordered table-striped align-middle mb-0">

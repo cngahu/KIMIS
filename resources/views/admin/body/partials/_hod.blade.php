@@ -12,9 +12,9 @@
     </a>
 </li>
 
-{{--<li>--}}
-{{--    <a href="{{ route('hod.quality.check') }}">--}}
-{{--        <div class="parent-icon"><i class="bx bx-help-circle"></i></div>--}}
-{{--        <div class="menu-title">HOD Reports</div>--}}
-{{--    </a>--}}
-{{--</li>--}}
+<li>
+    <a href="{{ route('hod.short_courses.index') }}">
+        <div class="parent-icon"><i class="bx bx-help-circle"></i></div>
+        <div class="menu-title">Short Courses Dashboard</div>
+    </a>
+</li>
