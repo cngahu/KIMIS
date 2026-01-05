@@ -112,6 +112,7 @@ class StudentPaymentController extends Controller
 
         $callBackURLOnSuccess = route('payments.success');
         $notificationURL     = route('payments.notify');
+//        $notificationURL = "https://kims.kihbt.ac.ke/api/pesaflow/confirm";
 
         // -------------------------------------------------
         // Generate secure hash
