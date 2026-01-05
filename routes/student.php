@@ -153,10 +153,10 @@ Route::match(['GET', 'POST'], '/payments/success', [
     'success'
 ])->name('payments.success');
 
-
-Route::post('/payments/notify', [\App\Http\Controllers\Application\PaymentController::class, 'notify'])
-    ->name('payments.notify');
-
+//
+//Route::post('/payments/notify', [\App\Http\Controllers\Application\PaymentController::class, 'notify'])
+//    ->name('payments.notify');
+//
 
 
 Route::get('/student-activation', [StudentActivationController::class, 'start'])->name('student.activation.start');

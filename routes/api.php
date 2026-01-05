@@ -32,3 +32,13 @@ Route::get('/apply/{course}/requirements',
 Route::group(['prefix' => 'pesaflow'], function () {
     Route::post('/confirm', [PesaFlowConfirmationController::class,'index'])->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);
 });
+
+
+Route::group(['prefix' => 'pesaflow'], function () {
+    Route::post(
+        '/confirm',
+        [PesaFlowConfirmationController::class, 'index']
+    )
+        ->name('payments.notify')
+        ->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);
+});

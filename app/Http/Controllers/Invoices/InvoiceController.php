@@ -32,7 +32,9 @@ class InvoiceController extends Controller
     }
 
     public function payByInvoice(Invoice $invoice)
+
     {
+
         // Load the billable model (Application OR ShortTrainingApplication OR future modules)
         $billable = $invoice->billable;
 
@@ -169,6 +171,7 @@ class InvoiceController extends Controller
         $hash = hash_hmac('sha256', $data_string, $key);
         $secureHash = base64_encode($hash);
 
+//        dd($notificationURL,$callBackURLOnSuccess);
         // -----------------------------
         // 4. Return payment iframe
         // -----------------------------
