@@ -1,4 +1,3 @@
-
 @extends('admin.admin_dashboard')
 @section('admin')
 
@@ -9,10 +8,13 @@
         <!--breadcrumb-->
         <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
             <div class="breadcrumb-title pe-3">Postal Codes</div>
+
             <div class="ps-3">
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb mb-0 p-0">
-                        <li class="breadcrumb-item"><a href="{{ url('/') }}"><i class="bx bx-home-alt"></i></a></li>
+                        <li class="breadcrumb-item">
+                            <a href="{{ url('/') }}"><i class="bx bx-home-alt"></i></a>
+                        </li>
                         <li class="breadcrumb-item active" aria-current="page">All Postal Codes</li>
                     </ol>
                 </nav>
@@ -32,7 +34,8 @@
             <div class="card-body">
 
                 <div class="table-responsive">
-                    <table id="example" class="table table-striped table-bordered datatable">
+                    <table id="example" class="table table-striped table-bordered">
+
                         <thead>
                         <tr>
                             <th>#</th>
@@ -43,9 +46,10 @@
                         </thead>
 
                         <tbody>
-                        @foreach($postalCodes as $key => $item)
+                        @forelse($postalCodes as $key => $item)
                             <tr>
-                                <td>{{ $key + 1 }}</td>
+                                {{-- correct numbering across pages --}}
+                                <td>{{ $postalCodes->firstItem() + $key }}</td>
                                 <td>{{ $item->code }}</td>
                                 <td>{{ $item->town ?? '-' }}</td>
 
@@ -60,14 +64,19 @@
                                         @csrf
                                         @method('DELETE')
 
-                                        <button class="btn btn-danger rounded-pill"
+                                        <button type="submit"
+                                                class="btn btn-danger rounded-pill"
                                                 onclick="return confirm('Delete this postal code?')">
                                             Delete
                                         </button>
                                     </form>
                                 </td>
                             </tr>
-                        @endforeach
+                        @empty
+                            <tr>
+                                <td colspan="4" class="text-center">No postal codes found.</td>
+                            </tr>
+                        @endforelse
                         </tbody>
 
                         <tfoot>
@@ -78,8 +87,19 @@
                             <th>Actions</th>
                         </tr>
                         </tfoot>
-
                     </table>
+                </div>
+
+                {{-- Laravel pagination (ONLY ONE pagination shown) --}}
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <div class="small text-muted">
+                        Showing {{ $postalCodes->firstItem() }} to {{ $postalCodes->lastItem() }}
+                        of {{ $postalCodes->total() }} results
+                    </div>
+
+                    <div>
+                        {{ $postalCodes->links() }}
+                    </div>
                 </div>
 
             </div>
@@ -89,8 +109,20 @@
 
     <script src="{{ asset('adminbackend/assets/plugins/datatable/js/jquery.dataTables.min.js') }}"></script>
     <script src="{{ asset('adminbackend/assets/plugins/datatable/js/dataTables.bootstrap5.min.js') }}"></script>
+
     <script>
-        $('#example').DataTable();
+        $(document).ready(function () {
+            $('#example').DataTable({
+                paging: false,        // Laravel does pagination
+                searching: false,     // set true ONLY if you want search on current page
+                info: false,
+                lengthChange: false,
+                ordering: true,
+                dom: 't'              // IMPORTANT: show ONLY the table (no datatable controls)
+            });
+        });
     </script>
+
+
 
 @endsection
