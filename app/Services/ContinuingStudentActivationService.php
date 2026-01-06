@@ -280,6 +280,12 @@ class ContinuingStudentActivationService
 
             // 9. Mark activated
             $master->update(['activated_at' => now()]);
+            // 9. Mark masterdata as activated
+            $master->update([
+                'is_activated' => true,
+                'activated_at' => now(),
+            ]);
+
 
             return $student;
         });

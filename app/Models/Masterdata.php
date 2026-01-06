@@ -27,6 +27,8 @@ class Masterdata extends Model
         'phone',
         'email',
         'idno',
+        'is_activated',
+        'activated_at',
     ];
 
     protected $casts = [
