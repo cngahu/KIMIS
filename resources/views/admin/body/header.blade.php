@@ -155,77 +155,77 @@
                     </li>
 
                     <!-- Notifications -->
-                    <li class="nav-item dropdown dropdown-large">
-                        <a class="nav-link dropdown-toggle dropdown-toggle-nocaret position-relative"
-                           href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <span class="alert-count">7</span>
-                            <i class='bx bx-bell'></i>
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-end">
-                            <a href="javascript:;">
-                                <div class="msg-header d-flex align-items-center">
-                                    <p class="msg-header-title mb-0">Notifications</p>
-                                    <p class="msg-header-clear ms-auto mb-0">Mark all as read</p>
-                                </div>
-                            </a>
-                            <div class="header-notifications-list">
-                                <!-- keep your notification items or trim as needed -->
-                                <a class="dropdown-item" href="javascript:;">
-                                    <div class="d-flex align-items-center">
-                                        <div class="notify bg-light-primary text-primary">
-                                            <i class="bx bx-group"></i>
-                                        </div>
-                                        <div class="flex-grow-1">
-                                            <h6 class="msg-name">New Customers
-                                                <span class="msg-time float-end">14 sec ago</span>
-                                            </h6>
-                                            <p class="msg-info mb-0">5 new users registered</p>
-                                        </div>
-                                    </div>
-                                </a>
-                            </div>
-                            <a href="javascript:;">
-                                <div class="text-center msg-footer">View All Notifications</div>
-                            </a>
-                        </div>
-                    </li>
+{{--                    <li class="nav-item dropdown dropdown-large">--}}
+{{--                        <a class="nav-link dropdown-toggle dropdown-toggle-nocaret position-relative"--}}
+{{--                           href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">--}}
+{{--                            <span class="alert-count">7</span>--}}
+{{--                            <i class='bx bx-bell'></i>--}}
+{{--                        </a>--}}
+{{--                        <div class="dropdown-menu dropdown-menu-end">--}}
+{{--                            <a href="javascript:;">--}}
+{{--                                <div class="msg-header d-flex align-items-center">--}}
+{{--                                    <p class="msg-header-title mb-0">Notifications</p>--}}
+{{--                                    <p class="msg-header-clear ms-auto mb-0">Mark all as read</p>--}}
+{{--                                </div>--}}
+{{--                            </a>--}}
+{{--                            <div class="header-notifications-list">--}}
+{{--                                <!-- keep your notification items or trim as needed -->--}}
+{{--                                <a class="dropdown-item" href="javascript:;">--}}
+{{--                                    <div class="d-flex align-items-center">--}}
+{{--                                        <div class="notify bg-light-primary text-primary">--}}
+{{--                                            <i class="bx bx-group"></i>--}}
+{{--                                        </div>--}}
+{{--                                        <div class="flex-grow-1">--}}
+{{--                                            <h6 class="msg-name">New Customers--}}
+{{--                                                <span class="msg-time float-end">14 sec ago</span>--}}
+{{--                                            </h6>--}}
+{{--                                            <p class="msg-info mb-0">5 new users registered</p>--}}
+{{--                                        </div>--}}
+{{--                                    </div>--}}
+{{--                                </a>--}}
+{{--                            </div>--}}
+{{--                            <a href="javascript:;">--}}
+{{--                                <div class="text-center msg-footer">View All Notifications</div>--}}
+{{--                            </a>--}}
+{{--                        </div>--}}
+{{--                    </li>--}}
 
                     <!-- Messages -->
-                    <li class="nav-item dropdown dropdown-large">
-                        <a class="nav-link dropdown-toggle dropdown-toggle-nocaret position-relative"
-                           href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <span class="alert-count">8</span>
-                            <i class='bx bx-comment'></i>
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-end">
-                            <a href="javascript:;">
-                                <div class="msg-header d-flex align-items-center">
-                                    <p class="msg-header-title mb-0">Messages</p>
-                                    <p class="msg-header-clear ms-auto mb-0">Mark all as read</p>
-                                </div>
-                            </a>
-                            <div class="header-message-list">
-                                <!-- keep or trim message items as desired -->
-                                <a class="dropdown-item" href="javascript:;">
-                                    <div class="d-flex align-items-center">
-                                        <div class="user-online">
-                                            <img src="assets/images/avatars/avatar-1.png" class="msg-avatar" alt="user avatar">
-                                        </div>
-                                        <div class="flex-grow-1">
-                                            <h6 class="msg-name">
-                                                Daisy Anderson
-                                                <span class="msg-time float-end">5 sec ago</span>
-                                            </h6>
-                                            <p class="msg-info mb-0">The standard chunk of lorem</p>
-                                        </div>
-                                    </div>
-                                </a>
-                            </div>
-                            <a href="javascript:;">
-                                <div class="text-center msg-footer">View All Messages</div>
-                            </a>
-                        </div>
-                    </li>
+{{--                    <li class="nav-item dropdown dropdown-large">--}}
+{{--                        <a class="nav-link dropdown-toggle dropdown-toggle-nocaret position-relative"--}}
+{{--                           href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">--}}
+{{--                            <span class="alert-count">8</span>--}}
+{{--                            <i class='bx bx-comment'></i>--}}
+{{--                        </a>--}}
+{{--                        <div class="dropdown-menu dropdown-menu-end">--}}
+{{--                            <a href="javascript:;">--}}
+{{--                                <div class="msg-header d-flex align-items-center">--}}
+{{--                                    <p class="msg-header-title mb-0">Messages</p>--}}
+{{--                                    <p class="msg-header-clear ms-auto mb-0">Mark all as read</p>--}}
+{{--                                </div>--}}
+{{--                            </a>--}}
+{{--                            <div class="header-message-list">--}}
+{{--                                <!-- keep or trim message items as desired -->--}}
+{{--                                <a class="dropdown-item" href="javascript:;">--}}
+{{--                                    <div class="d-flex align-items-center">--}}
+{{--                                        <div class="user-online">--}}
+{{--                                            <img src="assets/images/avatars/avatar-1.png" class="msg-avatar" alt="user avatar">--}}
+{{--                                        </div>--}}
+{{--                                        <div class="flex-grow-1">--}}
+{{--                                            <h6 class="msg-name">--}}
+{{--                                                Daisy Anderson--}}
+{{--                                                <span class="msg-time float-end">5 sec ago</span>--}}
+{{--                                            </h6>--}}
+{{--                                            <p class="msg-info mb-0">The standard chunk of lorem</p>--}}
+{{--                                        </div>--}}
+{{--                                    </div>--}}
+{{--                                </a>--}}
+{{--                            </div>--}}
+{{--                            <a href="javascript:;">--}}
+{{--                                <div class="text-center msg-footer">View All Messages</div>--}}
+{{--                            </a>--}}
+{{--                        </div>--}}
+{{--                    </li>--}}
 
                     <!-- User dropdown -->
                     <li class="nav-item dropdown user-box ms-2">
