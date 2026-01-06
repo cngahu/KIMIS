@@ -176,7 +176,11 @@
         {{-- SUPERADMIN MENU --}}
         @if(Auth::user()->hasRole('superadmin'))
 
-
+            <li>
+                <a href="{{ route('admin.logs.errors') }}">
+                    <i class="bx bx-right-arrow-alt"></i>Errors
+                </a>
+            </li>
 
             <li>
                 <a href="javascript:;" class="has-arrow">
@@ -493,6 +497,11 @@
             </li>
 
 
+        @endif
+
+
+        @if(Auth::user()->hasRole('accounts') || Auth::user()->hasRole('cash_office') || Auth::user()->hasRole('superadmin'))
+
 
             <li class="menu-label">Accounts</li>
 
@@ -532,8 +541,8 @@
 
                 </ul>
             </li>
-        @endif
 
+        @endif
 
         {{-- HOD MENU --}}
         @if(Auth::user()->hasRole('hod'))

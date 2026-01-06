@@ -197,7 +197,7 @@ Route::middleware(['auth','history','verified','force.password'])->group(functio
     });
 
 
-    Route::prefix('admin/accounts')->name('accounts.')->middleware(['role:superadmin'])->group(function () {
+    Route::prefix('admin/accounts')->name('accounts.')->middleware(['role:superadmin|accounts|cash_office'])->group(function () {
 
         Route::get('/dashboard', [AccountsController::class, 'dashboard'])
             ->name('dashboard');
@@ -786,3 +786,4 @@ require __DIR__.'/student.php';
 require __DIR__.'/finance.php';
 require __DIR__.'/ongoing.php';
 require __DIR__.'/hod.php';
+require __DIR__.'/errors.php';

@@ -31,6 +31,9 @@ class AdminController extends Controller
             if ($user->hasRole('applicant')) {
                 return redirect()->route('applicant.dashboard');
             }
+            if ($user->hasAnyRole(['accounts','cash_office'])) {
+                return redirect()->route('accounts.dashboard');
+            }
             abort(404);
         }
 

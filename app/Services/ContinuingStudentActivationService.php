@@ -187,6 +187,7 @@ class ContinuingStudentActivationService
                     'userrole'  => 'student',
                     'password'  => Hash::make($temporaryPassword),
                     'must_change_password' => 1,
+                    'email_verified_at' => now(), //
                 ]
             );
 

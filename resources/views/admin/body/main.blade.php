@@ -16,6 +16,9 @@
         @includeWhen(Auth::user()->hasRole('kihbt_registrar'), 'admin.body.sidebar._registrar')
         @includeWhen(Auth::user()->hasRole('director'), 'admin.body.sidebar._director')
         @includeWhen(Auth::user()->hasRole('student'), 'admin.body.sidebar._student')
+        @includeWhen(Auth::user()->hasRole('accounts'), 'admin.body.partials._accounts')
+        @includeWhen(Auth::user()->hasRole('cash_office'), 'admin.body.partials._accounts')
+        @includeWhen(Auth::user()->hasRole('superadmin'), 'admin.body.partials._accounts')
 
     </ul>
 

@@ -156,7 +156,7 @@ class AuthenticatedSessionController extends Controller
         if ($user->hasRole('applicant')) return redirect('applicant/dashboard');
         if ($user->hasRole('student')) return redirect('student/dashboard');
 
-        if ($user->hasAnyRole(['superadmin','hod','campus_registrar','kihbt_registrar','director'])) {
+        if ($user->hasAnyRole(['superadmin','hod','campus_registrar','kihbt_registrar','director','accounts','cash_office'])) {
             return redirect('/dashboard');
         }
 

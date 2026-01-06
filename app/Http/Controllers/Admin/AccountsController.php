@@ -37,8 +37,9 @@ class AccountsController extends Controller
         ]);
     }
 
-    public function invoices()
+    public function invoices1b()
     {
+
         $invoices = Invoice::with([
             'application.course',
             'admission.user',
@@ -49,6 +50,18 @@ class AccountsController extends Controller
 
         return view('admin.accounts.invoices', compact('invoices'));
     }
+    public function invoices()
+    {
+        $invoices = Invoice::with([
+            'user',        // who raised the invoice
+            'billable',    // what is being paid for
+        ])
+            ->orderByDesc('created_at')
+            ->get();
+
+        return view('admin..accounts.invoices', compact('invoices'));
+    }
+
     public function index(Request $request)
     {
         $query = Invoice::query();
