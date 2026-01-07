@@ -26,7 +26,7 @@ class StudentActivationController extends Controller
     /**
      * STEP 2: Verify admission number
      */
-    public function verifyAdmission(Request $request)
+    public function verifyAdmission0(Request $request)
     {
 
         $request->validate([
@@ -43,6 +43,32 @@ class StudentActivationController extends Controller
 
         return view('student.activation.step2', compact('student'));
     }
+    public function verifyAdmission(Request $request)
+    {
+        $request->validate([
+            'admissionno' => ['required'],
+        ]);
+
+        $student = Masterdata::where('admissionNo', $request->admissionno)->first();
+
+        if (! $student) {
+            return back()->withErrors([
+                'admissionno' => 'Admission number not found in our records.',
+            ]);
+        }
+
+        // ✅ NEW CHECK: already activated
+        if ($student->is_activated) {
+            return back()->withErrors([
+                'admissionno' => 'This account has already been activated.
+            Please log in using the credentials sent to your email.
+            If you did not receive the email, kindly contact the ICT Office for assistance.',
+            ]);
+        }
+
+        return view('student.activation.step2', compact('student'));
+    }
+
 
     /**
      * STEP 3: Create student user account
