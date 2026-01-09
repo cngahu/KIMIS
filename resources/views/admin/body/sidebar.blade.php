@@ -319,7 +319,12 @@
             <li class="menu-label">User Management</li>
             <li>
                 <a href="{{ route('admin.users.index') }}">
-                    <i class="bx bx-right-arrow-alt"></i>Manage Users
+                    <i class="bx bx-right-arrow-alt"></i>Manage  Internal Users
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('admin.users.students') }}">
+                    <i class="bx bx-right-arrow-alt"></i>Manage  Student Accounts
                 </a>
             </li>
             <li>

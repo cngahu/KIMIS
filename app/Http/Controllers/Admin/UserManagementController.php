@@ -24,6 +24,12 @@ class UserManagementController extends Controller
 
         $query = User::with('roles');
 
+        // ✅ Exclude students
+        $query->whereDoesntHave('roles', function ($q) {
+            $q->where('name', 'student');
+        });
+
+        // 🔍 Search
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('surname', 'like', "%{$search}%")
@@ -35,18 +41,19 @@ class UserManagementController extends Controller
             });
         }
 
+        // 🟢 Status filter
         if ($status) {
             $query->where('status', $status);
         }
 
+        // 🎭 Role filter (optional dropdown)
         if ($roleName) {
             $query->whereHas('roles', function ($q) use ($roleName) {
                 $q->where('name', $roleName);
             });
         }
 
-        $users = $query
-            ->orderBy('surname')
+        $users = $query->orderBy('surname')
             ->orderBy('firstname')
             ->paginate(10)
             ->appends($request->query());
@@ -54,6 +61,47 @@ class UserManagementController extends Controller
         $roles = Role::orderBy('name')->get();
 
         return view('admin.users.index', compact('users', 'roles', 'search', 'status', 'roleName'));
+    }
+
+    public function indexStudent(Request $request)
+    {
+        $search   = $request->input('search');
+        $status   = $request->input('status');
+
+        $query = User::with('roles');
+
+        // ✅ Only students
+        $query->whereHas('roles', function ($q) {
+            $q->where('name', 'student');
+        });
+
+        // 🔍 Search
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('surname', 'like', "%{$search}%")
+                    ->orWhere('firstname', 'like', "%{$search}%")
+                    ->orWhere('othername', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%")
+                    ->orWhere('code', 'like', "%{$search}%");
+            });
+        }
+
+        // 🟢 Status filter
+        if ($status) {
+            $query->where('status', $status);
+        }
+
+        $users = $query->orderBy('surname')
+            ->orderBy('firstname')
+            ->paginate(10)
+            ->appends($request->query());
+
+        // (Optional) only show "student" in dropdown, or keep all roles
+        $roles = Role::orderBy('name')->get();
+        $roleName = 'student';
+
+        return view('admin.users.index_student', compact('users', 'roles', 'search', 'status', 'roleName'));
     }
 
     public function create()
@@ -147,18 +195,34 @@ class UserManagementController extends Controller
         $campuses = College::orderBy('name')->get();
 
         $userRole = $user->roles()->pluck('name')->first();
-
-        // ✅ Academic departments where this user is HOD
         $userAcademicDepartmentIds = $user->departments()->pluck('academic_departments.id')->toArray();
 
         return view('admin.users.edit', compact(
-            'user',
-            'roles',
-            'campuses',
-            'userRole',
-            'userAcademicDepartmentIds'
-        ));
+            'user','roles','campuses','userRole','userAcademicDepartmentIds'
+        ))->with([
+            'context'   => 'users',
+            'backRoute' => route('admin.users.index'),
+            'lockRoleToStudent' => false,
+        ]);
     }
+
+    public function editStudent(User $user)
+    {
+        $roles    = Role::orderBy('name')->get();
+        $campuses = College::orderBy('name')->get();
+
+        $userRole = $user->roles()->pluck('name')->first();
+        $userAcademicDepartmentIds = $user->departments()->pluck('academic_departments.id')->toArray();
+
+        return view('admin.users.edit', compact(
+            'user','roles','campuses','userRole','userAcademicDepartmentIds'
+        ))->with([
+            'context'   => 'students',
+            'backRoute' => route('admin.users.students'),
+            'lockRoleToStudent' => true, // ✅ lock role when editing student
+        ]);
+    }
+
 
     public function update(Request $request, User $user)
     {

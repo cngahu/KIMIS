@@ -449,9 +449,12 @@ Route::middleware(['auth','history','verified','force.password'])->group(functio
             Route::controller(UserManagementController::class)->group(function () {
 
                 Route::get('/users', 'index')->name('admin.users.index');
+                Route::get('/users/student', 'indexstudent')->name('admin.users.students');
                 Route::get('/users/create', 'create')->name('admin.users.create');
                 Route::post('/users/store', 'store')->name('admin.users.store');
                 Route::get('/users/edit/{user}', 'edit')->name('admin.users.edit');
+                Route::get('/users/students/{user}/edit', 'editStudent')->name('admin.users.students.edit');
+
                 //Route::post('/users/update/{user}', 'update')->name('admin.users.update');
                 Route::match(['post', 'put'], 'users/update/{user}', 'update')
                     ->name('admin.users.update');
