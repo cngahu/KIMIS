@@ -11,6 +11,11 @@
         @if($errors->any())
             <div class="alert alert-danger">
                 Please correct the errors below.
+                <ul class="mb-0 mt-2">
+                    @foreach($errors->all() as $err)
+                        <li>{{ $err }}</li>
+                    @endforeach
+                </ul>
             </div>
         @endif
 
@@ -109,10 +114,8 @@
                             <label class="form-label fw-semibold">Role <span class="text-danger">*</span></label>
                             <select name="role" class="form-select @error('role') is-invalid @enderror" required>
                                 <option value="">-- Select Role --</option>
+                                @php $selectedRole = old('role', $userRole); @endphp
                                 @foreach($roles as $role)
-                                    @php
-                                        $selectedRole = old('role', $userRole);
-                                    @endphp
                                     <option value="{{ $role->name }}" {{ $selectedRole === $role->name ? 'selected' : '' }}>
                                         {{ ucfirst($role->name) }}
                                     </option>
@@ -130,9 +133,7 @@
                             <select name="campus_id" class="form-select @error('campus_id') is-invalid @enderror">
                                 <option value="">-- Select Campus --</option>
                                 @foreach($campuses as $campus)
-                                    @php
-                                        $selectedCampus = (int) old('campus_id', $user->campus_id);
-                                    @endphp
+                                    @php $selectedCampus = (int) old('campus_id', $user->campus_id); @endphp
                                     <option value="{{ $campus->id }}" {{ $selectedCampus === (int)$campus->id ? 'selected' : '' }}>
                                         {{ $campus->name }} ({{ $campus->code }})
                                     </option>
@@ -154,7 +155,7 @@
                                 <div class="text-muted small">Select campus to load departments…</div>
                             </div>
 
-                            @error('department_ids')
+                            @error('academic_department_ids')
                             <div class="text-danger small mt-1">{{ $message }}</div>
                             @enderror
 
@@ -211,11 +212,11 @@
                     const checked = selectedIds.includes(String(d.id)) ? 'checked' : '';
                     const code = d.code ? `<span class="text-muted">(${d.code})</span>` : '';
                     return `
-                        <label class="d-flex align-items-start gap-2 py-1">
-                            <input type="checkbox" name="department_ids[]" value="${d.id}" ${checked} class="mt-1">
-                            <span>${d.name} ${code}</span>
-                        </label>
-                    `;
+                <label class="d-flex align-items-start gap-2 py-1">
+                    <input type="checkbox" name="academic_department_ids[]" value="${d.id}" ${checked} class="mt-1">
+                    <span>${d.name} ${code}</span>
+                </label>
+            `;
                 }).join('');
             }
 
@@ -253,10 +254,10 @@
                     const departments = await res.json();
 
                     // Priority: old() after validation error; else use assigned departments from DB
-                    const oldDepartments = @json(old('department_ids', null));
+                    const oldDepartments = @json(old('academic_department_ids', null));
                     const selectedIds = (oldDepartments !== null)
                         ? oldDepartments.map(String)
-                        : @json($userDepartmentIds ?? []).map(String);
+                        : @json($userAcademicDepartmentIds ?? []).map(String);
 
                     renderDepartments(departments, selectedIds);
 

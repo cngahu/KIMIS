@@ -7,14 +7,13 @@ use App\Models\AcademicDepartment;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
 use Illuminate\Support\Str;
-use App\Models\College;
 use Illuminate\Support\Facades\Mail;
+use Spatie\Permission\Models\Role;
+use App\Models\College;
 use App\Mail\UserAccountCreatedMail;
 use App\Models\Course;
-use App\Models\Departmentt;
+
 class UserManagementController extends Controller
 {
     public function index(Request $request)
@@ -25,7 +24,6 @@ class UserManagementController extends Controller
 
         $query = User::with('roles');
 
-        // 🔍 Search by name, email, phone, or code
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('surname', 'like', "%{$search}%")
@@ -37,12 +35,10 @@ class UserManagementController extends Controller
             });
         }
 
-        // 🟢 Status filter
         if ($status) {
             $query->where('status', $status);
         }
 
-        // 🎭 Role filter
         if ($roleName) {
             $query->whereHas('roles', function ($q) use ($roleName) {
                 $q->where('name', $roleName);
@@ -53,9 +49,8 @@ class UserManagementController extends Controller
             ->orderBy('surname')
             ->orderBy('firstname')
             ->paginate(10)
-            ->appends($request->query()); // keep filters when paginating
+            ->appends($request->query());
 
-        // For role dropdown
         $roles = Role::orderBy('name')->get();
 
         return view('admin.users.index', compact('users', 'roles', 'search', 'status', 'roleName'));
@@ -88,14 +83,9 @@ class UserManagementController extends Controller
             'code'        => 'nullable|string|max:50|unique:users,code',
             'status'      => 'required|in:active,inactive',
 
-            // NEW
-
-//            'department_ids'   => 'required_if:role,hod|array',
-//            'department_ids.*' => 'integer|exists:departmentts,id',
-            'academic_department_ids'   => 'required_if:role,hod|array',
+            // ✅ HOD departments (AcademicDepartment IDs)
+            'academic_department_ids'   => 'required_if:role,hod|array|min:1',
             'academic_department_ids.*' => 'integer|exists:academic_departments,id',
-//            'course_ids'       => 'nullable|array',
-//            'course_ids.*'     => 'integer|exists:courses,id',
         ]);
 
         $code = $data['code'] ?? strtoupper(Str::random(8));
@@ -120,41 +110,27 @@ class UserManagementController extends Controller
 
         $user->syncRoles([$data['role']]);
 
-//        if ($data['role'] === 'hod') {
-//
-//            // ✅ Only departments from the selected campus are allowed
-//            $validDepartmentIds = Departmentt::where('college_id', $user->campus_id)
-//                ->whereIn('id', $data['department_ids'])
-//                ->pluck('id')
-//                ->toArray();
-//
-////            $user->departments()->sync($validDepartmentIds);
-//
-//            // ✅ AUTO: assign ALL courses under selected departments (and campus)
-//            $autoCourseIds = Course::where('college_id', $user->campus_id)
-//                ->whereIn('department_id', $validDepartmentIds)
-//                ->pluck('id')
-//                ->toArray();
-//
-////            $user->courses()->sync($autoCourseIds);
-//
-//        } else {
-//            $user->departments()->sync([]);
-//            $user->courses()->sync([]);
-//        }
-
+        // ✅ Assign HOD to selected academic departments (by setting hod_user_id)
         if ($data['role'] === 'hod') {
-
-            // ✅ Ensure departments belong to selected campus
-            $validDepartments = AcademicDepartment::where('college_id', $user->campus_id)
+            $validDepartmentIds = AcademicDepartment::where('college_id', $user->campus_id)
                 ->whereIn('id', $data['academic_department_ids'])
-                ->get();
+                ->pluck('id')
+                ->toArray();
 
-            foreach ($validDepartments as $department) {
-                $department->update([
-                    'hod_user_id' => $user->id,
-                ]);
-            }
+            // Make sure those departments point to this user as HOD
+            AcademicDepartment::whereIn('id', $validDepartmentIds)
+                ->update(['hod_user_id' => $user->id]);
+
+            // ✅ Auto-sync courses under those departments
+            $autoCourseIds = Course::where('college_id', $user->campus_id)
+                ->whereIn('department_id', $validDepartmentIds)
+                ->pluck('id')
+                ->toArray();
+
+            $user->courses()->sync($autoCourseIds);
+        } else {
+            // If not HOD, no course assignments
+            $user->courses()->sync([]);
         }
 
         if (!empty($user->email)) {
@@ -162,29 +138,8 @@ class UserManagementController extends Controller
         }
 
         return redirect()->route('admin.users.index')
-            ->with('success', 'User created successfully. Login code: '.$code);
+            ->with('success', 'User created successfully. Login code: ' . $code);
     }
-
-
-
-//    public function edit(User $user)
-//    {
-//        $roles    = \Spatie\Permission\Models\Role::orderBy('name')->get();
-//        $campuses = College::orderBy('name')->get();
-//
-//        return view('admin.users.edit', compact('user', 'roles', 'campuses'));
-//    }
-
-//    public function edit(User $user)
-//    {
-//        $roles = Role::orderBy('name')->get();
-//        $campuses = College::orderBy('name')->get();
-//
-//        $userRole = $user->roles()->pluck('name')->first();
-//        $userCourseIds = $user->courses()->pluck('courses.id')->toArray();
-//
-//        return view('admin.users.edit', compact('user','roles','campuses','userRole','userCourseIds'));
-//    }
 
     public function edit(User $user)
     {
@@ -193,31 +148,38 @@ class UserManagementController extends Controller
 
         $userRole = $user->roles()->pluck('name')->first();
 
-        // NEW
-        $userDepartmentIds = $user->departments()->pluck('departmentts.id')->toArray();
+        // ✅ Academic departments where this user is HOD
+        $userAcademicDepartmentIds = $user->departments()->pluck('academic_departments.id')->toArray();
 
-        return view('admin.users.edit', compact('user','roles','campuses','userRole','userDepartmentIds'));
+        return view('admin.users.edit', compact(
+            'user',
+            'roles',
+            'campuses',
+            'userRole',
+            'userAcademicDepartmentIds'
+        ));
     }
 
     public function update(Request $request, User $user)
     {
         $data = $request->validate([
-            'surname'    => 'required|string|max:255',
-            'firstname'  => 'required|string|max:255',
-            'othername'  => 'nullable|string|max:255',
-            'email'      => 'nullable|email|max:255|unique:users,email,'.$user->id,
-            'phone'      => 'nullable|string|max:50',
-            'address'    => 'nullable|string|max:255',
-            'city'       => 'nullable|string|max:255',
-            'nationalid' => 'nullable|string|max:100',
-            'national_id'=> 'nullable|string|max:100',
-            'status'     => 'required|in:active,inactive',
+            'surname'     => 'required|string|max:255',
+            'firstname'   => 'required|string|max:255',
+            'othername'   => 'nullable|string|max:255',
+            'email'       => 'nullable|email|max:255|unique:users,email,' . $user->id,
+            'phone'       => 'nullable|string|max:50',
+            'address'     => 'nullable|string|max:255',
+            'city'        => 'nullable|string|max:255',
+            'nationalid'  => 'nullable|string|max:100',
+            'national_id' => 'nullable|string|max:100',
+            'status'      => 'required|in:active,inactive',
 
-            'role'       => 'required|exists:roles,name',
-            'campus_id'  => 'required_if:role,hod|exists:colleges,id',
+            'role'        => 'required|exists:roles,name',
+            'campus_id'   => 'required_if:role,hod|exists:colleges,id',
 
-            'department_ids'   => 'required_if:role,hod|array|min:1',
-            'department_ids.*' => 'integer|exists:departmentts,id',
+            // ✅ Use AcademicDepartment IDs (same as store)
+            'academic_department_ids'   => 'required_if:role,hod|array|min:1',
+            'academic_department_ids.*' => 'integer|exists:academic_departments,id',
         ]);
 
         $user->fill([
@@ -237,23 +199,32 @@ class UserManagementController extends Controller
         $user->syncRoles([$data['role']]);
 
         if ($data['role'] === 'hod') {
-
-            $validDepartmentIds = Departmentt::where('college_id', $user->campus_id)
-                ->whereIn('id', $data['department_ids'])
+            $validDepartmentIds = AcademicDepartment::where('college_id', $user->campus_id)
+                ->whereIn('id', $data['academic_department_ids'])
                 ->pluck('id')
                 ->toArray();
 
-            $user->departments()->sync($validDepartmentIds);
+            // ✅ Remove HOD assignment from departments this user used to manage but are no longer selected
+            AcademicDepartment::where('hod_user_id', $user->id)
+                ->whereNotIn('id', $validDepartmentIds)
+                ->update(['hod_user_id' => null]);
 
+            // ✅ Assign selected departments to this HOD
+            AcademicDepartment::whereIn('id', $validDepartmentIds)
+                ->update(['hod_user_id' => $user->id]);
+
+            // ✅ Auto-sync courses under selected departments
             $autoCourseIds = Course::where('college_id', $user->campus_id)
                 ->whereIn('department_id', $validDepartmentIds)
                 ->pluck('id')
                 ->toArray();
 
             $user->courses()->sync($autoCourseIds);
-
         } else {
-            $user->departments()->sync([]);
+            // ✅ If role is NOT hod, clear any departments where this user is hod
+            AcademicDepartment::where('hod_user_id', $user->id)
+                ->update(['hod_user_id' => null]);
+
             $user->courses()->sync([]);
         }
 
@@ -261,21 +232,19 @@ class UserManagementController extends Controller
             ->with('success', 'User updated successfully.');
     }
 
-
-
-
-
-
     public function destroy(User $user)
     {
         if (auth()->id() === $user->id) {
             return back()->with('error', 'You cannot delete your own account.');
         }
 
+        // Optional: clear HOD assignments before deleting
+        AcademicDepartment::where('hod_user_id', $user->id)
+            ->update(['hod_user_id' => null]);
+
         $user->delete();
 
-        return redirect()
-            ->route('admin.users.index')
+        return redirect()->route('admin.users.index')
             ->with('success', 'User deleted successfully.');
     }
 }
