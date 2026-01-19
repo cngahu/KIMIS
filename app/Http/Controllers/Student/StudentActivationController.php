@@ -73,58 +73,7 @@ class StudentActivationController extends Controller
     /**
      * STEP 3: Create student user account
      */
-    public function complete0(Request $request)
-    {
-        $request->validate([
-            'admissionno' => ['required'],
-            'phone'       => ['required'],
-            'email'       => ['required', 'email'],
-        ]);
 
-        $student = Masterdata::where('admissionNo', $request->admissionno)->firstOrFail();
-
-
-
-        // Prevent double activation
-        if (User::where('username', $student->admissionNo)->exists()) {
-            return redirect()->route('login')
-                ->with('error', 'Account already activated. Please login.');
-        }
-
-        // Generate temporary password
-        $temporaryPassword = Str::random(10);
-
-        $user = User::create([
-            'username'     => $student->admissionNo,
-            'surname'      => $student->full_name,
-            'firstname'    => $student->full_name,
-            'email'        => $request->email,
-            'phone'        => $request->phone,
-            'national_id'  => $student->idno,
-            'campus_id'    => $student->campus_id,
-            'userrole'     => 'student',
-            'password'     => Hash::make($temporaryPassword),
-            'must_change_password' => 1,
-        ]);
-
-        // ✅ Assign Spatie role
-        $user->assignRole('student');
-// ✅ Send email with username + password
-        Mail::to($request->email)->send(
-            new StudentActivationCredentialsMail(
-                $user->username,
-                $temporaryPassword,
-                $user->firstname ?? $user->surname ?? 'Student'
-            )
-        );
-
-        // 🔔 OTP will be sent on first login (next step)
-        // event(new StudentFirstLoginOtpEvent($student));
-
-        return redirect()
-            ->route('student.activation.success')
-            ->with('activation_email', $request->email);
-    }
 
 
     public function complete(Request $request)

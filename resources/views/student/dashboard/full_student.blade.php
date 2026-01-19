@@ -330,23 +330,52 @@
                 </form>
             @endif
 
+{{--            @if($cycle_registration && $cycle_registration->status === 'pending_payment')--}}
+{{--                <p class="text-warning mb-2">--}}
+{{--                    Registration pending payment.--}}
+{{--                </p>--}}
+
+{{--                <small class="text-muted d-block mb-3">--}}
+{{--                    Invoice Ref:--}}
+{{--                    <strong>{{ $cycle_registration->invoice->invoice_number }}</strong>--}}
+{{--                </small>--}}
+
+{{--                <a href="{{ route('student.payments.iframe', $cycle_registration->invoice_id) }}"--}}
+{{--                   class="btn btn-warning btn-lg">--}}
+{{--                    Pay to Confirm Registration--}}
+{{--                </a>--}}
+{{--            @endif--}}
             @if($cycle_registration && $cycle_registration->status === 'pending_payment')
                 <p class="text-warning mb-2">
-                    Registration pending payment.
+                    You are registered for this cycle. Payment is required to confirm registration.
                 </p>
 
-                <small class="text-muted d-block mb-3">
-                    Invoice Ref:
-                    <strong>{{ $cycle_registration->invoice->invoice_number }}</strong>
-                </small>
+                <div class="alert alert-info">
+                    Outstanding Balance:
+                    <strong>KES {{ number_format($student->outstandingBalance(), 2) }}</strong>
+                </div>
 
-                <a href="{{ route('student.payments.iframe', $cycle_registration->invoice_id) }}"
-                   class="btn btn-warning btn-lg">
-                    Pay to Confirm Registration
-                </a>
+                <form method="POST" action="{{ route('student.payments.create') }}">
+                    @csrf
+
+                    <div class="mb-3">
+                        <label class="form-label">Enter Amount to Pay</label>
+                        <input type="number"
+                               name="amount"
+                               class="form-control"
+                               min="1"
+                               max="{{ $student->outstandingBalance() }}"
+                               required>
+                    </div>
+
+                    <button class="btn btn-primary btn-lg">
+                        Proceed to Payment
+                    </button>
+                </form>
             @endif
 
-            @if($cycle_registration && $cycle_registration->status === 'confirmed')
+
+        @if($cycle_registration && $cycle_registration->status === 'confirmed')
                 <p class="text-success fw-bold mb-0">
                     ✔ You are fully registered for this cycle and appear on the nominal roll.
                 </p>

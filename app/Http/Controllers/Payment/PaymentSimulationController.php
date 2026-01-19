@@ -13,7 +13,7 @@ class PaymentSimulationController extends Controller
 
     public function simulate(Invoice $invoice)
     {
-//        dd('Simulation disabled in demo');
+        dd('Simulation disabled in demo');
         // Fake payload structure similar to eCitizen callback
         $fakePayload = [
             "client_invoice_ref" => $invoice->invoice_number,

@@ -524,6 +524,19 @@
                     </li>
 
                     <li>
+                        <a href="{{ route('finance.students.index') }}">
+                            <i class="bx bx-radio-circle"></i> Ledger
+
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('finance.reconciliation.index') }}">
+                            <i class="bx bx-radio-circle"></i> Invoice Reconciliation
+
+                        </a>
+                    </li>
+
+                    <li>
                         <a href="{{ route('accounts.invoices') }}">
                             <i class="bx bx-radio-circle"></i> Invoices
 

@@ -3,10 +3,14 @@
 namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
+use App\Models\Student;
 use Illuminate\Http\Request;
 use App\Models\Invoice;
 use App\Models\Admission;
 use App\Models\StudentCycleRegistration;
+use Illuminate\Support\Str;
+
+use App\Models\InvoiceItem;
 
 class StudentPaymentController extends Controller
 {
@@ -145,5 +149,113 @@ class StudentPaymentController extends Controller
             'amountExpected' => $amountExpected,
             'invoice' => $invoice,
         ]);
+    }
+
+    public function create(Request $request)
+    {
+        $request->validate([
+            'amount' => ['required', 'numeric', 'min:1'],
+        ]);
+
+        $student = Student::with('enrollments')
+            ->where('user_id', auth()->id())
+            ->firstOrFail();
+
+        $outstanding = $student->outstandingBalance();
+
+        if ($request->amount > $outstanding) {
+            return back()->withErrors([
+                'amount' => 'Amount cannot exceed outstanding balance.',
+            ]);
+        }
+
+        // -------------------------------------------------
+        // Resolve active enrollment
+        // -------------------------------------------------
+        $enrollment = $student->enrollments()
+            ->where('status', 'active')
+            ->latest()
+            ->first();
+
+        if (!$enrollment) {
+            return back()->withErrors([
+                'amount' => 'No active enrollment found.',
+            ]);
+        }
+
+        // -------------------------------------------------
+        // Resolve current cycle registration
+        // -------------------------------------------------
+        $month = now()->month;
+        $cycleTerm = match (true) {
+            $month <= 4 => 'Jan',
+            $month <= 8 => 'May',
+            default     => 'Sep',
+        };
+        $cycleYear = now()->year;
+
+        $registration = StudentCycleRegistration::where('student_id', $student->id)
+            ->where('cycle_year', $cycleYear)
+            ->where('cycle_term', $cycleTerm)
+            ->first();
+
+        if (!$registration) {
+            return back()->withErrors([
+                'amount' => 'You must register for the current cycle before making a payment.',
+            ]);
+        }
+
+        // -------------------------------------------------
+        // Create invoice (payment intent)
+        // -------------------------------------------------
+        $invoice = Invoice::create([
+            'billable_type' => StudentCycleRegistration::class,
+            'billable_id'   => $registration->id,
+
+            'user_id'       => $student->user_id,
+            'course_id'     => $enrollment->course_id,
+
+            'category'      => 'tuition_fee',
+
+            'invoice_number'=> 'INV-' . now()->format('Ymd') . '-' . strtoupper(Str::random(6)),
+
+            // Invoice represents how much the student chooses to pay
+            'amount'        => $request->amount,
+            'invoice_amount'=> $request->amount,
+
+            'status'        => 'pending',
+
+            'metadata'      => [
+                'student_id'    => $student->id,
+                'enrollment_id' => $enrollment->id,
+                'cycle_year'    => $registration->cycle_year,
+                'cycle_term'    => $registration->cycle_term,
+                'source'        => 'student_portal',
+                'payment_type'  => 'partial_or_full',
+            ],
+        ]);
+
+        // -------------------------------------------------
+        // Create invoice item (aligned with old structure)
+        // -------------------------------------------------
+        InvoiceItem::create([
+            'invoice_id'   => $invoice->id,
+            'user_id'      => $student->user_id,
+            'course_id'    => $enrollment->course_id,
+
+            'item_name'    => 'Tuition Fee Payment',
+            'unit_amount'  => $request->amount,
+            'quantity'     => 1,
+            'total_amount' => $request->amount,
+
+            'metadata'     => [
+                'cycle' => "{$registration->cycle_term} {$registration->cycle_year}",
+            ],
+        ]);
+
+        // -------------------------------------------------
+        // Redirect to eCitizen / payment iframe
+        // -------------------------------------------------
+        return redirect()->route('student.payments.iframe', $invoice->id);
     }
 }

@@ -9,6 +9,7 @@ use App\Http\Controllers\Student\StudentCycleRegistrationController;
 use App\Http\Controllers\Student\StudentPaymentController;
 use App\Http\Controllers\Student\StudentFeesController;
 use App\Http\Controllers\Student\StudentProfileController;
+
 // DEVELOPMENT PAYMENT SIMULATION ENDPOINT
 // ----------- SIMPLE PAYMENT SIMULATOR (DEV ONLY) ----------
 Route::get('/simulate-payment', function() {
@@ -171,3 +172,15 @@ Route::post('/student-activation/complete', [StudentActivationController::class,
 Route::get('/student-activation/success', function () {return view('student.activation.success');
 })->name('student.activation.success');
 
+
+Route::middleware(['auth', 'role:student'])->group(function () {
+
+    Route::get('/student/fees', [StudentFeesController::class, 'index'])
+        ->name('student.fees.index');
+
+    Route::get('/student/fees/download', [StudentFeesController::class, 'download'])
+        ->name('student.fees.download');
+
+    Route::post('/student/payments/create', [StudentPaymentController::class, 'create'])
+        ->name('student.payments.create');
+});

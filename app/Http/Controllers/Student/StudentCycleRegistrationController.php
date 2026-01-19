@@ -20,48 +20,6 @@ class StudentCycleRegistrationController extends Controller
     /**
      * Register student for current cycle
      */
-    public function register0(Request $request)
-    {
-        $student = Student::with('enrollments')
-            ->where('user_id', auth()->id())
-            ->firstOrFail();
-
-        $enrollment = $student->enrollments()
-            ->where('status', 'active')
-            ->latest()
-            ->first();
-
-        if (!$enrollment) {
-            return back()->with('error', 'No active enrollment found.');
-        }
-
-        // Resolve current cycle
-        $month = now()->month;
-        $cycleTerm = match (true) {
-            $month <= 4 => 'Jan',
-            $month <= 8 => 'May',
-            default     => 'Sep',
-        };
-        $cycleYear = now()->year;
-
-        try {
-            $this->service->registerForCycle(
-                $student,
-                $enrollment,
-                $cycleYear,
-                $cycleTerm
-            );
-
-            // 🔥 REDIRECT TO PAYMENT
-            return redirect()->route(
-                'student.payments.iframe',
-                $registration->invoice_id
-            );
-
-        } catch (\Exception $e) {
-            return back()->with('error', $e->getMessage());
-        }
-    }
     public function register(Request $request)
     {
 

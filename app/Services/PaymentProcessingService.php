@@ -10,6 +10,8 @@ use App\Models\StudentCycleRegistration;
 use App\Services\Audit\AuditLogService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use App\Models\Student;
+use App\Models\StudentLedger;
 
 class PaymentProcessingService
 {
@@ -20,6 +22,8 @@ class PaymentProcessingService
         if (!$billable) {
             return;
         }
+        // 🔥 NEW: Always post ledger credit first
+        $this->postLedgerCredit($invoice);
 
         switch ($invoice->category) {
 
@@ -166,6 +170,42 @@ class PaymentProcessingService
             'cycle_year'      => $registration->cycle_year,
             'cycle_term'      => $registration->cycle_term,
             'invoice_id'      => $invoice->id,
+        ]);
+    }
+
+
+
+
+    protected function postLedgerCredit(Invoice $invoice): void
+    {
+        // Idempotency: never double-post
+        $exists = StudentLedger::where([
+            'reference_type' => 'invoice',
+            'reference_id'   => $invoice->id,
+            'entry_type'     => 'credit',
+        ])->exists();
+
+        if ($exists) {
+            return;
+        }
+
+        $student = Student::where('user_id', $invoice->user_id)->first();
+
+        StudentLedger::create([
+            'student_id'     => $student?->id,
+            'masterdata_id'  => $student?->admission_id,
+
+            'entry_type'     => 'credit',
+            'category'       => 'payment',
+            'amount'         => $invoice->amount_paid,
+
+            'reference_type' => 'invoice',
+            'reference_id'   => $invoice->id,
+
+            'source'         => $invoice->payment_channel ?? 'ecitizen',
+            'provisional'    => false,
+
+            'description'    => "Payment received for invoice {$invoice->invoice_number}",
         ]);
     }
 

@@ -5,14 +5,14 @@ namespace App\Http\Controllers\Student;
 use App\Http\Controllers\Controller;
 use App\Models\Invoice;
 use App\Models\Student;
-use App\Services\FeeStatementService;
+use App\Services\Finance\FeeStatementService;
 use App\Services\InvoicePdfService;
 use App\Services\ReceiptPdfService;
 use Illuminate\Http\Request;
 
 class StudentFeesController extends Controller
 {
-    public function index()
+    public function index0()
     {
         $student = Student::where('user_id', auth()->id())->firstOrFail();
 
@@ -23,6 +23,37 @@ class StudentFeesController extends Controller
         return view('student.fees.index', compact('student', 'invoices'));
     }
 
+    public function index(FeeStatementService $service)
+    {
+        $student = Student::where('user_id', auth()->id())->firstOrFail();
+
+        $studentId = $student->id;
+        $masterdataId = $student->admission_id; // linked during activation
+
+        // Build fee statement (ledger-based)
+        $data = $service->build($studentId, $masterdataId);
+
+        return view('student.fees.index', array_merge($data, [
+            'student' => $student,
+        ]));
+    }
+
+    public function download(FeeStatementService $service)
+    {
+        $student = Student::where('user_id', auth()->id())->firstOrFail();
+
+        $studentId = $student->id;
+        $masterdataId = $student->admission_id;
+
+        $data = $service->build($studentId, $masterdataId);
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView(
+            'student.fees.fee_statement_pdf',
+            $data
+        )->setPaper('A4');
+
+        return $pdf->download('KIHBT_Fee_Statement.pdf');
+    }
     public function showInvoice(Invoice $invoice)
     {
         $this->authorizeInvoice($invoice);
