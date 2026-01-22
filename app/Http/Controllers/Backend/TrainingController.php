@@ -205,10 +205,11 @@ class TrainingController extends Controller
 
         $data = $request->validate([
             'course_id'  => 'required|exists:courses,id',
-            'start_date' => 'required|date|after_or_equal:today',
+            'start_date' => 'required|date',
             'end_date'   => 'nullable|date|after_or_equal:start_date',
             'cost'       => 'required|numeric|min:0',
         ]);
+
 
         // Ensure campus_id exists for non-superadmin
         if (!$user->hasRole('superadmin') && !$user->campus_id) {
