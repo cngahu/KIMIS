@@ -13,7 +13,7 @@ class PaymentSimulationController extends Controller
 
     public function simulate(Invoice $invoice)
     {
-        dd('Simulation disabled in demo');
+//        dd('Simulation disabled in demo');
         // Fake payload structure similar to eCitizen callback
         $fakePayload = [
             "client_invoice_ref" => $invoice->invoice_number,
@@ -33,6 +33,9 @@ class PaymentSimulationController extends Controller
         // Call your existing callback logic directly
         app(PesaFlowConfirmationController::class)
             ->index(new Request($fakePayload));
+
+//        app(\App\Services\PaymentProcessingService::class)
+//            ->handleInvoicePaid($invoice);
 
         return back()->with('success', "Invoice {$invoice->invoice_number} simulated as PAID.");
     }

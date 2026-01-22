@@ -36,15 +36,27 @@ class Student extends Model
         return $this->belongsTo(Course::class);
     }
 
+//    public function outstandingBalance(): float
+//    {
+//        $openingBalance = $this->openingBalance?->amount ?? 0;
+//
+//        $unpaidInvoices = Invoice::where('user_id', $this->user_id)
+//            ->where('status', 'pending')
+//            ->sum('amount');
+//
+//        return $openingBalance + $unpaidInvoices;
+//    }
     public function outstandingBalance(): float
     {
-        $openingBalance = $this->openingBalance?->amount ?? 0;
-
-        $unpaidInvoices = Invoice::where('user_id', $this->user_id)
-            ->where('status', 'pending')
+        $debits = StudentLedger::where('student_id', $this->id)
+            ->where('entry_type', 'debit')
             ->sum('amount');
 
-        return $openingBalance + $unpaidInvoices;
+        $credits = StudentLedger::where('student_id', $this->id)
+            ->where('entry_type', 'credit')
+            ->sum('amount');
+
+        return round($debits - $credits, 2);
     }
     public function profile()
     {

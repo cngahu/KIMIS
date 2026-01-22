@@ -36,7 +36,10 @@ class Invoice extends Model
 
     ];
 
-
+//    public function getRouteKeyName()
+//    {
+//        return 'invoice_number';
+//    }
     public function application()
     {
         return $this->belongsTo(Application::class);

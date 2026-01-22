@@ -28,6 +28,8 @@ class StudentLedger extends Model
         'description',
 
         'created_by',
+        'ledger_owner_type',
+        'ledger_owner_id',
     ];
 
     protected $casts = [

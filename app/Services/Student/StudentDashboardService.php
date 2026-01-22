@@ -64,7 +64,7 @@ class StudentDashboardService
     protected function financialSnapshot(Student $student): array
     {
         return [
-            'opening_balance' => $student->openingBalance?->amount ?? 0,
+//            'opening_balance' => $student->openingBalance?->amount ?? 0,
             'outstanding'     => $student->outstandingBalance(), // computed
         ];
     }

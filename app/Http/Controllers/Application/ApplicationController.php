@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Application;
 
 use App\Http\Controllers\Controller;
+use App\Mail\ShortCourseApplicationSubmittedMail;
 use App\Models\Invoice;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreApplicationRequest;
@@ -15,6 +16,7 @@ use App\Models\Application;
 use App\Models\ShortTraining;
 use App\Services\ApplicationService;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 
 class ApplicationController extends Controller
@@ -392,7 +394,7 @@ class ApplicationController extends Controller
             ->with('total_amount', $invoice->amount)
             ->with('applicant_count', $invoice->metadata['total_participants']);
     }
-    public function storeShort(Request $request, Training $training)
+    public function storeShort0(Request $request, Training $training)
     {
         // --------------------------------------
         // 1) VALIDATION
@@ -446,8 +448,67 @@ class ApplicationController extends Controller
             ->with('total_amount', $invoice->amount)
             ->with('applicant_count', $invoice->metadata['total_participants']);
     }
+    public function storeShort(Request $request, Training $training)
+    {
+        // --------------------------------------
+        // 1) VALIDATION
+        // --------------------------------------
+        $validated = $request->validate([
+            'financier' => 'required|in:self,employer',
 
-        // Redirect to invoice/payment
+            // Employer fields
+            'employer_name'             => 'nullable|required_if:financier,employer|string|max:255',
+            'employer_contact_person'   => 'nullable|required_if:financier,employer|string|max:255',
+            'employer_phone'            => 'nullable|required_if:financier,employer|string|max:50',
+            'employer_email'            => 'nullable|required_if:financier,employer|email|max:255',
+            'employer_postal_address'   => 'nullable|required_if:financier,employer|string|max:255',
+            'employer_postal_code_id'   => 'nullable|required_if:financier,employer|exists:postal_codes,id',
+            'employer_town'             => 'nullable|required_if:financier,employer|string|max:255',
+            'employer_county_id'        => 'nullable|required_if:financier,employer|exists:counties,id',
+
+            // Participants
+            'applicants' => 'required|array|min:1',
+
+            'applicants.*.full_name'      => 'required|string|max:255',
+            'applicants.*.id_no'          => 'nullable|string|max:50',
+            'applicants.*.phone'          => 'required|string|max:50',
+            'applicants.*.email'          => 'nullable|email|max:255',
+            'applicants.*.national_id'    => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+
+            // Location fields
+            'applicants.*.home_county_id'        => 'required|exists:counties,id',
+            'applicants.*.current_county_id'     => 'required|exists:counties,id',
+            'applicants.*.current_subcounty_id'  => 'required|exists:subcounties,id',
+            'applicants.*.postal_address'        => 'required|string|max:255',
+            'applicants.*.postal_code_id'        => 'required|exists:postal_codes,id',
+            'applicants.*.co'                    => 'nullable|string|max:255',
+            'applicants.*.town'                  => 'nullable|string|max:255',
+        ]);
+
+        // --------------------------------------
+        // 2) DELEGATE TO SERVICE FOR SAVING
+        // --------------------------------------
+        $service = app(\App\Services\ShortTrainingApplicationService::class);
+
+        // This now returns the generated invoice
+        $application = $service->createShortApplication($training, $validated, $request);
+
+        // --------------------------------------
+        // 3) REDIRECT TO PAYMENT PAGE
+        // --------------------------------------
+        // Email
+        Mail::to($application->employer_email ?? $application->participants->first()->email)
+            ->send(new ShortCourseApplicationSubmittedMail($application));
+
+// Redirect to payment page
+        return redirect()->route(
+            'short_training.application.payment',
+            $application->reference
+        )->with('success', 'Application submitted successfully.');
+    }
+
+
+    // Redirect to invoice/payment
 //        return redirect()
 //            ->route('applications.payment', $application->id)
 //            ->with('success', 'Application captured successfully. Proceed to payment.')

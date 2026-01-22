@@ -330,85 +330,88 @@
                 </form>
             @endif
 
-{{--            @if($cycle_registration && $cycle_registration->status === 'pending_payment')--}}
-{{--                <p class="text-warning mb-2">--}}
-{{--                    Registration pending payment.--}}
-{{--                </p>--}}
+            {{--            @if($cycle_registration && $cycle_registration->status === 'pending_payment')--}}
+            {{--                <p class="text-warning mb-2">--}}
+            {{--                    Registration pending payment.--}}
+            {{--                </p>--}}
 
-{{--                <small class="text-muted d-block mb-3">--}}
-{{--                    Invoice Ref:--}}
-{{--                    <strong>{{ $cycle_registration->invoice->invoice_number }}</strong>--}}
-{{--                </small>--}}
+            {{--                <small class="text-muted d-block mb-3">--}}
+            {{--                    Invoice Ref:--}}
+            {{--                    <strong>{{ $cycle_registration->invoice->invoice_number }}</strong>--}}
+            {{--                </small>--}}
 
-{{--                <a href="{{ route('student.payments.iframe', $cycle_registration->invoice_id) }}"--}}
-{{--                   class="btn btn-warning btn-lg">--}}
-{{--                    Pay to Confirm Registration--}}
-{{--                </a>--}}
-{{--            @endif--}}
-{{--            @if($cycle_registration && $cycle_registration->status === 'pending_payment')--}}
-{{--                <p class="text-warning mb-2">--}}
-{{--                    You are registered for this cycle. Payment is required to confirm registration.--}}
-{{--                </p>--}}
+            {{--                <a href="{{ route('student.payments.iframe', $cycle_registration->invoice_id) }}"--}}
+            {{--                   class="btn btn-warning btn-lg">--}}
+            {{--                    Pay to Confirm Registration--}}
+            {{--                </a>--}}
+            {{--            @endif--}}
+            {{--            @if($cycle_registration && $cycle_registration->status === 'pending_payment')--}}
+            {{--                <p class="text-warning mb-2">--}}
+            {{--                    You are registered for this cycle. Payment is required to confirm registration.--}}
+            {{--                </p>--}}
 
-{{--                <div class="alert alert-info">--}}
-{{--                    Outstanding Balance:--}}
-{{--                    <strong>KES {{ number_format($student->outstandingBalance(), 2) }}</strong>--}}
-{{--                </div>--}}
+            {{--                <div class="alert alert-info">--}}
+            {{--                    Outstanding Balance:--}}
+            {{--                    <strong>KES {{ number_format($student->outstandingBalance(), 2) }}</strong>--}}
+            {{--                </div>--}}
 
-{{--                <form method="POST" action="{{ route('student.payments.create') }}">--}}
-{{--                    @csrf--}}
+            {{--                <form method="POST" action="{{ route('student.payments.create') }}">--}}
+            {{--                    @csrf--}}
 
-{{--                    <div class="mb-3">--}}
-{{--                        <label class="form-label">Enter Amount to Pay</label>--}}
-{{--                        <input type="number"--}}
-{{--                               name="amount"--}}
-{{--                               class="form-control"--}}
-{{--                               min="1"--}}
-{{--                               max="{{ $student->outstandingBalance() }}"--}}
-{{--                               required>--}}
-{{--                    </div>--}}
+            {{--                    <div class="mb-3">--}}
+            {{--                        <label class="form-label">Enter Amount to Pay</label>--}}
+            {{--                        <input type="number"--}}
+            {{--                               name="amount"--}}
+            {{--                               class="form-control"--}}
+            {{--                               min="1"--}}
+            {{--                               max="{{ $student->outstandingBalance() }}"--}}
+            {{--                               required>--}}
+            {{--                    </div>--}}
 
-{{--                    <button class="btn btn-primary btn-lg">--}}
-{{--                        Proceed to Payment--}}
-{{--                    </button>--}}
-{{--                </form>--}}
-{{--            @endif--}}
-            @if($cycle_registration && $cycle_registration->status === 'pending_payment')
+            {{--                    <button class="btn btn-primary btn-lg">--}}
+            {{--                        Proceed to Payment--}}
+            {{--                    </button>--}}
+            {{--                </form>--}}
+            {{--            @endif--}}
 
-                <p class="text-danger mb-2">
-                    You have initiated registration for this cycle.
-                    Payment is required to confirm registration.
-                </p>
 
-                <div class="alert alert-info">
-                    Outstanding Balance:
-                    <strong>
-                        KES {{ number_format($student->outstandingBalance(), 2) }}
-                    </strong>
-                </div>
+            {{--        @if($cycle_registration && $cycle_registration->status === 'confirmed')--}}
+            {{--                <p class="text-success fw-bold mb-0">--}}
+            {{--                    ✔ You are fully registered for this cycle and appear on the nominal roll.--}}
+            {{--                </p>--}}
+            {{--            @endif--}}
 
-                @if($pendingInvoice)
-                    <div class="alert alert-warning">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <p class="mb-1">
-                                    <strong>Pending Invoice:</strong>
-                                    {{ $pendingInvoice->invoice_number }}
-                                </p>
+            {{-- ================= REGISTRATION & PAYMENT STATUS ================= --}}
 
-                                <p class="mb-0">
-                                    <strong>Invoice Amount:</strong>
-                                    KES {{ number_format($pendingInvoice->amount, 2) }}
-                                </p>
-                            </div>
+            @if($cycle_registration)
 
-                            <a href="{{ route('student.payments.iframe', $pendingInvoice->id) }}"
-                               class="btn btn-warning">
-                                Resume Payment
-                            </a>
-                        </div>
+                {{-- ================= PENDING PAYMENT (NO PAYMENT YET) ================= --}}
+                @if($cycle_registration->status === 'pending_payment')
+
+                    <p class="text-warning mb-2">
+                        You have initiated registration for this cycle.
+                        Payment is required to confirm registration.
+                    </p>
+
+                    <div class="alert alert-info">
+                        Outstanding Balance:
+                        <strong>
+                            KES {{ number_format($student->outstandingBalance(), 2) }}
+                        </strong>
                     </div>
-                @else
+
+                    {{-- Optional: show existing unpaid invoice --}}
+                    {{--                    @php--}}
+                    {{--                        $pendingInvoice = $invoices->where('status', 'pending')->first();--}}
+                    {{--                    @endphp--}}
+
+                    {{--                    @if($pendingInvoice)--}}
+                    {{--                        <p class="text-muted mb-2">--}}
+                    {{--                            Pending Invoice:--}}
+                    {{--                            <strong>{{ $pendingInvoice->invoice_number }}</strong>--}}
+                    {{--                        </p>--}}
+                    {{--                    @endif--}}
+
                     <form method="POST" action="{{ route('student.payments.create') }}">
                         @csrf
 
@@ -426,53 +429,45 @@
                             Proceed to Payment
                         </button>
                     </form>
+
                 @endif
 
-            @endif
 
-{{--//version 1--}}
-{{--        @if($cycle_registration && $cycle_registration->status === 'confirmed')--}}
-{{--                <p class="text-success fw-bold mb-0">--}}
-{{--                    ✔ You are fully registered for this cycle and appear on the nominal roll.--}}
-{{--                </p>--}}
-{{--            @endif--}}
-            @if($cycle_registration && $cycle_registration->status === 'confirmed')
+                {{-- ================= CONFIRMED REGISTRATION ================= --}}
+                @if($cycle_registration->status === 'confirmed')
 
+                    @if($student->outstandingBalance() <= 0)
 
+                        <p class="text-success fw-bold mb-0">
+                            ✔ You are fully registered for this cycle
+                            and your fees are fully settled.
+                        </p>
 
-                @if($student->outstandingBalance() > 0)
-                    <p class="text-success fw-bold mb-2">
-                        ✔ You are registered for this cycle but still have a pending balance.
-                    </p>
-                    <div class="alert alert-warning">
-                        Outstanding Balance:
-                        <strong>
-                            KES {{ number_format($student->outstandingBalance(), 2) }}
-                        </strong>
-                    </div>
-
-                    @if($pendingInvoice)
-                        <div class="alert alert-warning">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <p class="mb-1">
-                                        <strong>Pending Invoice:</strong>
-                                        {{ $pendingInvoice->invoice_number }}
-                                    </p>
-
-                                    <p class="mb-0">
-                                        <strong>Invoice Amount:</strong>
-                                        KES {{ number_format($pendingInvoice->amount, 2) }}
-                                    </p>
-                                </div>
-
-                                <a href="{{ route('student.payments.iframe', $pendingInvoice->id) }}"
-                                   class="btn btn-warning">
-                                    Resume Payment
-                                </a>
-                            </div>
-                        </div>
                     @else
+
+                        <p class="text-success fw-bold mb-2">
+                            ✔ You are registered for this cycle and appear on the nominal roll.
+                        </p>
+
+                        <div class="alert alert-warning">
+                            Outstanding Balance:
+                            <strong>
+                                KES {{ number_format($student->outstandingBalance(), 2) }}
+                            </strong>
+                        </div>
+
+                        {{-- Optional: show last unpaid invoice --}}
+                        {{--                        @php--}}
+                        {{--                            $pendingInvoice = $invoices->where('status', 'pending')->first();--}}
+                        {{--                        @endphp--}}
+
+                        {{--                        @if($pendingInvoice)--}}
+                        {{--                            <p class="text-muted mb-2">--}}
+                        {{--                                Pending Invoice:--}}
+                        {{--                                <strong>{{ $pendingInvoice->invoice_number }}</strong>--}}
+                        {{--                            </p>--}}
+                        {{--                        @endif--}}
+
                         <form method="POST" action="{{ route('student.payments.create') }}">
                             @csrf
 
@@ -486,19 +481,17 @@
                                        required>
                             </div>
 
-                            <button class="btn btn-outline-warning">
+                            <button class="btn btn-warning btn-lg">
                                 Make Another Payment
                             </button>
                         </form>
+
                     @endif
 
-                @else
-                    <p class="text-success">
-                    ✔ You are registered for this cycle and appear on the nominal roll and  Your fees are fully settled.
-                    </p>
                 @endif
 
             @endif
+
 
         </div>
 

@@ -56,7 +56,7 @@ Route::get(
 )->name('admin.academic-departments.byCampus');
 
 if (app()->environment('local')) {
-    Route::get('/simulate-payment/{invoice}', [PaymentSimulationController::class, 'simulate'])
+    Route::get('/simulate-payment-local-dev/{invoice}', [PaymentSimulationController::class, 'simulate'])
         ->name('simulate.payment');
 }
 

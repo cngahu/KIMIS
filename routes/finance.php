@@ -4,6 +4,8 @@ use App\Http\Controllers\Report\FinanceReportController;
 use App\Http\Controllers\Finance\StudentFinanceController;
 use App\Http\Controllers\Finance\InvoiceReconciliationController;
 use App\Http\Controllers\Finance\FinanceFeeStatementController;
+use App\Http\Controllers\PublicPaymentController;
+use App\Http\Controllers\Admin\FinanceDashboardController;
 
 // DAILY COLLECTIONS REPORT
 Route::get('/reports/daily-collections',[FinanceReportController::class, 'dailyCollectionsIndex'])
@@ -72,3 +74,24 @@ Route::prefix('finance')
 
 
 
+Route::get('/finance/ledgers/{type}/{id}',
+    [\App\Http\Controllers\FinanceLedgerController::class, 'viewByOwner']
+)->name('finance.ledger.view.owner');
+
+
+// Public payment lookup
+Route::get('/payments/lookup', [PublicPaymentController::class, 'lookupForm'])
+    ->name('payments.lookup.form');
+
+Route::post('/payments/lookup', [PublicPaymentController::class, 'lookup'])
+    ->name('payments.lookup');
+
+// Pay page after lookup
+Route::get('/payments/application/{reference}', [PublicPaymentController::class, 'showApplication'])
+    ->name('payments.application.show');
+
+Route::get(
+    '/admin/finance/dashboard',
+    [FinanceDashboardController::class, 'index']
+)->name('finance.dashboard')
+    ->middleware(['auth', 'role:accounts|superadmin|cash_office']);

@@ -58,3 +58,20 @@ Route::get('/certificates/verify', [CertificateLookupController::class, 'verify'
 Route::get('/certificate-verification', [CertificateLookupController::class, 'showForm'])
     ->name('certificates.verify');
 
+
+
+Route::prefix('short-courses')->group(function () {
+
+    // Payment choice page
+    Route::get(
+        '/application/{reference}/payment',
+        [\App\Http\Controllers\ShortCoursePaymentController::class, 'showPaymentPage']
+    )->name('short_training.application.payment');
+
+    // Create invoice for chosen amount
+    Route::post(
+        '/application/{reference}/payment',
+        [\App\Http\Controllers\ShortCoursePaymentController::class, 'createInvoice']
+    )->name('short_training.application.payment.create');
+
+});

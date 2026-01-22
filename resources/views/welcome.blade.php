@@ -361,18 +361,33 @@
             <div class="service-card">
                 <div class="service-badge">SHORT TERM</div>
                 <div class="service-icon"><i class="la la-calendar-check"></i></div>
+
                 <h3 class="service-title">Short Course Application</h3>
+
                 <p class="service-desc">
                     Browse available short trainings across all KIHBT campuses and apply online.
+                    Already applied? You can make a partial payment using your application reference.
                 </p>
 
-                <div class="service-actions">
-                    <a href="{{ route('public.trainings.short') }}" class="btn-primary-kihbt d-inline-flex align-items-center gap-2">
+                <div class="service-actions d-flex flex-column gap-2">
+
+                    {{-- Primary action --}}
+                    <a href="{{ route('public.trainings.short') }}"
+                       class="btn-primary-kihbt d-inline-flex align-items-center gap-2">
                         <i class="la la-arrow-right"></i> View Trainings
                     </a>
+
+                    {{-- Secondary action --}}
+                    <a href="{{ route('payments.lookup.form') }}"
+                       class="btn btn-outline-success d-inline-flex align-items-center gap-2">
+                        <i class="la la-credit-card"></i> Partial Payment (Short Courses)
+                    </a>
+
+                    {{-- Learn more --}}
                     <a class="service-link" href="{{ route('public.trainings.short') }}">
                         Learn more <i class="la la-angle-right"></i>
                     </a>
+
                 </div>
             </div>
 

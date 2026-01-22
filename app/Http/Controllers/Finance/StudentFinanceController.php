@@ -34,7 +34,7 @@ class StudentFinanceController extends Controller
         return view('finance.students.index', compact('students'));
     }
 
-    public function index(Request $request)
+    public function index1(Request $request)
     {
         $query = DB::table('student_ledgers as l')
             ->leftJoin('students as s', 's.id', '=', 'l.student_id')
@@ -57,6 +57,73 @@ class StudentFinanceController extends Controller
         $subjects = $query->limit(50)->get();
 
         return view('finance.students.index', compact('subjects'));
+    }
+    public function index(Request $request)
+    {
+        $query = DB::table('student_ledgers as l')
+
+            ->leftJoin('students as s', function ($join) {
+                $join->on('s.id', '=', 'l.ledger_owner_id')
+                    ->where('l.ledger_owner_type', '=', \App\Models\Student::class);
+            })
+
+            ->leftJoin('masterdata as m', function ($join) {
+                $join->on('m.id', '=', 'l.ledger_owner_id')
+                    ->where('l.ledger_owner_type', '=', \App\Models\Masterdata::class);
+            })
+
+            ->leftJoin('short_training_applications as sta', function ($join) {
+                $join->on('sta.id', '=', 'l.ledger_owner_id')
+                    ->where('l.ledger_owner_type', '=', \App\Models\ShortTrainingApplication::class);
+            })
+
+            ->select([
+                'l.ledger_owner_type',
+                'l.ledger_owner_id',
+
+                DB::raw("
+            CASE
+                WHEN l.ledger_owner_type = '".addslashes(\App\Models\Student::class)."'
+                    THEN s.student_number
+                WHEN l.ledger_owner_type = '".addslashes(\App\Models\Masterdata::class)."'
+                    THEN m.admissionNo
+                WHEN l.ledger_owner_type = '".addslashes(\App\Models\ShortTrainingApplication::class)."'
+                    THEN sta.reference
+            END as account_reference
+        "),
+
+                DB::raw("
+            CASE
+                WHEN l.ledger_owner_type = '".addslashes(\App\Models\Student::class)."'
+                    THEN 'Student'
+                WHEN l.ledger_owner_type = '".addslashes(\App\Models\Masterdata::class)."'
+                    THEN 'Legacy Student'
+                WHEN l.ledger_owner_type = '".addslashes(\App\Models\ShortTrainingApplication::class)."'
+                    THEN 'Short Course'
+            END as account_type
+        "),
+            ])
+            ->groupBy(
+                'l.ledger_owner_type',
+                'l.ledger_owner_id',
+                'account_reference',
+                'account_type'
+            );
+
+        // -----------------------------
+        // SEARCH
+        // -----------------------------
+        if ($request->q) {
+            $query->where(function ($q) use ($request) {
+                $q->where('s.student_number', 'like', "%{$request->q}%")
+                    ->orWhere('m.admissionNo', 'like', "%{$request->q}%")
+                    ->orWhere('sta.reference', 'like', "%{$request->q}%");
+            });
+        }
+
+        $accounts = $query->limit(50)->get();
+
+        return view('finance.students.index', compact('accounts'));
     }
 
     /**

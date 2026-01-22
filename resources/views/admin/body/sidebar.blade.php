@@ -530,8 +530,8 @@
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('finance.reconciliation.index') }}">
-                            <i class="bx bx-radio-circle"></i> Invoice Reconciliation
+                        <a href="{{ route('finance.dashboard') }}">
+                            <i class="bx bx-radio-circle"></i> Ledger Dashboard
 
                         </a>
                     </li>

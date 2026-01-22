@@ -176,8 +176,10 @@ class PaymentProcessingService
 
 
 
-    protected function postLedgerCredit(Invoice $invoice): void
+    protected function postLedgerCredit0(Invoice $invoice): void
     {
+
+
         // Idempotency: never double-post
         $exists = StudentLedger::where([
             'reference_type' => 'invoice',
@@ -192,20 +194,130 @@ class PaymentProcessingService
         $student = Student::where('user_id', $invoice->user_id)->first();
 
         StudentLedger::create([
+            // -------------------------------------------------
+            // LEGACY / CURRENT (keep)
+            // -------------------------------------------------
             'student_id'     => $student?->id,
             'masterdata_id'  => $student?->admission_id,
 
+            // -------------------------------------------------
+            // NEW: LEDGER OWNER (AUTHORITATIVE)
+            // -------------------------------------------------
+            'ledger_owner_type' => $student
+                ? \App\Models\Student::class
+                : \App\Models\Masterdata::class,
+
+            'ledger_owner_id' => $student
+                ? $student->id
+                : $invoice->metadata['masterdata_id'] ?? $student?->admission_id,
+
+            // -------------------------------------------------
+            // LEDGER ENTRY DETAILS
+            // -------------------------------------------------
             'entry_type'     => 'credit',
             'category'       => 'payment',
             'amount'         => $invoice->amount_paid,
 
-            'reference_type' => 'invoice',
+            // -------------------------------------------------
+            // REFERENCE (WHAT CAUSED THIS ENTRY)
+            // -------------------------------------------------
+            'reference_type' => \App\Models\Invoice::class,
             'reference_id'   => $invoice->id,
 
+            // -------------------------------------------------
+            // METADATA
+            // -------------------------------------------------
             'source'         => $invoice->payment_channel ?? 'ecitizen',
             'provisional'    => false,
 
             'description'    => "Payment received for invoice {$invoice->invoice_number}",
+        ]);
+
+
+    }
+    protected function postLedgerCredit(Invoice $invoice): void
+    {
+        // -------------------------------------------------
+        // IDEMPOTENCY CHECK
+        // -------------------------------------------------
+        $exists = StudentLedger::where([
+            'reference_type' => Invoice::class,
+            'reference_id'   => $invoice->id,
+            'entry_type'     => 'credit',
+        ])->exists();
+
+        if ($exists) {
+            return;
+        }
+
+        // -------------------------------------------------
+        // RESOLVE LEDGER OWNER
+        // -------------------------------------------------
+        $ledgerOwnerType = null;
+        $ledgerOwnerId   = null;
+
+        // 1️⃣ Short course payment
+        if ($invoice->category === 'short_course'
+            && $invoice->billable_type === \App\Models\ShortTrainingApplication::class
+        ) {
+            $ledgerOwnerType = \App\Models\ShortTrainingApplication::class;
+            $ledgerOwnerId   = $invoice->billable_id;
+        }
+
+        // 2️⃣ Student payment
+        elseif ($invoice->user_id) {
+            $student = Student::where('user_id', $invoice->user_id)->first();
+
+            if ($student) {
+                $ledgerOwnerType = Student::class;
+                $ledgerOwnerId   = $student->id;
+            }
+        }
+
+        // 3️⃣ Legacy fallback (VERY RARE)
+        if (!$ledgerOwnerType) {
+            $ledgerOwnerType = \App\Models\Masterdata::class;
+            $ledgerOwnerId   = $invoice->metadata['masterdata_id'] ?? null;
+        }
+
+        // -------------------------------------------------
+        // CREATE LEDGER CREDIT
+        // -------------------------------------------------
+        StudentLedger::create([
+
+            // ------------------------------
+            // LEDGER OWNER (AUTHORITATIVE)
+            // ------------------------------
+            'ledger_owner_type' => $ledgerOwnerType,
+            'ledger_owner_id'   => $ledgerOwnerId,
+
+            // ------------------------------
+            // LEGACY SUPPORT (STUDENTS ONLY)
+            // ------------------------------
+            'student_id'    => isset($student) ? $student->id : null,
+            'masterdata_id' => isset($student) ? $student->admission_id : null,
+
+            // ------------------------------
+            // ENTRY DETAILS
+            // ------------------------------
+            'entry_type' => 'credit',
+            'category'   => 'payment',
+            'amount'     => $invoice->amount_paid,
+
+            // ------------------------------
+            // TRACEABILITY
+            // ------------------------------
+            'reference_type' => Invoice::class,
+            'reference_id'   => $invoice->id,
+
+            // ------------------------------
+            // METADATA
+            // ------------------------------
+            'source'      => $invoice->payment_channel ?? 'ecitizen',
+            'provisional' => false,
+
+            'description' =>
+                "Payment received for invoice {$invoice->invoice_number}",
         ]);
     }
 

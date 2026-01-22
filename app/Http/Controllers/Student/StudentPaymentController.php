@@ -16,6 +16,7 @@ class StudentPaymentController extends Controller
 {
     public function paymentIframe(Invoice $invoice)
     {
+//        dd('Payment gateway is currently disabled in demo.');
         // -------------------------------------------------
         // Security: ensure invoice belongs to logged-in user
         // -------------------------------------------------
@@ -203,6 +204,25 @@ class StudentPaymentController extends Controller
             return back()->withErrors([
                 'amount' => 'You must register for the current cycle before making a payment.',
             ]);
+        }
+
+        // -------------------------------------------------
+// Check for existing pending invoice for this cycle
+// -------------------------------------------------
+        $existingInvoice = Invoice::where('user_id', $student->user_id)
+            ->where('category', 'tuition_fee')
+            ->where('status', 'pending')
+            ->where('billable_type', StudentCycleRegistration::class)
+            ->where('billable_id', $registration->id)
+            ->latest()
+            ->first();
+
+        if ($existingInvoice) {
+            // Redirect student to resume payment
+            return redirect()->route(
+                'student.payments.iframe',
+                $existingInvoice->id
+            )->with('info', 'You have a pending payment. Please complete it.');
         }
 
         // -------------------------------------------------
