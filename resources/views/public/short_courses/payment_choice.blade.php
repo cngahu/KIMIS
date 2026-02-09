@@ -25,6 +25,10 @@
                                 Outstanding Balance:
                                 <strong>KES {{ number_format($outstanding, 2) }}</strong>
                             </div>
+                            <a href="{{ route('short_training.application.proforma', $application->reference) }}"
+                               class="btn btn-outline-secondary mb-3">
+                                <i class="la la-file-pdf"></i> Download Proforma Invoice
+                            </a>
 
                             @if($outstanding <= 0)
                                 <div class="alert alert-success">

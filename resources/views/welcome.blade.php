@@ -387,6 +387,10 @@
                     <a class="service-link" href="{{ route('public.trainings.short') }}">
                         Learn more <i class="la la-angle-right"></i>
                     </a>
+                    <a href="{{ route('hostel.book') }}"
+                       class="btn-secondary-kihbt d-inline-flex align-items-center gap-2">
+                        <i class="la la-bed"></i> Book Hostel
+                    </a>
 
                 </div>
             </div>

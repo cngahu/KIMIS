@@ -41,6 +41,25 @@ class CourseController extends Controller
         return view('admin.courses.index', compact('courses'));
     }
 
+    public function updateHostelSettings(Request $request, Course $course)
+    {
+        $validated = $request->validate([
+            'half_board_fee'  => 'required|numeric|min:0',
+            'full_board_fee'  => 'required|numeric|min:0',
+            'is_hostel_booking_active' => 'required|in:0,1',
+        ]);
+
+        $course->update([
+            'half_board_fee'           => $validated['half_board_fee'],
+            'full_board_fee'           => $validated['full_board_fee'],
+            'is_hostel_booking_active' =>1,
+        ]);
+
+        return redirect()
+            ->back()
+            ->with('success', 'Hostel settings updated successfully.');
+    }
+
     public function create0()
     {
         abort_unless(auth()->user()?->hasRole('superadmin'), 403);

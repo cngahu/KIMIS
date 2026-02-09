@@ -29,6 +29,10 @@ class Masterdata extends Model
         'idno',
         'is_activated',
         'activated_at',
+        'gender',
+        'resolved_intake_year',
+        'resolved_intake_month',
+        'cohort_id_provisional',
     ];
 
     protected $casts = [

@@ -456,55 +456,75 @@
                 </ul>
             </li>
 
-            <li class="menu-label">Admission Documents</li>
 
-            <li>
-                <a href="javascript:;" class="has-arrow">
-                    <div class="parent-icon"><i class='bx bx-file'></i></div>
-                    <div class="menu-title">Upload Documents</div>
-                </a>
-                <ul>
-                    <li>
-                        <a href="{{ route('admin.admission.documents.index') }}">
-                            <i class="bx bx-radio-circle"></i> All Uploaded Documents
-                        </a>
-                    </li>
+            {{--            <li class="menu-label">Admission Documents</li>--}}
 
-
-                </ul>
-            </li>
+{{--            <li>--}}
+{{--                <a href="javascript:;" class="has-arrow">--}}
+{{--                    <div class="parent-icon"><i class='bx bx-file'></i></div>--}}
+{{--                    <div class="menu-title">Upload Documents</div>--}}
+{{--                </a>--}}
+{{--                <ul>--}}
+{{--                    <li>--}}
+{{--                        <a href="{{ route('admin.admission.documents.index') }}">--}}
+{{--                            <i class="bx bx-radio-circle"></i> All Uploaded Documents--}}
+{{--                        </a>--}}
+{{--                    </li>--}}
 
 
+{{--                </ul>--}}
+{{--            </li>--}}
 
-            <li class="menu-label">Vetting</li>
 
-            <li>
-                <a href="javascript:;" class="has-arrow">
-                    <div class="parent-icon"><i class='bx bx-book-reader'></i></div>
-                    <div class="menu-title">Vetting</div>
-                </a>
-                <ul>
-                    <li>
-                        <a href="{{ route('registrar.verification.index') }}">
-                            <i class="bx bx-radio-circle"></i> Awaiting
 
-                        </a>
-                    </li>
+{{--            <li class="menu-label">Vetting</li>--}}
 
-                    <li>
-                        <a href="{{ route('admin.admissions.verified') }}">
-                            <i class="bx bx-radio-circle"></i> Verified
+{{--            <li>--}}
+{{--                <a href="javascript:;" class="has-arrow">--}}
+{{--                    <div class="parent-icon"><i class='bx bx-book-reader'></i></div>--}}
+{{--                    <div class="menu-title">Vetting</div>--}}
+{{--                </a>--}}
+{{--                <ul>--}}
+{{--                    <li>--}}
+{{--                        <a href="{{ route('registrar.verification.index') }}">--}}
+{{--                            <i class="bx bx-radio-circle"></i> Awaiting--}}
 
-                        </a>
-                    </li>
+{{--                        </a>--}}
+{{--                    </li>--}}
 
-                </ul>
-            </li>
+{{--                    <li>--}}
+{{--                        <a href="{{ route('admin.admissions.verified') }}">--}}
+{{--                            <i class="bx bx-radio-circle"></i> Verified--}}
+
+{{--                        </a>--}}
+{{--                    </li>--}}
+
+{{--                </ul>--}}
+{{--            </li>--}}
 
 
         @endif
 
+        @if(Auth::user()->hasRole('campus_registrar') || Auth::user()->hasRole('kihbt_registrar') || Auth::user()->hasRole('superadmin'))
 
+
+        <li class="menu-label">Master Data</li>
+        <li>
+            <a href="javascript:;" class="has-arrow">
+                <div class="parent-icon"><i class='bx bx-file'></i></div>
+                <div class="menu-title">Continuing Students</div>
+            </a>
+            <ul>
+                <li>
+                    <a href="{{ route('masterdata.index') }}">
+                        <i class="bx bx-radio-circle"></i> All Continuing Students
+                    </a>
+                </li>
+
+
+            </ul>
+        </li>
+        @endif
         @if(Auth::user()->hasRole('accounts') || Auth::user()->hasRole('cash_office') || Auth::user()->hasRole('superadmin'))
 
 

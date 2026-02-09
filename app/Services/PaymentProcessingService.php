@@ -45,12 +45,64 @@ class PaymentProcessingService
             case 'tuition_fee': // 🔥 NEW
                 $this->handleTuitionFeePaid($billable, $invoice);
                 break;
+            // 🔥 NEW
+            case 'hostel':
+                $this->handleHostelPaid($billable, $invoice);
+                break;
             // future:
             // case 'hostel_fee':
             // case 'admission_fee':
             // case 'exam_fee':
         }
     }
+
+    protected function handleHostelPaid(
+        \App\Models\HostelBooking $booking,
+        Invoice $invoice
+    ) {
+        // --------------------------------------
+        // 1. Mark booking as paid
+        // --------------------------------------
+        $booking->update([
+            'payment_status' => 'paid',
+            'status'         => 'paid',
+        ]);
+
+        // --------------------------------------
+        // 2. Audit log
+        // --------------------------------------
+        app(AuditLogService::class)->log(
+            'hostel_fee_paid',
+            $invoice,
+            [
+                'hostel_booking_id' => $booking->id,
+                'reference'         => $booking->reference,
+                'amount'            => $invoice->amount_paid,
+            ]
+        );
+
+        // --------------------------------------
+        // 3. Notify applicant (optional but ideal)
+        // --------------------------------------
+        try {
+            Mail::to($booking->email)
+                ->send(new \App\Mail\HostelPaymentConfirmedMail(
+                    $booking,
+                    $invoice
+                ));
+        } catch (\Throwable $e) {
+            Log::error('Failed to send hostel payment confirmation email', [
+                'booking_id' => $booking->id,
+                'error'      => $e->getMessage(),
+            ]);
+        }
+
+        // --------------------------------------
+        // 4. (Future) Trigger hostel allocation
+        // --------------------------------------
+        // e.g. event(new HostelBookingPaid($booking));
+    }
+
     protected function handleKnecApplicationPaid(Application $app)
     {
         $app->update([
@@ -256,6 +308,14 @@ class PaymentProcessingService
         $ledgerOwnerType = null;
         $ledgerOwnerId   = null;
 
+        // 1️⃣ Hostel booking payment
+        if ($invoice->category === 'hostel'
+            && $invoice->billable_type === \App\Models\HostelBooking::class
+        ) {
+            $ledgerOwnerType = \App\Models\HostelBooking::class;
+            $ledgerOwnerId   = $invoice->billable_id;
+        }
+
         // 1️⃣ Short course payment
         if ($invoice->category === 'short_course'
             && $invoice->billable_type === \App\Models\ShortTrainingApplication::class
@@ -279,6 +339,8 @@ class PaymentProcessingService
             $ledgerOwnerType = \App\Models\Masterdata::class;
             $ledgerOwnerId   = $invoice->metadata['masterdata_id'] ?? null;
         }
+
+
 
         // -------------------------------------------------
         // CREATE LEDGER CREDIT

@@ -10,6 +10,9 @@ class Course extends Model
     use HasFactory;
 
     protected $guarded = [];
+    protected $casts = [
+        'is_hostel_booking_active' => 'boolean',
+    ];
 
     public function requirements()
     {

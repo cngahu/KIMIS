@@ -22,43 +22,10 @@ class StudentFinanceController extends Controller
     /**
      * Search students
      */
-    public function index0(Request $request)
-    {
-        $students = Student::query()
-            ->when($request->q, function ($q) use ($request) {
-                $q->where('student_number', 'like', "%{$request->q}%");
-            })
-            ->limit(50)
-            ->get();
 
-        return view('finance.students.index', compact('students'));
-    }
 
-    public function index1(Request $request)
-    {
-        $query = DB::table('student_ledgers as l')
-            ->leftJoin('students as s', 's.id', '=', 'l.student_id')
-            ->leftJoin('masterdata as m', 'm.id', '=', 'l.masterdata_id')
-            ->selectRaw('
-            COALESCE(s.id, m.id) as subject_id,
-            s.id as student_id,
-            m.id as masterdata_id,
-            COALESCE(s.student_number, m.admissionNo) as admission_no
-        ')
-            ->groupBy('subject_id', 'student_id', 'masterdata_id', 'admission_no');
 
-        if ($request->q) {
-            $query->where(function ($q) use ($request) {
-                $q->where('s.student_number', 'like', "%{$request->q}%")
-                    ->orWhere('m.admissionNo', 'like', "%{$request->q}%");
-            });
-        }
-
-        $subjects = $query->limit(50)->get();
-
-        return view('finance.students.index', compact('subjects'));
-    }
-    public function index(Request $request)
+    public function index100(Request $request)
     {
         $query = DB::table('student_ledgers as l')
 
@@ -125,6 +92,102 @@ class StudentFinanceController extends Controller
 
         return view('finance.students.index', compact('accounts'));
     }
+    public function index(Request $request)
+    {
+        $query = DB::table('student_ledgers as l')
+
+            // -----------------------------
+            // STUDENTS
+            // -----------------------------
+            ->leftJoin('students as s', function ($join) {
+                $join->on('s.id', '=', 'l.ledger_owner_id')
+                    ->where('l.ledger_owner_type', '=', \App\Models\Student::class);
+            })
+
+            // -----------------------------
+            // LEGACY (MASTERDATA)
+            // -----------------------------
+            ->leftJoin('masterdata as m', function ($join) {
+                $join->on('m.id', '=', 'l.ledger_owner_id')
+                    ->where('l.ledger_owner_type', '=', \App\Models\Masterdata::class);
+            })
+
+            // -----------------------------
+            // SHORT COURSES
+            // -----------------------------
+            ->leftJoin('short_training_applications as sta', function ($join) {
+                $join->on('sta.id', '=', 'l.ledger_owner_id')
+                    ->where('l.ledger_owner_type', '=', \App\Models\ShortTrainingApplication::class);
+            })
+
+            // -----------------------------
+            // HOSTEL BOOKINGS 🔥 NEW
+            // -----------------------------
+            ->leftJoin('hostel_bookings as hb', function ($join) {
+                $join->on('hb.id', '=', 'l.ledger_owner_id')
+                    ->where('l.ledger_owner_type', '=', \App\Models\HostelBooking::class);
+            })
+
+            ->select([
+                'l.ledger_owner_type',
+                'l.ledger_owner_id',
+
+                // -----------------------------
+                // ACCOUNT REFERENCE
+                // -----------------------------
+                DB::raw("
+                CASE
+                    WHEN l.ledger_owner_type = '".addslashes(\App\Models\Student::class)."'
+                        THEN s.student_number
+                    WHEN l.ledger_owner_type = '".addslashes(\App\Models\Masterdata::class)."'
+                        THEN m.admissionNo
+                    WHEN l.ledger_owner_type = '".addslashes(\App\Models\ShortTrainingApplication::class)."'
+                        THEN sta.reference
+                    WHEN l.ledger_owner_type = '".addslashes(\App\Models\HostelBooking::class)."'
+                        THEN hb.reference
+                END as account_reference
+            "),
+
+                // -----------------------------
+                // ACCOUNT TYPE LABEL
+                // -----------------------------
+                DB::raw("
+                CASE
+                    WHEN l.ledger_owner_type = '".addslashes(\App\Models\Student::class)."'
+                        THEN 'Student'
+                    WHEN l.ledger_owner_type = '".addslashes(\App\Models\Masterdata::class)."'
+                        THEN 'Legacy Student'
+                    WHEN l.ledger_owner_type = '".addslashes(\App\Models\ShortTrainingApplication::class)."'
+                        THEN 'Short Course'
+                    WHEN l.ledger_owner_type = '".addslashes(\App\Models\HostelBooking::class)."'
+                        THEN 'Hostel Booking'
+                END as account_type
+            "),
+            ])
+
+            ->groupBy(
+                'l.ledger_owner_type',
+                'l.ledger_owner_id',
+                'account_reference',
+                'account_type'
+            );
+
+        // -----------------------------
+        // SEARCH
+        // -----------------------------
+        if ($request->q) {
+            $query->where(function ($q) use ($request) {
+                $q->where('s.student_number', 'like', "%{$request->q}%")
+                    ->orWhere('m.admissionNo', 'like', "%{$request->q}%")
+                    ->orWhere('sta.reference', 'like', "%{$request->q}%")
+                    ->orWhere('hb.reference', 'like', "%{$request->q}%"); // 🔥 NEW
+            });
+        }
+
+        $accounts = $query->limit(50)->get();
+
+        return view('finance.students.index', compact('accounts'));
+    }
 
     /**
      * View ledger
@@ -144,34 +207,7 @@ class StudentFinanceController extends Controller
     /**
      * Manual debit
      */
-    public function debit0(Request $request, Student $student)
-    {
-        $request->validate([
-            'amount' => 'required|numeric|min:1',
-            'category' => 'required',
-            'description' => 'required',
-        ]);
 
-        $this->ledger->postDebit($student, $request->all());
-
-        return back()->with('success', 'Debit posted successfully.');
-    }
-
-    /**
-     * Manual credit
-     */
-    public function credit0(Request $request, Student $student)
-    {
-        $request->validate([
-            'amount' => 'required|numeric|min:1',
-            'category' => 'required',
-            'description' => 'required',
-        ]);
-
-        $this->ledger->postCredit($student, $request->all());
-
-        return back()->with('success', 'Credit posted successfully.');
-    }
     public function showLedger(Request $request)
     {
         $studentId = $request->get('student_id');
@@ -205,20 +241,30 @@ class StudentFinanceController extends Controller
         ));
     }
 
+
     public function debit(Request $request)
     {
         $request->validate([
-            'amount' => 'required|numeric|min:1',
-            'description' => 'required',
-            'category' => 'required',
+            'ledger_owner_type' => 'required|string',
+            'ledger_owner_id'   => 'required|integer',
+            'amount'            => 'required|numeric|min:1',
+            'description'       => 'required|string',
+            'category'          => 'required|string',
         ]);
 
-        $studentId = $request->student_id;
-        $masterdataId = $request->masterdata_id;
-
         StudentLedger::create([
-            'student_id'    => $studentId,
-            'masterdata_id' => $masterdataId,
+            // ✅ new ownership model
+            'ledger_owner_type' => $request->ledger_owner_type,
+            'ledger_owner_id'   => $request->ledger_owner_id,
+
+            // 🧩 legacy shadow (temporary)
+            'student_id' => $request->ledger_owner_type === \App\Models\Student::class
+                ? $request->ledger_owner_id
+                : null,
+
+            'masterdata_id' => $request->ledger_owner_type === \App\Models\Masterdata::class
+                ? $request->ledger_owner_id
+                : null,
 
             'entry_type'  => 'debit',
             'category'    => $request->category,
@@ -233,20 +279,32 @@ class StudentFinanceController extends Controller
         return back()->with('success', 'Debit posted successfully.');
     }
 
+
+
+
     public function credit(Request $request)
     {
         $request->validate([
-            'amount' => 'required|numeric|min:1',
-            'description' => 'required',
-            'category' => 'required',
+            'ledger_owner_type' => 'required|string',
+            'ledger_owner_id'   => 'required|integer',
+            'amount'            => 'required|numeric|min:1',
+            'description'       => 'required|string',
+            'category'          => 'required|string',
         ]);
 
-        $studentId = $request->student_id;
-        $masterdataId = $request->masterdata_id;
-
         StudentLedger::create([
-            'student_id'    => $studentId,
-            'masterdata_id' => $masterdataId,
+            // ✅ new ownership model
+            'ledger_owner_type' => $request->ledger_owner_type,
+            'ledger_owner_id'   => $request->ledger_owner_id,
+
+            // 🧩 legacy shadow (temporary)
+            'student_id' => $request->ledger_owner_type === \App\Models\Student::class
+                ? $request->ledger_owner_id
+                : null,
+
+            'masterdata_id' => $request->ledger_owner_type === \App\Models\Masterdata::class
+                ? $request->ledger_owner_id
+                : null,
 
             'entry_type'  => 'credit',
             'category'    => $request->category,

@@ -147,7 +147,6 @@ class InvoiceController extends Controller
         $key         = env('PF_KEY', 'jVMRIYcb456ERAk9');
 
         $callBackURLOnSuccess = route('payments.success');
-//        $notificationURL   = env('PF_NOTIFICATION_URL', "https://uat.kims.kihbt.ac.ke/api/pesaflow/confirm");
         $notificationURL     = route('payments.notify');
 
         $amountExpected    = $invoice->amount; // REAL AMOUNT

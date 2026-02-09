@@ -554,6 +554,9 @@ Route::middleware(['auth','history','verified','force.password'])->group(functio
         Route::get('/course/edit/{course}', 'edit')->name('courses.edit');     // Edit form
         Route::put('/course/update/{course}', 'update')->name('courses.update'); // Update course
         Route::delete('/course/delete/{course}', 'destroy')->name('courses.delete'); // Delete course
+
+        Route::post('/courses/{course}/hostel-settings','updateHostelSettings')->name('courses.hostel.update');
+
     });
 
 
@@ -790,3 +793,5 @@ require __DIR__.'/finance.php';
 require __DIR__.'/ongoing.php';
 require __DIR__.'/hod.php';
 require __DIR__.'/errors.php';
+require __DIR__.'/master.php';
+require __DIR__.'/hostels.php';

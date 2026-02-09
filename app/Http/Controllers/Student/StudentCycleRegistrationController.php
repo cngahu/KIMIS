@@ -57,11 +57,15 @@ class StudentCycleRegistrationController extends Controller
             );
 
             // 🔥 REDIRECT TO PAYMENT
+//            return redirect()->route(
+//                'student.payments.iframe',
+//                $registration->invoice_id
+//            );
+
             return redirect()->route(
-                'student.payments.iframe',
+                'student.dashboard',
                 $registration->invoice_id
             );
-
         }
 //        catch (\Exception $e) {
 //            return back()->with('error', $e->getMessage());

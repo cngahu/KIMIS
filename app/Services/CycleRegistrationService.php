@@ -66,18 +66,18 @@ class CycleRegistrationService
             // -------------------------------------------------
             // 4. Generate invoice
             // -------------------------------------------------
-            $invoice = $this->generateInvoice(
-                $student,
-                $enrollment,
-                $registration
-            );
-
-            // -------------------------------------------------
-            // 5. Link invoice to registration
-            // -------------------------------------------------
-            $registration->update([
-                'invoice_id' => $invoice->id
-            ]);
+//            $invoice = $this->generateInvoice(
+//                $student,
+//                $enrollment,
+//                $registration
+//            );
+//
+//            // -------------------------------------------------
+//            // 5. Link invoice to registration
+//            // -------------------------------------------------
+//            $registration->update([
+//                'invoice_id' => $invoice->id
+//            ]);
 
             // -------------------------------------------------
             // 6. Audit

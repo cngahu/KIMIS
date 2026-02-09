@@ -22,6 +22,7 @@ class LedgerIntegrityService
             ->whereNull('student_id')
             ->exists();
 
+
         if (!$exists) {
             return;
         }

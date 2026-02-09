@@ -10,6 +10,7 @@ class FinanceLedgerController extends Controller
     //
     public function viewByOwner(string $type, int $id)
     {
+
         $type = urldecode($type);
 
         $ledger = StudentLedger::where('ledger_owner_type', $type)

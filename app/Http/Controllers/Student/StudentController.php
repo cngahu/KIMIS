@@ -65,6 +65,7 @@ class StudentController extends Controller
 
         // Ensure ledger linkage
         $ledgerIntegrity->ensureStudentLedgerLinked($student);
+      //  dd($ledgerIntegrity);
 
         $data = app(StudentDashboardService::class)->build($student);
 

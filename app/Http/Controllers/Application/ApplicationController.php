@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Application;
 use App\Http\Controllers\Controller;
 use App\Mail\ShortCourseApplicationSubmittedMail;
 use App\Models\Invoice;
+use App\Models\ShortTrainingApplication;
+use App\Models\StudentLedger;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreApplicationRequest;
 use App\Models\Course;
@@ -30,6 +33,106 @@ class ApplicationController extends Controller
         // Throttle both long-term and short-term submissions
         $this->middleware('throttle:10,1')->only(['store', 'storeShort']);
     }
+
+    public function proforma1(string $reference)
+    {
+        $application = ShortTrainingApplication::with(['training', 'participants'])
+            ->where('reference', $reference)
+            ->firstOrFail();
+
+        $ledger = StudentLedger::where(
+            'ledger_owner_type', ShortTrainingApplication::class
+        )
+            ->where('ledger_owner_id', $application->id)
+            ->orderBy('created_at')
+            ->get();
+
+        $runningBalance = 0;
+        foreach ($ledger as $row) {
+            $runningBalance += $row->entry_type === 'debit'
+                ? $row->amount
+                : -$row->amount;
+            $row->running_balance = $runningBalance;
+        }
+
+        $billToName = $application->financier === 'employer'
+            ? $application->employer_name
+            : optional($application->participants->first())->full_name;
+
+        return view('public.short_training_proforma', compact(
+            'application',
+            'ledger',
+            'runningBalance',
+            'billToName'
+        ));
+    }
+    public function proforma2(string $reference)
+    {
+        $application = ShortTrainingApplication::with(['training', 'participants'])
+            ->where('reference', $reference)
+            ->firstOrFail();
+
+        $ledger = StudentLedger::where(
+            'ledger_owner_type', ShortTrainingApplication::class
+        )
+            ->where('ledger_owner_id', $application->id)
+            ->orderBy('created_at')
+            ->get();
+
+        // Compute running balance
+        $balance = 0;
+        foreach ($ledger as $row) {
+            $balance += $row->entry_type === 'debit'
+                ? $row->amount
+                : -$row->amount;
+
+            $row->running_balance = $balance;
+        }
+
+        $billToName = $application->financier === 'employer'
+            ? $application->employer_name
+            : optional($application->participants->first())->full_name;
+
+        return view('public.short_training_proforma', compact(
+            'application',
+            'ledger',
+            'balance',
+            'billToName'
+        ));
+    }
+
+
+    public function proforma(string $reference)
+    {
+        $application = ShortTrainingApplication::with(['training', 'participants'])
+            ->where('reference', $reference)
+            ->firstOrFail();
+
+        $ledger = StudentLedger::where(
+            'ledger_owner_type', ShortTrainingApplication::class
+        )
+            ->where('ledger_owner_id', $application->id)
+            ->orderBy('created_at')
+            ->get();
+
+        // Compute running balance
+        $balance = 0;
+        foreach ($ledger as $row) {
+            $balance += $row->entry_type === 'debit'
+                ? $row->amount
+                : -$row->amount;
+
+            $row->running_balance = $balance;
+        }
+
+        return Pdf::loadView(
+            'public.short_training_proforma',
+            compact('application', 'ledger', 'balance')
+        )
+            ->setPaper('A4', 'portrait')
+            ->download("Proforma-{$application->reference}.pdf");
+    }
+
     public function show0(Invoice $invoice)
     {
 
@@ -202,252 +305,7 @@ class ApplicationController extends Controller
      * using the same ApplicationService logic as long-term.
      */
 
-    public function storeShort1(Request $request, Training $training)
-    {
-        // 1) Validate input
-        $validated = $request->validate([
-            'financier'      => 'required|in:self,employer',
-            'employer_name'  => 'nullable|string|max:255',
 
-            'applicants'                  => 'required|array|min:1',
-            'applicants.*.full_name'      => 'required|string|max:255',
-            'applicants.*.id_no'          => 'nullable|string|max:50',
-            'applicants.*.phone'          => 'required|string|max:50',
-            'applicants.*.email'          => 'nullable|email|max:255',
-            'applicants.*.national_id'    => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
-
-            // Location fields for each applicant
-            'applicants.*.home_county_id'        => 'required|exists:counties,id',
-            'applicants.*.current_county_id'     => 'required|exists:counties,id',
-            'applicants.*.current_subcounty_id'  => 'required|exists:subcounties,id',
-            'applicants.*.postal_address'        => 'required|string|max:255',
-            'applicants.*.postal_code_id'        => 'required|exists:postal_codes,id',
-            'applicants.*.co'                    => 'nullable|string|max:255',
-            'applicants.*.town'                  => 'nullable|string|max:255',
-        ]);
-
-        // If financier is employer, name is required
-        if ($validated['financier'] === 'employer' && empty($validated['employer_name'])) {
-            return back()
-                ->withErrors(['employer_name' => 'Employer / Institution name is required when financier is employer.'])
-                ->withInput();
-        }
-
-        $uploadDisk = 'public';
-        $shortRecords = [];
-
-        // 2) Save each applicant in short_trainings with their individual location data
-        foreach ($validated['applicants'] as $index => $applicant) {
-
-            // Handle National ID upload
-            $nationalIdPath = null;
-            $nationalIdOriginal = null;
-
-            if ($request->hasFile("applicants.$index.national_id")) {
-                $file = $request->file("applicants.$index.national_id");
-                $nationalIdOriginal = $file->getClientOriginalName();
-
-                $nationalIdPath = $file->store(
-                    'short_trainings/national_ids',
-                    $uploadDisk
-                );
-            }
-
-            $shortRecords[] = ShortTraining::create([
-                'training_id'              => $training->id,
-                'financier'                => $validated['financier'],
-                'employer_name'            => $validated['financier'] === 'employer'
-                    ? $validated['employer_name']
-                    : null,
-                'full_name'                => $applicant['full_name'],
-                'id_no'                    => $applicant['id_no'] ?? null,
-                'phone'                    => $applicant['phone'] ?? null,
-                'email'                    => $applicant['email'] ?? null,
-                'national_id_path'         => $nationalIdPath,
-                'national_id_original_name'=> $nationalIdOriginal,
-
-                // Individual location fields for each applicant
-                'home_county_id'           => $applicant['home_county_id'],
-                'current_county_id'        => $applicant['current_county_id'],
-                'current_subcounty_id'     => $applicant['current_subcounty_id'],
-                'postal_address'           => $applicant['postal_address'],
-                'postal_code_id'           => $applicant['postal_code_id'],
-                'co'                       => $applicant['co'] ?? null,
-                'town'                     => $applicant['town'] ?? null,
-            ]);
-        }
-
-        // 3) Compute total amount to pay
-        $applicantCount = count($validated['applicants']);
-        $amountPerApplicant = $training->cost ?? 0;
-        $totalAmount = $amountPerApplicant * $applicantCount;
-
-        // 4) Create a "group" Application so we can reuse the existing payment flow
-        $firstApplicant = $validated['applicants'][0];
-
-        $groupFullName = $validated['financier'] === 'employer'
-            ? $validated['employer_name'].' ('.$applicantCount.' trainee(s))'
-            : $firstApplicant['full_name'];
-
-        // Build payload in the same style as the long-term ApplicationController@store()
-        // Use first applicant's location for the group application
-        $payload = [
-            'course_id'             => $training->course_id,
-            'full_name'             => $groupFullName,
-            'id_number'             => $firstApplicant['id_no'] ?? null,
-            'phone'                 => $firstApplicant['phone'],
-            'email'                 => $firstApplicant['email'] ?? null,
-            'date_of_birth'         => null,
-
-            // Use first applicant's location for the group application record
-            'home_county_id'        => $firstApplicant['home_county_id'],
-            'current_county_id'     => $firstApplicant['current_county_id'],
-            'current_subcounty_id'  => $firstApplicant['current_subcounty_id'],
-            'postal_address'        => $firstApplicant['postal_address'],
-            'postal_code_id'        => $firstApplicant['postal_code_id'],
-            'co'                    => $validated['financier'] === 'employer'
-                ? $validated['employer_name']
-                : ($firstApplicant['co'] ?? null),
-            'town'                  => $firstApplicant['town'] ?? null,
-
-            'financier'             => $validated['financier'],
-            'kcse_mean_grade'       => null,
-            'declaration'           => true,
-
-            'birth_certificate_path' => null,
-            'national_id_path'       => null,
-
-            // No dynamic requirements for short courses
-            'requirements'          => [],
-
-            // Extra info in metadata
-            'metadata'              => [
-                'short_term'         => true,
-                'training_id'        => $training->id,
-                'applicant_count'    => $applicantCount,
-                'amount_per_applicant' => $amountPerApplicant,
-                'employer_name'      => $validated['financier'] === 'employer'
-                    ? $validated['employer_name']
-                    : null,
-                'individual_locations' => true, // Flag to indicate locations are stored per applicant
-            ],
-
-            // 👇 we'll use this to override the invoice amount in ApplicationService
-            'invoice_amount'        => $totalAmount,
-        ];
-
-        // 5) Create the Application + Invoice using the same service as long-term
-        $groupApplication = $this->service->create($payload);
-
-        // 6) Redirect to the normal payment page, like long-term applications
-        return redirect()
-            ->route('applications.payment', $groupApplication->id)
-            ->with('success', 'Application(s) captured successfully. Proceed to payment.')
-            ->with('total_amount', $totalAmount)
-            ->with('applicant_count', $applicantCount);
-    }
-    public function storeShort2(Request $request, Training $training)
-    {
-        $validated = $request->validate([
-            'financier' => 'required|in:self,employer',
-
-            // Employer fields
-
-
-            'employer_name' => 'nullable|required_if:financier,employer|string|max:255',
-            'employer_contact_person' => 'nullable|required_if:financier,employer|string|max:255',
-            'employer_phone' => 'nullable|required_if:financier,employer|string|max:50',
-            'employer_email' => 'nullable|required_if:financier,employer|email|max:255',
-            'employer_postal_address' => 'nullable|required_if:financier,employer|string|max:255',
-            'employer_postal_code_id' => 'nullable|required_if:financier,employer|exists:postal_codes,id',
-            'employer_town' => 'nullable|required_if:financier,employer|string|max:255',
-            'employer_county_id' => 'nullable|required_if:financier,employer|exists:counties,id',
-
-
-            // Participants
-            'applicants' => 'required|array|min:1',
-            'applicants.*.full_name' => 'required|string|max:255',
-            'applicants.*.id_no' => 'nullable|string|max:50',
-            'applicants.*.phone' => 'required|string|max:50',
-            'applicants.*.email' => 'nullable|email|max:255',
-            'applicants.*.national_id' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
-
-            // Location fields
-            'applicants.*.home_county_id' => 'required|exists:counties,id',
-            'applicants.*.current_county_id' => 'required|exists:counties,id',
-            'applicants.*.current_subcounty_id' => 'required|exists:subcounties,id',
-            'applicants.*.postal_address' => 'required|string|max:255',
-            'applicants.*.postal_code_id' => 'required|exists:postal_codes,id',
-            'applicants.*.co' => 'nullable|string|max:255',
-            'applicants.*.town' => 'nullable|string|max:255',
-        ]);
-
-        // Pass to service
-        $service = app(\App\Services\ShortTrainingApplicationService::class);
-
-        $application = $service->createShortApplication($training, $validated, $request);
-        $invoice = $service->createShortApplication($training, $validated, $request);
-
-        return redirect()
-            ->route('short_training.payment', $invoice->id)
-            ->with('success', 'Application captured successfully. Proceed to payment.')
-            ->with('total_amount', $invoice->amount)
-            ->with('applicant_count', $invoice->metadata['total_participants']);
-    }
-    public function storeShort0(Request $request, Training $training)
-    {
-        // --------------------------------------
-        // 1) VALIDATION
-        // --------------------------------------
-        $validated = $request->validate([
-            'financier' => 'required|in:self,employer',
-
-            // Employer fields
-            'employer_name'             => 'nullable|required_if:financier,employer|string|max:255',
-            'employer_contact_person'   => 'nullable|required_if:financier,employer|string|max:255',
-            'employer_phone'            => 'nullable|required_if:financier,employer|string|max:50',
-            'employer_email'            => 'nullable|required_if:financier,employer|email|max:255',
-            'employer_postal_address'   => 'nullable|required_if:financier,employer|string|max:255',
-            'employer_postal_code_id'   => 'nullable|required_if:financier,employer|exists:postal_codes,id',
-            'employer_town'             => 'nullable|required_if:financier,employer|string|max:255',
-            'employer_county_id'        => 'nullable|required_if:financier,employer|exists:counties,id',
-
-            // Participants
-            'applicants' => 'required|array|min:1',
-
-            'applicants.*.full_name'      => 'required|string|max:255',
-            'applicants.*.id_no'          => 'nullable|string|max:50',
-            'applicants.*.phone'          => 'required|string|max:50',
-            'applicants.*.email'          => 'nullable|email|max:255',
-            'applicants.*.national_id'    => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
-
-            // Location fields
-            'applicants.*.home_county_id'        => 'required|exists:counties,id',
-            'applicants.*.current_county_id'     => 'required|exists:counties,id',
-            'applicants.*.current_subcounty_id'  => 'required|exists:subcounties,id',
-            'applicants.*.postal_address'        => 'required|string|max:255',
-            'applicants.*.postal_code_id'        => 'required|exists:postal_codes,id',
-            'applicants.*.co'                    => 'nullable|string|max:255',
-            'applicants.*.town'                  => 'nullable|string|max:255',
-        ]);
-
-        // --------------------------------------
-        // 2) DELEGATE TO SERVICE FOR SAVING
-        // --------------------------------------
-        $service = app(\App\Services\ShortTrainingApplicationService::class);
-
-        // This now returns the generated invoice
-        $invoice = $service->createShortApplication($training, $validated, $request);
-
-        // --------------------------------------
-        // 3) REDIRECT TO PAYMENT PAGE
-        // --------------------------------------
-        return redirect()
-            ->route('short_training.payment', $invoice->id)
-            ->with('success', 'Application captured successfully. Proceed to payment.')
-            ->with('total_amount', $invoice->amount)
-            ->with('applicant_count', $invoice->metadata['total_participants']);
-    }
     public function storeShort(Request $request, Training $training)
     {
         // --------------------------------------
