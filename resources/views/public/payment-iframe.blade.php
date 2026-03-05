@@ -1,5 +1,7 @@
 @extends('layouts.public')
 
+@section('title', 'Student Dashboard')
+
 @section('content')
     @php
 

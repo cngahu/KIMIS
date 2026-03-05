@@ -1,4 +1,5 @@
 @extends('admin.admin_dashboard')
+@section('title', 'Student Dashboard')
 @section('admin')
 
 {{--    <form action="https://test.pesaflow.com/PaymentAPI/iframev2.1.php" method="post" target="my_iframe">--}}

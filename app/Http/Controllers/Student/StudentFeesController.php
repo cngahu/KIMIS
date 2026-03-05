@@ -12,26 +12,11 @@ use Illuminate\Http\Request;
 
 class StudentFeesController extends Controller
 {
-    public function index0()
-    {
-        $student = Student::where('user_id', auth()->id())->firstOrFail();
-
-        $invoices = Invoice::where('user_id', auth()->id())
-            ->orderByDesc('created_at')
-            ->get();
-
-        return view('student.fees.index', compact('student', 'invoices'));
-    }
-
     public function index(FeeStatementService $service)
     {
         $student = Student::where('user_id', auth()->id())->firstOrFail();
 
-        $studentId = $student->id;
-        $masterdataId = $student->admission_id; // linked during activation
-
-        // Build fee statement (ledger-based)
-        $data = $service->build($studentId, $masterdataId);
+        $data = $service->build($student->id, $student->admission_id);
 
         return view('student.fees.index', array_merge($data, [
             'student' => $student,
@@ -42,10 +27,7 @@ class StudentFeesController extends Controller
     {
         $student = Student::where('user_id', auth()->id())->firstOrFail();
 
-        $studentId = $student->id;
-        $masterdataId = $student->admission_id;
-
-        $data = $service->build($studentId, $masterdataId);
+        $data = $service->build($student->id, $student->admission_id);
 
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView(
             'student.fees.fee_statement_pdf',
@@ -54,6 +36,22 @@ class StudentFeesController extends Controller
 
         return $pdf->download('KIHBT_Fee_Statement.pdf');
     }
+
+    /**
+     * ✅ FIXED: was calling renderStudentStatement() which doesn't exist.
+     * Now uses build() and returns a dedicated statement view.
+     */
+    public function statement(FeeStatementService $service)
+    {
+        $student = Student::where('user_id', auth()->id())->firstOrFail();
+
+        $data = $service->build($student->id, $student->admission_id);
+
+        return view('student.fees.statement', array_merge($data, [
+            'student' => $student,
+        ]));
+    }
+
     public function showInvoice(Invoice $invoice)
     {
         $this->authorizeInvoice($invoice);
@@ -79,13 +77,6 @@ class StudentFeesController extends Controller
         return app(ReceiptPdfService::class)->generateReceiptPdf($invoice);
     }
 
-    public function statement()
-    {
-        $student = Student::where('user_id', auth()->id())->firstOrFail();
-
-        return app(FeeStatementService::class)->renderStudentStatement($student);
-    }
-
     protected function authorizeInvoice(Invoice $invoice)
     {
         if ($invoice->user_id !== auth()->id()) {
@@ -93,4 +84,3 @@ class StudentFeesController extends Controller
         }
     }
 }
-

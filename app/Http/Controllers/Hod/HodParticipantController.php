@@ -8,6 +8,7 @@ use App\Models\CourseCohort;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Http\Controllers\Hod\HodParticipantController;
 
 
 class HodParticipantController extends Controller

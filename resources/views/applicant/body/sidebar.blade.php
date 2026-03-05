@@ -109,7 +109,7 @@
     <div class="sidebar-header">
         <div>
             <a href="{{ route('applicant.dashboard') }}">
-                <img src="{{ asset('adminbackend/assets/images/logokihbt.png') }}" class="logo-icon" alt="logo icon" style="height: 40px;">
+                <img src="{{ asset('adminbackend/assets/images/logokihbt.jpeg') }}" class="logo-icon" alt="logo icon" style="height: 40px;">
             </a>
         </div>
         <div>
@@ -220,3 +220,9 @@
     @endif
     <!--end navigation-->
 </div>
+<form action="{{ route('student.logout') }}" method="POST" style="display:inline">
+    @csrf
+    <button type="submit" class="btn btn-link p-0 m-0" style="color:inherit;">
+        <i class="fas fa-sign-out-alt me-2"></i> Logout
+    </button>
+</form>

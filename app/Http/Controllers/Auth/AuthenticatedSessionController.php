@@ -5,17 +5,14 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Models\User;
-use App\Providers\RouteServiceProvider;
 use App\Services\Audit\AuditLogService;
 use App\Services\Auth\OTPService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\View\View;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Middleware\RoleMiddleware;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
+use Illuminate\View\View;
 
 class AuthenticatedSessionController extends Controller
 {
@@ -28,49 +25,9 @@ class AuthenticatedSessionController extends Controller
     }
 
     /**
-     * Handle an incoming authentication request.
+     * Handle an incoming authentication request (credentials only).
      */
-    public function store1(LoginRequest $request): RedirectResponse
-    {
-
-        $request->authenticate();
-
-        $request->session()->regenerate();
-
-        if($request->user()->hasRole('applicant')){
-            $url='student/dashboard';
-        }
-        elseif($request->user()->hasRole('superadmin')){
-            $url='/dashboard';
-        }
-
-        elseif($request->user()->hasRole('hod')){
-            $url='/dashboard';
-        }
-
-        elseif($request->user()->hasRole('campus_registrar')){
-            $url='/dashboard';
-        }
-
-        elseif($request->user()->hasRole('kihbt_registrar')) {
-            $url = '/dashboard';
-        }
-
-        elseif($request->user()->hasRole('director')) {
-            $url = '/dashboard';
-        }
-        elseif($request->user()->hasRole('student')) {
-            return redirect('student/dashboard');
-        }
-
-        else {
-            abort(403);
-        }
-        return redirect($url);
-//        return redirect()->intended(RouteServiceProvider::HOME);
-       // return redirect()->intended($url);
-    }
-    public function store(LoginRequest $request)
+    public function store(LoginRequest $request): RedirectResponse
     {
         // 1) Validate + authenticate username/password
         $request->authenticate();
@@ -78,12 +35,11 @@ class AuthenticatedSessionController extends Controller
         $user = $request->user();
 
         // 2) Log audit
-        app(\App\Services\Audit\AuditLogService::class)->log('login.credentials_valid', $user);
+        app(AuditLogService::class)->log('login.credentials_valid', $user);
 
         // 3) Store user id for 2FA
         session([
             '2fa:user:id' => $user->id,
-            // don't decide channel yet – leave for next step
         ]);
 
         // 4) Log out the session temporarily (user not fully logged in yet)
@@ -93,15 +49,12 @@ class AuthenticatedSessionController extends Controller
         return redirect()->route('otp.channel.form');
     }
 
-
     /**
-     * Destroy an authenticated session.
+     * Destroy an authenticated session (logout).
      */
     public function destroy(Request $request): RedirectResponse
     {
         $audit = app(AuditLogService::class);
-
-        // Capture the user before logout happens
         $user = auth()->user();
 
         // Log the exit event
@@ -111,35 +64,42 @@ class AuthenticatedSessionController extends Controller
 
         // Logout sequence
         Auth::guard('web')->logout();
-
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
         return redirect('/');
     }
 
-    public function showOtpForm()
+    /**
+     * Show the OTP verification form.
+     */
+    public function showOtpForm(): View
     {
         if (!session('2fa:user:id')) {
             return redirect()->route('login')->withErrors('Session expired.');
         }
 
         $channel = session('2fa:channel', 'email');
-
         return view('auth.verify-otp', compact('channel'));
     }
 
-
-    public function verifyOtp(Request $request)
+    /**
+     * Verify OTP and complete login.
+     */
+    public function verifyOtp(Request $request): RedirectResponse
     {
         $request->validate(['otp' => 'required|digits:6']);
 
         $userId = session('2fa:user:id');
-        $user = User::findOrFail($userId);
+        if (!$userId) {
+            return redirect()->route('login')->withErrors('Session expired.');
+        }
 
+        $user = User::findOrFail($userId);
         $otpService = app(OTPService::class);
         $audit = app(AuditLogService::class);
 
+        // Validate OTP
         $otp = $otpService->validateCode($user, $request->otp);
 
         if (!$otp) {
@@ -147,55 +107,77 @@ class AuthenticatedSessionController extends Controller
             return back()->withErrors(['otp' => 'Invalid OTP code']);
         }
 
+        // Mark OTP as used
         $otpService->markUsed($otp);
         $audit->log('otp.verified', $user);
 
+        // ✅ Login the user after successful OTP
         Auth::login($user);
         $request->session()->regenerate();
 
-        if ($user->hasRole('applicant')) return redirect('applicant/dashboard');
-        if ($user->hasRole('student')) return redirect('student/dashboard');
+        // Clear 2FA session data
+        session()->forget('2fa:user:id');
+        session()->forget('2fa:channel');
+        
 
-        if ($user->hasAnyRole(['superadmin','hod','campus_registrar','kihbt_registrar','director','accounts','cash_office'])) {
-            return redirect('/dashboard');
+        // ✅ Role-based redirects using NAMED ROUTES
+        if ($user->hasRole('applicant')) {
+            return redirect()->route('applicant.dashboard');
         }
 
-        // helpful debug (remove after fixing)
-        dd([
+        if ($user->hasRole('student')) {
+            return redirect()->route('student.student_dashboard');
+        }
+
+        if ($user->hasAnyRole([
+            'superadmin',
+            'hod',
+            'campus_registrar',
+            'kihbt_registrar',
+            'director',
+            'accounts',
+            'cash_office',
+            'Principal',
+            'Deputy Principal Academics',
+        ])) {
+            return redirect()->route('dashboard');
+        }
+
+        // ⚠️ Fallback: No matching role found
+        Log::warning('Login failed: no matching role', [
             'user_id' => $user->id,
-            'roles' => $user->getRoleNames(),
-            'pivot_roles_count' => $user->roles()->count(),
-            'role_column' => $user->role ?? null,
+            'email' => $user->email,
+            'roles' => $user->getRoleNames()->toArray(),
         ]);
+
+        return redirect()->route('login')
+            ->withErrors('Your account does not have an authorized role. Please contact support.');
     }
 
-    public function resendOtp(Request $request)
+    /**
+     * Resend OTP to user.
+     */
+    public function resendOtp(Request $request): RedirectResponse
     {
         $audit = app(AuditLogService::class);
-
-        // Validate session user
         $userId = session('2fa:user:id');
+
         if (!$userId) {
             $audit->log('otp.resend_failed', null, ['reason' => 'missing_session_user']);
-            return redirect('/login')->withErrors('Your session has expired. Please log in again.');
+            return redirect()->route('login')->withErrors('Your session has expired. Please log in again.');
         }
 
         $user = User::find($userId);
         if (!$user) {
             $audit->log('otp.resend_failed', null, ['reason' => 'user_not_found', 'user_id' => $userId]);
-            return redirect('/login')->withErrors('Invalid session. Please log in again.');
+            return redirect()->route('login')->withErrors('Invalid session. Please log in again.');
         }
 
         try {
             $otpService = app(OTPService::class);
-
-            // Get channel from query or session (default email)
             $channel = $request->query('channel', session('2fa:channel', 'email'));
 
-            // Remember latest choice
             session(['2fa:channel' => $channel]);
-
-            // Generate new OTP using that channel
             $otpService->generate($user, $channel);
 
             $audit->log('otp.resent', $user, ['channel' => $channel]);
@@ -204,18 +186,16 @@ class AuthenticatedSessionController extends Controller
                 'status',
                 'A new OTP has been sent via ' . ($channel === 'sms' ? 'SMS to your phone.' : 'email.')
             );
-
         } catch (\Exception $e) {
-
-            $audit->log('otp.resend_failed', $user, [
-                'error' => $e->getMessage()
-            ]);
-
+            $audit->log('otp.resend_failed', $user, ['error' => $e->getMessage()]);
             return back()->withErrors('Failed to resend OTP. Please try again.');
         }
     }
 
-    public function showOtpChannelForm()
+    /**
+     * Show OTP channel selection form.
+     */
+    public function showOtpChannelForm(): View
     {
         $userId = session('2fa:user:id');
 
@@ -224,12 +204,13 @@ class AuthenticatedSessionController extends Controller
         }
 
         $user = User::findOrFail($userId);
-
-        // we pass the user so we can show email & phone, and know if phone exists
         return view('auth.choose-otp-channel', compact('user'));
     }
 
-    public function chooseOtpChannel(Request $request)
+    /**
+     * Handle OTP channel selection.
+     */
+    public function chooseOtpChannel(Request $request): RedirectResponse
     {
         $userId = session('2fa:user:id');
 
@@ -239,30 +220,26 @@ class AuthenticatedSessionController extends Controller
 
         $user = User::findOrFail($userId);
 
-        // validate the choice
         $data = $request->validate([
             'otp_channel' => ['required', Rule::in(['email', 'sms'])],
         ]);
 
         $channel = $data['otp_channel'];
 
-        // ✅ if SMS selected, check if phone exists
-        if ($channel === 'sms' && (empty($user->phone))) {
+        // If SMS selected, check if phone exists
+        if ($channel === 'sms' && empty($user->phone)) {
             return back()->withErrors([
                 'otp_channel' => 'Phone number is not available. Please choose Email or update your profile.',
             ])->withInput();
         }
 
-        // remember chosen channel
         session(['2fa:channel' => $channel]);
 
-        // generate + send OTP using selected channel
         $otpService = app(OTPService::class);
-        $audit      = app(AuditLogService::class);
+        $audit = app(AuditLogService::class);
 
         try {
             $otpService->generate($user, $channel);
-
             $audit->log('otp.generated', $user, ['channel' => $channel]);
 
             return redirect()->route('otp.verify.form')
@@ -270,13 +247,10 @@ class AuthenticatedSessionController extends Controller
         } catch (\Throwable $e) {
             $audit->log('otp.generate_failed', $user, [
                 'channel' => $channel,
-                'error'   => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
 
             return back()->withErrors('Failed to send OTP. Please try again or choose another method.');
         }
     }
-
-
-
 }

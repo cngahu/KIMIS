@@ -156,7 +156,7 @@
     <!-- Header -->
     <div class="form-header">
         <div class="header-content">
-            <img src="{{ asset('adminbackend/assets/images/logokihbt.png') }}" class="header-logo">
+            <img src="{{ asset('adminbackend/assets/images/logokihbt.jpeg') }}" class="header-logo">
             <div>
                 <div class="header-title">Kenya Institute of Highways & Building Technology</div>
                 <div class="header-tagline">Empowering skills for roads, transport & construction</div>

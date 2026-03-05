@@ -93,7 +93,7 @@
 
 @section('content')
     <section class="page-hero text-center py-4" style="background:#0a664a; color:white;">
-        <img src="{{ asset('images/kihbt-logo.png') }}" alt="KIHBT" height="80" class="mb-3">
+        <img src="{{ asset('images/kihbt-logo.jpeg') }}" alt="KIHBT" height="80" class="mb-3">
         <h1 class="fw-bold">Short Course Invoice</h1>
         <p class="mb-0">Invoice No: <strong>{{ $invoice->invoice_number }}</strong></p>
     </section>

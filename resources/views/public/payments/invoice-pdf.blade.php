@@ -15,7 +15,7 @@
 <body>
 
 <div class="header">
-    <img src="{{ public_path('images/kihbt-logo.png') }}" height="80">
+    <img src="{{ public_path('images/kihbt-logo.jpeg') }}" height="80">
     <p class="title">Short Course Invoice</p>
     <p>Invoice No: <strong>{{ $invoice->invoice_number }}</strong></p>
 </div>

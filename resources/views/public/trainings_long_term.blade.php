@@ -235,7 +235,7 @@
         <div class="container">
             <nav class="navbar navbar-expand-lg navbar-light">
                 <a class="navbar-brand d-flex align-items-center" href="{{ url('/') }}">
-                    <img src="{{ asset('adminbackend/assets/images/logokihbt.png') }}" class="logo-img" alt="KIHBT">
+                    <img src="{{ asset('adminbackend/assets/images/logokihbt.jpeg') }}" class="logo-img" alt="KIHBT">
                     <span class="brand-title">
                         Kenya Institute of Highways and Building Technology (KIHBT)
                     </span>

@@ -1,84 +1,582 @@
+{{-- resources/views/student/profile/show.blade.php --}}
 @extends('admin.admin_dashboard')
+
+@section('title', 'Student Profile')
 
 @section('admin')
 
-    <div class="page-content">
+<style>
+    /* ================= CSS VARIABLES - KIHBT BROWN THEME ================= */
+    :root {
+        /* Brand Colors */
+        --primary: #3b2818;           /* KIHBT Brown */
+        --primary-light: #5a3d2b;     /* Lighter Brown */
+        --primary-dark: #2a1a0f;      /* Darker Brown */
+        --accent: #f9a90f;            /* KIHBT Gold */
+        --accent-hover: #d18b00;      /* Darker Gold */
+        
+        /* Semantic Colors */
+        --secondary: #858585;
+        --success: #099139;
+        --warning: #f9a90f;
+        --danger: #b3261e;
+        --info: #3b2818;
+        
+        /* Backgrounds */
+        --bg-card: #ffffff;
+        --bg-soft: #f5f6f5;
+        --bg-gradient: linear-gradient(135deg, #fffefc, #ffffff);
+        --bg-accent: rgba(249, 169, 15, 0.1);
+        --bg-primary: rgba(59, 40, 24, 0.05);
+        
+        /* Borders */
+        --border-light: #e8e8e8;
+        --border-primary: rgba(59, 40, 24, 0.2);
+        --border-accent: rgba(249, 169, 15, 0.3);
+        
+        /* Shadows */
+        --shadow-sm: 0 2px 8px rgba(59, 40, 24, 0.06);
+        --shadow-md: 0 6px 18px rgba(59, 40, 24, 0.08);
+        --shadow-lg: 0 10px 25px rgba(59, 40, 24, 0.1);
+        --shadow-hover: 0 12px 32px rgba(59, 40, 24, 0.15);
+        
+        /* Text */
+        --text-primary: #26211d;
+        --text-secondary: #858585;
+        --text-on-primary: #ffffff;
+        --text-on-accent: #000000;
+        
+        /* Spacing */
+        --spacing-xs: 0.25rem;
+        --spacing-sm: 0.5rem;
+        --spacing-md: 1rem;
+        --spacing-lg: 1.5rem;
+        --spacing-xl: 2rem;
+        
+        /* Radius */
+        --radius-sm: 8px;
+        --radius-md: 12px;
+        --radius-lg: 16px;
+        --radius-xl: 20px;
+        
+        /* Transitions */
+        --transition-fast: 0.15s ease;
+        --transition-normal: 0.25s ease;
+    }
 
-        <h4 class="fw-bold mb-4">My Profile</h4>
+    /* ================= PAGE CONTENT ================= */
+    .page-content {
+        padding: calc(var(--header-height, 60px) + var(--spacing-lg)) var(--spacing-lg) var(--spacing-lg);
+        max-width: 1400px;
+        margin: 0 auto;
+    }
 
-        <div class="row g-4">
+    /* ================= BREADCRUMB ================= */
+    .page-breadcrumb {
+        background: var(--bg-gradient);
+        padding: var(--spacing-md) var(--spacing-lg);
+        border-radius: var(--radius-md);
+        border-left: 4px solid var(--accent);
+        margin-bottom: var(--spacing-xl);
+    }
 
-            {{-- Profile Photo --}}
-            <div class="col-md-4">
-                <div class="card radius-10 shadow-sm p-4 text-center">
+    .page-breadcrumb .breadcrumb-title {
+        font-weight: 700;
+        color: var(--primary);
+        font-size: 1.1rem;
+    }
 
-{{--                    <img src="{{ auth()->user()->photo--}}
-{{--                        ? asset('storage/' . auth()->user()->photo)--}}
-{{--                        : asset('images/default-avatar.png') }}"--}}
-{{--                         class="rounded-circle mb-3"--}}
-{{--                         width="140"--}}
-{{--                         height="140"--}}
-{{--                         style="object-fit:cover">--}}
+    .page-breadcrumb .breadcrumb-item a {
+        color: var(--primary);
+        text-decoration: none;
+        transition: color var(--transition-fast);
+    }
 
-                    <img src="{{ !empty(auth()->user()->photo)
-    ? url('upload/admin_images/' . auth()->user()->photo)
-    : url('upload/no_image.jpg') }}"
-                         class="rounded-circle mb-3"
-                         width="140"
-                         height="140"
-                         style="object-fit:cover">
+    .page-breadcrumb .breadcrumb-item a:hover {
+        color: var(--accent);
+    }
 
-                    <form method="POST"
-                          action="{{ route('student.profile.photo') }}"
-                          enctype="multipart/form-data">
-                        @csrf
+    .page-breadcrumb .breadcrumb-item.active {
+        color: var(--secondary);
+    }
 
-                        <input type="file"
-                               name="photo"
-                               class="form-control mb-2"
-                               required>
+    /* ================= PROFILE CARD ================= */
+    .profile-card {
+        background: var(--bg-gradient);
+        border-radius: var(--radius-xl);
+        padding: var(--spacing-xl);
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--border-light);
+        text-align: center;
+        transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+    }
 
-                        <button class="btn btn-outline-primary btn-sm">
-                            Update Photo
-                        </button>
-                    </form>
-                </div>
-            </div>
+    .profile-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+    }
 
-            {{-- Bio Data --}}
-            <div class="col-md-8">
-                <div class="card radius-10 shadow-sm p-4">
+    .profile-card .profile-photo {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid var(--accent);
+        padding: 3px;
+        background: var(--bg-card);
+        margin-bottom: var(--spacing-md);
+        transition: transform var(--transition-fast);
+    }
 
-                    <h6 class="fw-bold mb-3">Bio Data</h6>
+    .profile-card .profile-photo:hover {
+        transform: scale(1.05);
+    }
 
-                    <table class="table table-borderless">
-                        <tr>
-                            <th>Name</th>
-                            <td>{{ auth()->user()->firstname }}</td>
-                        </tr>
-                        <tr>
-                            <th>Admission No</th>
-                            <td>{{ $student->student_number }}</td>
-                        </tr>
-                        <tr>
-                            <th>Email</th>
-                            <td>{{ auth()->user()->email }}</td>
-                        </tr>
-                        <tr>
-                            <th>Phone</th>
-                            <td>{{ auth()->user()->phone }}</td>
-                        </tr>
-                        <tr>
-                            <th>Course</th>
-                            <td>{{ $student->course->course_name ?? '-' }}</td>
-                        </tr>
-                    </table>
+    .profile-card h4 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: var(--spacing-xs);
+    }
 
-                </div>
-            </div>
+    .profile-card .text-secondary {
+        color: var(--secondary) !important;
+        font-size: 0.95rem;
+        margin-bottom: var(--spacing-md);
+    }
 
+    .profile-card .photo-form {
+        margin-top: var(--spacing-md);
+    }
+
+    .profile-card .photo-form .form-control {
+        border-radius: var(--radius-md);
+        padding: 0.5rem;
+        font-size: 0.9rem;
+        border: 1px solid var(--border-light);
+    }
+
+    .profile-card .photo-form .btn {
+        border-radius: var(--radius-md);
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    /* ================= FORM CARD ================= */
+    .form-card {
+        background: var(--bg-card);
+        border-radius: var(--radius-lg);
+        padding: var(--spacing-lg);
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--border-light);
+    }
+
+    .form-card .card-title {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: var(--spacing-lg);
+        padding-bottom: var(--spacing-md);
+        border-bottom: 1px solid var(--border-light);
+    }
+
+    /* ================= ALERTS ================= */
+    .alert {
+        border-radius: var(--radius-md);
+        padding: var(--spacing-md) var(--spacing-lg);
+        border: none;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+    }
+
+    .alert-success {
+        background: rgba(9, 145, 57, 0.1);
+        color: var(--success);
+        border-left: 4px solid var(--success);
+    }
+
+    .alert-danger {
+        background: rgba(179, 38, 30, 0.1);
+        color: var(--danger);
+        border-left: 4px solid var(--danger);
+    }
+
+    .alert-warning {
+        background: var(--bg-accent);
+        color: var(--primary);
+        border-left: 4px solid var(--accent);
+    }
+
+    /* ================= FORM FIELDS ================= */
+    .form-label {
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: var(--primary);
+        margin-bottom: var(--spacing-xs);
+        
+    }
+
+    .form-control {
+        border-radius: var(--radius-md);
+        padding: 0.75rem 1rem;
+        border: 1px solid var(--border-light);
+        font-size: 0.95rem;
+        transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+        background: #fff;
+        
+    }
+
+    .form-control:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(249, 169, 15, 0.15);
+        outline: none;
+    }
+
+    .form-control:disabled {
+        background: var(--bg-soft);
+        color: var(--secondary);
+    }
+
+    .form-control.is-invalid {
+        border-color: var(--danger);
+    }
+
+    .form-control.is-invalid:focus {
+        box-shadow: 0 0 0 3px rgba(179, 38, 30, 0.15);
+    }
+
+    .invalid-feedback {
+        font-size: 0.85rem;
+        color: var(--danger);
+        margin-top: var(--spacing-xs);
+    }
+
+    /* ================= READ-ONLY FIELDS ================= */
+    .text-secondary {
+        color: var(--secondary) !important;
+        font-size: 0.95rem;
+        padding: 0.75rem 1rem;
+        background: var(--bg-soft);
+        border-radius: var(--radius-md);
+        display: inline-block;
+        min-width: 100%;
+    }
+
+    /* ================= BUTTONS ================= */
+    .btn {
+        border-radius: var(--radius-md);
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: all var(--transition-fast);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        cursor: pointer;
+        border: none;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: var(--text-on-primary);
+        box-shadow: 0 2px 4px rgba(59, 40, 24, 0.2);
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+        color: var(--text-on-primary);
+    }
+
+    .btn-outline-primary {
+        border: 2px solid var(--primary);
+        color: var(--primary);
+        background: transparent;
+        font-weight: 600;
+    }
+
+    .btn-outline-primary:hover {
+        background: var(--primary);
+        color: var(--text-on-primary);
+        transform: translateY(-2px);
+    }
+
+    .btn-sm {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.85rem;
+    }
+
+    /* ================= FIELD GROUPS ================= */
+    .field-group {
+        margin-bottom: var(--spacing-md);
+    }
+
+    .field-group .field-label {
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: var(--primary);
+        margin-bottom: var(--spacing-xs);
+    }
+
+    .field-group .field-value {
+        color: var(--text-primary);
+        font-size: 0.95rem;
+        padding: 0.75rem 1rem;
+        background: var(--bg-soft);
+        border-radius: var(--radius-md);
+    }
+
+    /* ================= MOBILE RESPONSIVE ================= */
+    @media (max-width: 991px) {
+        .page-content { padding: var(--spacing-md); }
+        .profile-card { padding: var(--spacing-lg); }
+        .form-card { padding: var(--spacing-md); }
+        .field-group { margin-bottom: var(--spacing-sm); }
+    }
+
+    @media (max-width: 767px) {
+        :root { --spacing-lg: 1.25rem; --spacing-xl: 1.5rem; }
+        .page-content { padding: var(--spacing-sm); }
+        .profile-card .profile-photo { width: 100px; height: 100px; }
+        .profile-card h4 { font-size: 1.1rem; }
+        .form-card .card-title { font-size: 1.05rem; }
+        .btn { width: 100%; justify-content: center; }
+        .field-group .field-label,
+        .field-group .field-value { font-size: 0.9rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        * { transition: none !important; animation: none !important; }
+    }
+
+    .btn:focus, .form-control:focus, a:focus {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+    }
+
+    @media (prefers-contrast: high) {
+        .profile-card, .form-card { border: 2px solid var(--primary); }
+    }
+</style>
+
+<div class="page-content">
+
+    <!--breadcrumb-->
+    <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
+        <div class="breadcrumb-title pe-3">Student Profile</div>
+        <div class="ps-3">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0 p-0">
+                    <li class="breadcrumb-item">
+                        <a href="{{ route('student.student_dashboard') }}"><i class="bx bx-home-alt"></i></a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">Profile</li>
+                </ol>
+            </nav>
         </div>
-
     </div>
+    <!--end breadcrumb-->
+
+    <div class="container">
+        <div class="main-body">
+            <div class="row">
+
+                {{-- Profile Photo Card --}}
+                <div class="col-lg-4">
+                    <div class="profile-card">
+                        <img src="{{ !empty(auth()->user()->photo) ? asset('upload/student_images/' . auth()->user()->photo) : asset('adminbackend/assets/images/no-image.jpg') }}"
+                             alt="Student" class="profile-photo">
+                        
+                        <h4>{{ auth()->user()->firstname }} {{ auth()->user()->surname ?? '' }}</h4>
+                        <p class="text-secondary mb-0">{{ auth()->user()->email }}</p>
+
+                        {{-- Photo Update Form --}}
+                        <form method="POST" action="{{ route('student.profile.photo') }}" enctype="multipart/form-data" class="photo-form">
+                            @csrf
+                            <input type="file" name="photo" class="form-control mb-2" accept="image/*" required>
+                            <button type="submit" class="btn btn-outline-primary btn-sm w-100">
+                                <i class="fas fa-camera me-1"></i>Update Photo
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                {{-- Bio Data Form Card --}}
+                <div class="col-lg-8">
+                    <div class="form-card">
+                        <h5 class="card-title">
+                            <i class="fas fa-user-edit me-2"></i>Personal Information
+                        </h5>
+
+                        {{-- Success / Error Messages --}}
+                        @if(session('message'))
+                            <div class="alert alert-{{ session('alert-type') === 'success' ? 'success' : 'danger' }} alert-dismissible fade show" role="alert">
+                                <i class="fas fa-{{ session('alert-type') === 'success' ? 'check-circle' : 'exclamation-circle' }} me-2"></i>
+                                {{ session('message') }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        @endif
+
+                        @if($errors->any())
+                            <div class="alert alert-danger">
+                                <i class="fas fa-exclamation-circle me-2"></i>
+                                <ul class="mb-0">
+                                    @foreach($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+
+                        <form method="POST" action="{{ route('student.profile.update') }}">
+                            @csrf
+
+                            <div class="row">
+                                {{-- Read-only Fields --}}
+                                <div class="col-md-6">
+                                    <div class="field-group">
+                                        <div class="field-label">Admission No</div>
+                                        <div class="field-value">{{ $student->student_number ?? '-' }}</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="field-group">
+                                        <div class="field-label">Course</div>
+                                        <div class="field-value">{{ $student->course->course_name ?? '-' }}</div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="field-group">
+                                        <div class="field-label">Campus</div>
+                                        <div class="field-value">{{ $student->campus->name ?? '-' }}</div>
+                                    </div>
+                                </div>
+
+                                {{-- Editable Fields --}}
+                                <div class="col-md-6">
+                                    <div class="field-group">
+                                        <label class="form-label">First Name *</label>
+                                        <input type="text" name="firstname" class="form-control @error('firstname') is-invalid @enderror"
+                                               value="{{ old('firstname', auth()->user()->firstname) }}" required />
+                                        @error('firstname')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="field-group">
+                                        <label class="form-label">Surname *</label>
+                                        <input type="text" name="surname" class="form-control @error('surname') is-invalid @enderror"
+                                               value="{{ old('surname', auth()->user()->surname) }}" required />
+                                        @error('surname')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="field-group">
+                                        <label class="form-label">Other Name</label>
+                                        <input type="text" name="othername" class="form-control"
+                                               value="{{ old('othername', auth()->user()->othername) }}" />
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="field-group">
+                                        <label class="form-label">Email *</label>
+                                        <input type="email" name="email" class="form-control @error('email') is-invalid @enderror"
+                                               value="{{ old('email', auth()->user()->email) }}" required />
+                                        @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="field-group">
+                                        <label class="form-label">Phone</label>
+                                        <input type="text" name="phone" class="form-control"
+                                               value="{{ old('phone', auth()->user()->phone) }}" />
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="field-group">
+                                        <label class="form-label">Address</label>
+                                        <input type="text" name="address" class="form-control"
+                                               value="{{ old('address', auth()->user()->address) }}" />
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="field-group">
+                                        <label class="form-label">City</label>
+                                        <input type="text" name="city" class="form-control"
+                                               value="{{ old('city', auth()->user()->city) }}" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 pt-3 border-top">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-1"></i>Save Changes
+                                </button>
+                                <a href="{{ route('student.student_dashboard') }}" class="btn btn-outline-secondary ms-2">
+                                    <i class="fas fa-times me-1"></i>Cancel
+                                </a>
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- Optional: Add JavaScript for enhanced UX --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-hide success alerts after 5 seconds
+    setTimeout(function(){
+        document.querySelectorAll('.alert-success').forEach(alert => {
+            const bsAlert = new bootstrap.Alert(alert);
+            bsAlert.close();
+        });
+    }, 5000);
+    
+    // Image preview for photo upload
+    const photoInput = document.querySelector('input[name="photo"]');
+    const profilePhoto = document.querySelector('.profile-photo');
+    
+    if (photoInput && profilePhoto) {
+        photoInput.addEventListener('change', function(e) {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    profilePhoto.src = e.target.result;
+                }
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+    }
+    
+    // Disable submit button during form submission
+    const profileForm = document.querySelector('form[action*="profile.update"]');
+    if (profileForm) {
+        profileForm.addEventListener('submit', function() {
+            const submitBtn = this.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Saving...';
+            }
+        });
+    }
+});
+</script>
 
 @endsection

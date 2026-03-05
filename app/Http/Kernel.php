@@ -74,5 +74,6 @@ class Kernel extends HttpKernel
     protected $routeMiddleware = [
 
         'force.password' => \App\Http\Middleware\ForcePasswordChange::class,
+        'student' => \App\Http\Middleware\StudentMiddleware::class, // <-- add this
     ];
 }

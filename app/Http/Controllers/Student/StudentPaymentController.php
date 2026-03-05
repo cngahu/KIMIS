@@ -9,149 +9,60 @@ use App\Models\Invoice;
 use App\Models\Admission;
 use App\Models\StudentCycleRegistration;
 use Illuminate\Support\Str;
-
 use App\Models\InvoiceItem;
 
 class StudentPaymentController extends Controller
 {
-    public function paymentIframe(Invoice $invoice)
+    /**
+     * Show the payment initiation page (amount entry)
+     * GET /student/payments/initiate
+     */
+    public function initiate()
     {
-//        dd('Payment gateway is currently disabled in demo.');
-        // -------------------------------------------------
-        // Security: ensure invoice belongs to logged-in user
-        // -------------------------------------------------
-        if ($invoice->user_id !== auth()->id()) {
-            abort(403);
+        $student = Student::with(['course', 'campus', 'enrollments'])
+            ->where('user_id', auth()->id())
+            ->firstOrFail();
+    
+        $outstanding = $student->outstandingBalance();
+    
+        // Resolve current cycle
+        $month = now()->month;
+        $cycleTerm = match (true) {
+            $month <= 4 => 'Jan',
+            $month <= 8 => 'May',
+            default     => 'Sep',
+        };
+        $cycleYear = now()->year;
+    
+        // Check for existing pending invoice — show notice but still show amount page
+        $registration = StudentCycleRegistration::where('student_id', $student->id)
+            ->where('cycle_year', $cycleYear)
+            ->where('cycle_term', $cycleTerm)
+            ->first();
+    
+        $existingInvoice = null;
+        if ($registration) {
+            $existingInvoice = Invoice::where('user_id', $student->user_id)
+                ->where('category', 'tuition_fee')
+                ->where('status', 'pending')
+                ->where('billable_type', StudentCycleRegistration::class)
+                ->where('billable_id', $registration->id)
+                ->latest()
+                ->first();
         }
-
-        if ($invoice->status === 'paid') {
-            return redirect()
-                ->route('student.dashboard')
-                ->with('success', 'Invoice already paid.');
-        }
-
-        // -------------------------------------------------
-        // Resolve context via polymorphism
-        // -------------------------------------------------
-        $clientName = auth()->user()->firstname;
-        $clientEmail = auth()->user()->email;
-        $clientMSISDN = auth()->user()->phone;
-        $clientIDNumber = auth()->user()->national_id ?? 'A12345678';
-
-        $billDesc = 'Student Fee Payment';
-
-        if ($invoice->billable_type === Admission::class) {
-            $admission = $invoice->billable;
-            $application = $admission->application;
-
-            $billDesc = 'Admission Fee – ' . ($application->full_name ?? '');
-            $clientName = $application->full_name ?? $clientName;
-            $clientEmail = $application->email ?? $clientEmail;
-            $clientMSISDN = $application->phone ?? $clientMSISDN;
-            $clientIDNumber = $application->id_number ?? $clientIDNumber;
-        }
-
-//        if ($invoice->billable_type === StudentCycleRegistration::class) {
-//            $registration = $invoice->billable;
-//
-//            $billDesc = "Tuition Fee – {$registration->cycle_term} {$registration->cycle_year}";
-//        }
-
-        $campusId = null;
-
-        if ($invoice->billable_type === Admission::class) {
-            $admission = $invoice->billable;
-            $application = $admission->application;
-
-            $billDesc = 'Admission Fee – ' . ($application->full_name ?? '');
-            $clientName = $application->full_name ?? $clientName;
-            $clientEmail = $application->email ?? $clientEmail;
-            $clientMSISDN = $application->phone ?? $clientMSISDN;
-            $clientIDNumber = $application->id_number ?? $clientIDNumber;
-
-            // ✅ Campus from admission
-            $campusId = $admission->campus_id ?? null;
-        }
-
-        if ($invoice->billable_type === StudentCycleRegistration::class) {
-            $registration = $invoice->billable;
-
-            $billDesc = "Tuition Fee – {$registration->cycle_term} {$registration->cycle_year}";
-
-            // ✅ Campus from enrollment
-            $campusId = $registration->enrollment->campus_id ?? null;
-        }
-
-
-
-        // -------------------------------------------------
-        // Pesaflow / eCitizen config test
-        // -------------------------------------------------
-//        $apiClientID = env('PF_CLIENT_ID', '35');
-//        $secret      = env('PF_SECRET', '7UiF90LT3RkIkala3FAxcwzYEXiy8Ztw');
-//        $key         = env('PF_KEY', 'Fhtuo4tuMATrqmtL');
-//        $serviceID   = env('PF_SERVICE_ID', '234330');
-
-
-
-
-        // -------------------------------------------------
-        // Pesaflow / eCitizen config live
-        // -------------------------------------------------
-        $apiClientID = env('PF_CLIENT_ID', '145');
-        $secret      = env('PF_SECRET', 'dn3ngJmaoGfMK8+NqIFns8b06a8bMARI');
-        $key         = env('PF_KEY', 'jVMRIYcb456ERAk9');
-//        $serviceID   = env('PF_SERVICE_ID', '234330');
-
-        if (!$campusId) {
-            abort(500, 'Unable to resolve campus for payment.');
-        }
-
-        $serviceID = ($campusId == 3)
-            ? '15248135'
-            : '15248134';
-
-        $amountExpected = $invoice->amount;
-        $billRefNumber  = $invoice->invoice_number;
-        $currency       = 'KES';
-
-        $callBackURLOnSuccess = route('payments.success');
-        $notificationURL     = route('payments.notify');
-//        $notificationURL = "https://kims.kihbt.ac.ke/api/pesaflow/confirm";
-
-        // -------------------------------------------------
-        // Generate secure hash
-        // -------------------------------------------------
-        $data_string = $apiClientID
-            . $amountExpected
-            . $serviceID
-            . $clientIDNumber
-            . $currency
-            . $billRefNumber
-            . $billDesc
-            . $clientName
-            . $secret;
-
-        $hash = hash_hmac('sha256', $data_string, $key);
-        $secureHash = base64_encode($hash);
-
-        return view('student.admission.payment.iframe', [
-            'my_secureHash' => $secureHash,
-            'apiClientID' => $apiClientID,
-            'serviceID' => $serviceID,
-            'billDesc' => $billDesc,
-            'billRefNumber' => $billRefNumber,
-            'clientMSISDN' => $clientMSISDN,
-            'clientName' => $clientName,
-            'clientIDNumber' => $clientIDNumber,
-            'clientEmail' => $clientEmail,
-            'callBackURLOnSuccess' => $callBackURLOnSuccess,
-            'notificationURL' => $notificationURL,
-            'amountExpected' => $amountExpected,
-            'invoice' => $invoice,
-        ]);
+    
+        return view('student.payments.initiate', compact(
+            'student',
+            'outstanding',
+            'cycleTerm',
+            'cycleYear',
+            'existingInvoice'   // ← pass to view so we can show a resume button
+        ));
     }
-
+    /**
+     * Create invoice and redirect to payment gateway
+     * POST /student/payments/create
+     */
     public function create(Request $request)
     {
         $request->validate([
@@ -166,13 +77,11 @@ class StudentPaymentController extends Controller
 
         if ($request->amount > $outstanding) {
             return back()->withErrors([
-                'amount' => 'Amount cannot exceed outstanding balance.',
-            ]);
+                'amount' => 'Amount cannot exceed outstanding balance of KES ' . number_format($outstanding, 2),
+            ])->withInput();
         }
 
-        // -------------------------------------------------
         // Resolve active enrollment
-        // -------------------------------------------------
         $enrollment = $student->enrollments()
             ->where('status', 'active')
             ->latest()
@@ -180,13 +89,11 @@ class StudentPaymentController extends Controller
 
         if (!$enrollment) {
             return back()->withErrors([
-                'amount' => 'No active enrollment found.',
+                'amount' => 'No active enrollment found. Please contact the registrar.',
             ]);
         }
 
-        // -------------------------------------------------
-        // Resolve current cycle registration
-        // -------------------------------------------------
+        // Resolve current cycle
         $month = now()->month;
         $cycleTerm = match (true) {
             $month <= 4 => 'Jan',
@@ -206,9 +113,7 @@ class StudentPaymentController extends Controller
             ]);
         }
 
-        // -------------------------------------------------
-// Check for existing pending invoice for this cycle
-// -------------------------------------------------
+        // Check for existing pending invoice
         $existingInvoice = Invoice::where('user_id', $student->user_id)
             ->where('category', 'tuition_fee')
             ->where('status', 'pending')
@@ -218,34 +123,23 @@ class StudentPaymentController extends Controller
             ->first();
 
         if ($existingInvoice) {
-            // Redirect student to resume payment
-            return redirect()->route(
-                'student.payments.iframe',
-                $existingInvoice->id
-            )->with('info', 'You have a pending payment. Please complete it.');
+            return redirect()
+                ->route('student.payments.iframe', $existingInvoice->id)
+                ->with('info', 'You have a pending payment. Please complete it.');
         }
 
-        // -------------------------------------------------
-        // Create invoice (payment intent)
-        // -------------------------------------------------
+        // Create invoice
         $invoice = Invoice::create([
-            'billable_type' => StudentCycleRegistration::class,
-            'billable_id'   => $registration->id,
-
-            'user_id'       => $student->user_id,
-            'course_id'     => $enrollment->course_id,
-
-            'category'      => 'tuition_fee',
-
-            'invoice_number'=> 'INV-' . now()->format('Ymd') . '-' . strtoupper(Str::random(6)),
-
-            // Invoice represents how much the student chooses to pay
-            'amount'        => $request->amount,
-            'invoice_amount'=> $request->amount,
-
-            'status'        => 'pending',
-
-            'metadata'      => [
+            'billable_type'  => StudentCycleRegistration::class,
+            'billable_id'    => $registration->id,
+            'user_id'        => $student->user_id,
+            'course_id'      => $enrollment->course_id,
+            'category'       => 'tuition_fee',
+            'invoice_number' => 'INV-' . now()->format('Ymd') . '-' . strtoupper(Str::random(6)),
+            'amount'         => $request->amount,
+            'invoice_amount' => $request->amount,
+            'status'         => 'pending',
+            'metadata'       => [
                 'student_id'    => $student->id,
                 'enrollment_id' => $enrollment->id,
                 'cycle_year'    => $registration->cycle_year,
@@ -255,27 +149,121 @@ class StudentPaymentController extends Controller
             ],
         ]);
 
-        // -------------------------------------------------
-        // Create invoice item (aligned with old structure)
-        // -------------------------------------------------
+        // Create invoice item
         InvoiceItem::create([
             'invoice_id'   => $invoice->id,
             'user_id'      => $student->user_id,
             'course_id'    => $enrollment->course_id,
-
             'item_name'    => 'Tuition Fee Payment',
             'unit_amount'  => $request->amount,
             'quantity'     => 1,
             'total_amount' => $request->amount,
-
             'metadata'     => [
                 'cycle' => "{$registration->cycle_term} {$registration->cycle_year}",
             ],
         ]);
 
-        // -------------------------------------------------
-        // Redirect to eCitizen / payment iframe
-        // -------------------------------------------------
+        // Redirect to eCitizen payment iframe
         return redirect()->route('student.payments.iframe', $invoice->id);
+    }
+
+    /**
+     * Show the eCitizen payment iframe
+     * GET /student/payments/{invoice}/iframe
+     */
+    public function paymentIframe(Invoice $invoice)
+    {
+        // Security: ensure invoice belongs to logged-in user
+        if ($invoice->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        if ($invoice->status === 'paid') {
+            return redirect()
+                ->route('student.student_dashboard')
+                ->with('success', 'Invoice already paid.');
+        }
+
+        // Resolve client details
+        $user           = auth()->user();
+        $clientName     = $user->firstname . ' ' . $user->surname;
+        $clientEmail    = $user->email;
+        $clientMSISDN   = preg_replace('/[^0-9]/', '', $user->phone ?? '');
+        $clientIDNumber = $user->national_id ?? $user->nationalid ?? 'A12345678';
+
+        $billDesc = 'Student Fee Payment';
+        $campusId = null;
+
+        // Resolve billable context
+        if ($invoice->billable_type === Admission::class) {
+            $admission   = $invoice->billable;
+            $application = $admission->application;
+
+            $billDesc       = 'Admission Fee – ' . ($application->full_name ?? $clientName);
+            $clientName     = $application->full_name ?? $clientName;
+            $clientEmail    = $application->email ?? $clientEmail;
+            $clientMSISDN   = preg_replace('/[^0-9]/', '', $application->phone ?? $clientMSISDN);
+            $clientIDNumber = $application->id_number ?? $clientIDNumber;
+            $campusId       = $admission->campus_id ?? null;
+        }
+
+        if ($invoice->billable_type === StudentCycleRegistration::class) {
+            $registration = $invoice->billable;
+            $billDesc     = "Tuition Fee – {$registration->cycle_term} {$registration->cycle_year}";
+            $campusId     = $registration->enrollment->campus_id ?? null;
+        }
+
+        if (!$campusId) {
+            // Fallback: get campus from student record
+            $student  = Student::where('user_id', auth()->id())->first();
+            $campusId = $student?->campus_id ?? $user->campus_id ?? null;
+        }
+
+        if (!$campusId) {
+            abort(500, 'Unable to resolve campus for payment. Please contact support.');
+        }
+
+        // eCitizen / Pesaflow live credentials
+        $apiClientID = env('PF_CLIENT_ID', '145');
+        $secret      = env('PF_SECRET', 'dn3ngJmaoGfMK8+NqIFns8b06a8bMARI');
+        $key         = env('PF_KEY', 'jVMRIYcb456ERAk9');
+
+        $serviceID = ($campusId == 3) ? '15248135' : '15248134';
+
+        $amountExpected       = $invoice->amount;
+        $billRefNumber        = $invoice->invoice_number;
+        $currency             = 'KES';
+        $callBackURLOnSuccess = route('payments.success');
+        $notificationURL      = route('payments.notify');
+
+        // Generate secure hash (exact order required by Pesaflow)
+        $data_string = $apiClientID
+            . $amountExpected
+            . $serviceID
+            . $clientIDNumber
+            . $currency
+            . $billRefNumber
+            . $billDesc
+            . $clientName
+            . $secret;
+
+        $hash       = hash_hmac('sha256', $data_string, $key);
+        $secureHash = base64_encode($hash);
+
+        return view('student.admission.payment.iframe', [
+            'my_secureHash'       => $secureHash,
+            'apiClientID'         => $apiClientID,
+            'serviceID'           => $serviceID,
+            'billDesc'            => $billDesc,
+            'billRefNumber'       => $billRefNumber,
+            'clientMSISDN'        => $clientMSISDN,
+            'clientName'          => $clientName,
+            'clientIDNumber'      => $clientIDNumber,
+            'clientEmail'         => $clientEmail,
+            'callBackURLOnSuccess' => $callBackURLOnSuccess,
+            'notificationURL'     => $notificationURL,
+            'amountExpected'      => $amountExpected,
+            'invoice'             => $invoice,
+        ]);
     }
 }

@@ -96,7 +96,7 @@
 <table class="header-table">
     <tr>
         <td width="15%">
-            <img src="{{ public_path('images/kihbt-logo.png') }}" class="logo">
+            <img src="{{ public_path('images/kihbt-logo.jpeg') }}" class="logo">
         </td>
         <td width="70%" class="institution">
             <h2>KENYA INSTITUTE OF HIGHWAYS AND BUILDING TECHNOLOGY</h2>

@@ -161,7 +161,7 @@
         <!-- LEFT (same as login) -->
         <section class="info-column">
             <div class="info-header">
-                <img src="{{ asset('adminbackend/assets/images/logokihbt.png') }}" class="info-logo">
+                <img src="{{ asset('adminbackend/assets/images/logokihbt.jpeg') }}" class="info-logo">
                 <div>
                     <div class="info-title">Kenya Institute of Highways & Building Technology</div>
                     <div class="info-tagline">Empowering skills for roads, transport & construction</div>

@@ -1,3 +1,9 @@
+@extends('admin.admin_dashboard')
+
+@section('title', 'Student Dashboard')
+
+@section('admin')
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -149,7 +155,7 @@
     <table class="header-table">
         <tr>
             <td width="20%">
-                <img src="{{ public_path('adminbackend/assets/images/logokihbt.png') }}"
+                <img src="{{ public_path('adminbackend/assets/images/logokihbt.jpeg') }}"
                      class="logo">
 
             </td>

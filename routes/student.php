@@ -1,186 +1,161 @@
 <?php
+
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\UsersController;
-use App\Http\Controllers\Student\StudentController;
-use App\Http\Controllers\Student\AdmissionController;
-use App\Http\Controllers\Student\FeeStatementController;
+
+/*
+|--------------------------------------------------------------------------
+| CONTROLLER IMPORTS
+|--------------------------------------------------------------------------
+*/
+
+// Root namespace controllers
+use App\Http\Controllers\StudentDashboardController;
+use App\Http\Controllers\StudentProfileController;
+use App\Http\Controllers\AdmissionController;
+use App\Http\Controllers\FeeStatementController;
+
+// Student namespace controllers
 use App\Http\Controllers\Student\StudentActivationController;
 use App\Http\Controllers\Student\StudentCycleRegistrationController;
 use App\Http\Controllers\Student\StudentPaymentController;
 use App\Http\Controllers\Student\StudentFeesController;
-use App\Http\Controllers\Student\StudentProfileController;
+use App\Http\Controllers\Student\StudentAuthController;
+use App\Http\Controllers\Student\StudentCourseController;
 
-// DEVELOPMENT PAYMENT SIMULATION ENDPOINT
-// ----------- SIMPLE PAYMENT SIMULATOR (DEV ONLY) ----------
-Route::get('/simulate-payment', function() {
-    return view('dev.simulate_payment_form');
-});
-
-Route::post('/simulate-payment', [App\Http\Controllers\Student\AdmissionController::class, 'simulateAdmissionPayment'])
-    ->name('simulate.payment');
+// Application namespace
+use App\Http\Controllers\Application\PaymentController;
 
 
+/*
+|--------------------------------------------------------------------------
+| DEVELOPMENT ROUTES (PROTECT THESE)
+|--------------------------------------------------------------------------
+*/
 
+Route::middleware('auth')->group(function () {
 
-Route::middleware(['auth', 'role:student'])->prefix('student')->group(function () {
+    Route::get('/simulate-payment', function () {
+        return view('dev.simulate_payment_form');
+    })->name('dev.simulate.payment.form');
 
-    // Register & redirect to payment
-    Route::post(
-        '/cycle/register',
-        [StudentCycleRegistrationController::class, 'register']
-    )->name('student.cycle.register');
-
-    // Unified payment iframe (admission, cycle, others later)
-    Route::get(
-        '/payments/{invoice}/iframe',
-        [StudentPaymentController::class, 'paymentIframe']
-    )->name('student.payments.iframe');
+    Route::post('/simulate-payment', [AdmissionController::class, 'simulateAdmissionPayment'])
+        ->name('dev.simulate.payment');
 
 });
+
+
+/*
+|--------------------------------------------------------------------------
+| STUDENT ROUTES
+|--------------------------------------------------------------------------
+*/
 
 Route::middleware(['auth', 'role:student'])
-    ->prefix('student/profile')
+    ->prefix('student')
+    ->name('student.')
     ->group(function () {
 
-        Route::get('/', [StudentProfileController::class, 'show'])
-            ->name('student.profile.show');
+        // Dashboard
+        Route::get('/student_dashboard', [StudentDashboardController::class, 'index'])
+            ->name('student_dashboard');
 
-        Route::post('/photo', [StudentProfileController::class, 'updatePhoto'])
-            ->name('student.profile.photo');
+        // ✅ Password Change (inside group → route: student.change.password)
+        Route::get('/change-password', [StudentAuthController::class, 'showChangePassword'])->name('change.password');
+        Route::post('/change-password', [StudentAuthController::class, 'updatePassword'])->name('update.password');
+
+        /*
+        |--------------------------------------------------------------------------
+        | Fees (Student namespace)
+        |--------------------------------------------------------------------------
+        */
+        Route::prefix('fees')->name('fees.')->group(function () {
+            Route::get('/', [StudentFeesController::class, 'index'])->name('index');
+            Route::get('/download', [StudentFeesController::class, 'download'])->name('download');
+            Route::get('/invoice/{invoice}', [StudentFeesController::class, 'showInvoice'])->name('invoice.show');
+            Route::get('/invoice/{invoice}/pdf', [StudentFeesController::class, 'downloadInvoice'])->name('invoice.pdf');
+            Route::get('/receipt/{invoice}', [StudentFeesController::class, 'downloadReceipt'])->name('receipt.pdf');
+            Route::get('/statement', [StudentFeesController::class, 'statement'])->name('statement');
+        });
+
+        /*
+        |--------------------------------------------------------------------------
+        | Fee Statement (root namespace)
+        |--------------------------------------------------------------------------
+        */
+        Route::get('/fee-statement', [FeeStatementController::class, 'index'])->name('fee.statement');
+        Route::get('/fee-statement/pdf', [FeeStatementController::class, 'downloadPdf'])->name('fee.statement.pdf');
+
+        /*
+        |--------------------------------------------------------------------------
+        | Payments (Student namespace)
+        |--------------------------------------------------------------------------
+        */
+        Route::prefix('payments')->name('payments.')->group(function () {
+            Route::get('/initiate', [StudentPaymentController::class, 'initiate'])->name('initiate');
+            Route::get('/{invoice}/iframe', [StudentPaymentController::class, 'paymentIframe'])->name('iframe');
+            Route::post('/create', [StudentPaymentController::class, 'create'])->name('create');
+        });
+
+        /*
+        |--------------------------------------------------------------------------
+        | Cycle Registration (Student namespace)
+        |--------------------------------------------------------------------------
+        */
+        Route::post('/cycle/register', [StudentCycleRegistrationController::class, 'register'])->name('cycle.register');
+
+        /*
+        |--------------------------------------------------------------------------
+        | Admission (root namespace)
+        |--------------------------------------------------------------------------
+        */
+        Route::prefix('admission')->name('admission.')->group(function () {
+            Route::get('/form', [AdmissionController::class, 'showAdmissionForm'])->name('form');
+            Route::post('/form', [AdmissionController::class, 'submitAdmissionForm'])->name('form.submit');
+            Route::get('/documents', [AdmissionController::class, 'showDocumentsPage'])->name('documents');
+            Route::post('/documents', [AdmissionController::class, 'uploadDocuments'])->name('documents.upload');
+            Route::get('/payment', [AdmissionController::class, 'paymentPage'])->name('payment');
+            Route::post('/payment/create', [AdmissionController::class, 'createPayment'])->name('payment.create');
+            Route::get('/payment/invoice/{invoice}', [AdmissionController::class, 'paymentIframe'])->name('payment.iframe');
+            Route::get('/payment/sponsor', [AdmissionController::class, 'sponsorForm'])->name('payment.sponsor');
+            Route::post('/payment/sponsor', [AdmissionController::class, 'sponsorSubmit'])->name('payment.sponsor.submit');
+            Route::get('/payment/pay-later', [AdmissionController::class, 'payLaterForm'])->name('payment.later');
+            Route::post('/payment/pay-later', [AdmissionController::class, 'payLaterSubmit'])->name('payment.later.submit');
+            Route::post('/payment/callback', [AdmissionController::class, 'paymentCallback'])->name('payment.callback');
+        });
+
+        /*
+        |--------------------------------------------------------------------------
+        | Accept Offer (root namespace)
+        |--------------------------------------------------------------------------
+        */
+        Route::post('/accept-offer', [AdmissionController::class, 'acceptOffer'])->name('accept.offer');
+
     });
-Route::middleware(['auth', 'role:student'])
-    ->prefix('student/fees')
+
+
+/*
+|--------------------------------------------------------------------------
+| STUDENT ACTIVATION (NO role:student)
+|--------------------------------------------------------------------------
+*/
+
+Route::prefix('student-activation')
+    ->name('student.activation.')
     ->group(function () {
-
-        Route::get('/', [StudentFeesController::class, 'index'])
-            ->name('student.fees.index');
-
-        Route::get('/invoice/{invoice}', [StudentFeesController::class, 'showInvoice'])
-            ->name('student.fees.invoice.show');
-
-        Route::get('/invoice/{invoice}/pdf', [StudentFeesController::class, 'downloadInvoice'])
-            ->name('student.fees.invoice.pdf');
-
-        Route::get('/receipt/{invoice}', [StudentFeesController::class, 'downloadReceipt'])
-            ->name('student.fees.receipt.pdf');
-
-        Route::get('/statement', [StudentFeesController::class, 'statement'])
-            ->name('student.fees.statement');
+        Route::get('/', [StudentActivationController::class, 'start'])->name('start');
+        Route::post('/verify', [StudentActivationController::class, 'verifyAdmission'])->name('verify');
+        Route::post('/complete', [StudentActivationController::class, 'complete'])->name('complete');
+        Route::get('/success', function () {
+            return view('student.activation.success');
+        })->name('success');
     });
 
-Route::group(['middleware' => ['role:student','auth','history','verified','force.password']], function () {
-    //
 
+/*
+|--------------------------------------------------------------------------
+| GLOBAL PAYMENT SUCCESS
+|--------------------------------------------------------------------------
+*/
 
-    Route::get('/student/dashboard', [StudentController::class, 'dashboard'])
-        ->name('student.dashboard');
-
-    Route::post('/student/accept-offer', [AdmissionController::class, 'acceptOffer'])
-        ->name('student.accept.offer');
-
-    /*
-   |--------------------------------------------------------------------------
-   | Admission Form
-   |--------------------------------------------------------------------------
-   */
-    Route::get('/admission/form', [AdmissionController::class, 'showAdmissionForm'])
-        ->name('student.admission.form');
-
-    Route::post('/admission/form', [AdmissionController::class, 'submitAdmissionForm'])
-        ->name('student.admission.form.submit');
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Documents Upload
-    |--------------------------------------------------------------------------
-    */
-    Route::get('/admission/documents', [AdmissionController::class, 'showDocumentsPage'])
-        ->name('student.admission.documents');
-
-    Route::post('/admission/documents', [AdmissionController::class, 'uploadDocuments'])
-        ->name('student.admission.documents.upload');
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Fee Payment Page
-    |--------------------------------------------------------------------------
-    */
-// payment index + create invoice
-    Route::get('/admission/payment', [App\Http\Controllers\Student\AdmissionController::class, 'paymentPage'])
-        ->name('student.admission.payment');
-
-    Route::post('/admission/payment/create', [App\Http\Controllers\Student\AdmissionController::class, 'createPayment'])
-        ->name('student.admission.payment.create');
-
-    Route::get('/admission/payment/invoice/{invoice}', [App\Http\Controllers\Student\AdmissionController::class, 'paymentIframe'])
-        ->name('student.admission.payment.iframe');
-
-// sponsor & pay later
-    Route::get('/admission/payment/sponsor', [App\Http\Controllers\Student\AdmissionController::class, 'sponsorForm'])
-        ->name('student.admission.payment.sponsor');
-
-    Route::post('/admission/payment/sponsor', [App\Http\Controllers\Student\AdmissionController::class, 'sponsorSubmit'])
-        ->name('student.admission.payment.sponsor.submit');
-
-    Route::get('/admission/payment/pay-later', [App\Http\Controllers\Student\AdmissionController::class, 'payLaterForm'])
-        ->name('student.admission.payment.later');
-
-    Route::post('/admission/payment/pay-later', [App\Http\Controllers\Student\AdmissionController::class, 'payLaterSubmit'])
-        ->name('student.admission.payment.later.submit');
-
-// callback / simulate (protect in production)
-    Route::post('/admission/payment/callback', [App\Http\Controllers\Student\AdmissionController::class, 'paymentCallback'])
-        ->name('student.admission.payment.callback');
-
-
-
-    Route::get('/student/fee-statement', [FeeStatementController::class, 'index'])
-        ->name('student.fee.statement');
-
-    Route::get('/student/fee-statement/pdf', [FeeStatementController::class, 'downloadPdf'])
-        ->name('student.fee.statement.pdf');
-
-});
-
-//
-//
-//Route::post('/payments/success', [\App\Http\Controllers\Application\PaymentController::class, 'success'])
-//    ->name('payments.success');
-
-Route::match(['GET', 'POST'], '/payments/success', [
-    \App\Http\Controllers\Application\PaymentController::class,
-    'success'
-])->name('payments.success');
-
-//
-//Route::post('/payments/notify', [\App\Http\Controllers\Application\PaymentController::class, 'notify'])
-//    ->name('payments.notify');
-//
-
-
-Route::get('/student-activation', [StudentActivationController::class, 'start'])->name('student.activation.start');
-
-
-Route::post('/student-activation/verify', [StudentActivationController::class, 'verifyAdmission'])->name('student.activation.verify');
-
-Route::post('/student-activation-verification', [StudentActivationController::class, 'verifyAdmission'])->name('student.activation.verify.new');
-
-
-Route::post('/student-activation/complete', [StudentActivationController::class, 'complete'])->name('student.activation.complete');
-Route::get('/student-activation/success', function () {return view('student.activation.success');
-})->name('student.activation.success');
-
-
-Route::middleware(['auth', 'role:student'])->group(function () {
-
-    Route::get('/student/fees', [StudentFeesController::class, 'index'])
-        ->name('student.fees.index');
-
-    Route::get('/student/fees/download', [StudentFeesController::class, 'download'])
-        ->name('student.fees.download');
-
-    Route::post('/student/payments/create', [StudentPaymentController::class, 'create'])
-        ->name('student.payments.create');
-});
+Route::match(['GET', 'POST'], '/payments/success', [PaymentController::class, 'success'])
+    ->name('payments.success');

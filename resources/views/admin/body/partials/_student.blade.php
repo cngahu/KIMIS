@@ -1,53 +1,33 @@
 @php
     $user = \Illuminate\Support\Facades\Auth::user();
 
-    /**
-     * Ensure $admission is ALWAYS defined to avoid:
-     * Undefined variable $admission
-     *
-     * If you already pass $admission from some controllers, this keeps it.
-     * If not passed (e.g. force-password-change), it defaults to null.
-     */
+    // Ensure $admission is always defined
     $admission = $admission ?? null;
-
-    /**
-     * OPTIONAL (Recommended):
-     * If you want to auto-fetch admission when not passed, uncomment and adjust the model:
-     *
-     * Example:
-     * $admission = $admission ?? \App\Models\AdmissionRecord::where('admissionno', $user?->username)->first();
-     *
-     * Or if you have relationship:
-     * $admission = $admission ?? $user?->admission;
-     */
 @endphp
 
+{{-- Only show student menu if $admission exists --}}
 @if(!empty($admission))
 
     {{-- OFFER SENT --}}
     @if($admission->status === 'offer_sent')
-
         <li>
-            <a href="{{ route('student.dashboard') }}">
+            <a href="{{ route('student.student_dashboard') }}">
                 <div class="parent-icon"><i class="bx bx-home"></i></div>
                 <div class="menu-title">Dashboard</div>
             </a>
         </li>
-
         <li>
-            <a href="{{ route('student.dashboard') }}">
+            <a href="{{ route('student.student_dashboard') }}">
                 <div class="parent-icon"><i class="bx bx-envelope"></i></div>
                 <div class="menu-title">Admission Offer</div>
             </a>
         </li>
-
         <li>
             <a href="#">
                 <div class="parent-icon"><i class="bx bx-help-circle"></i></div>
                 <div class="menu-title">Help & Support</div>
             </a>
         </li>
-
     @endif
 
     {{-- IN PROGRESS STATUSES --}}
@@ -56,58 +36,49 @@
         'documents_uploaded', 'fee_paid', 'docs_verified',
         'awaiting_sponsor_verification','awaiting_fee_decision'
     ]))
-
         <li>
-            <a href="{{ route('student.dashboard') }}">
+            <a href="{{ route('student.student_dashboard') }}">
                 <div class="parent-icon"><i class="bx bx-home"></i></div>
                 <div class="menu-title">Dashboard</div>
             </a>
         </li>
-
         <li>
             <a href="{{ route('student.admission.form') }}">
                 <div class="parent-icon"><i class="bx bx-edit"></i></div>
                 <div class="menu-title">Admission Form</div>
             </a>
         </li>
-
         <li>
             <a href="{{ route('student.admission.documents') }}">
                 <div class="parent-icon"><i class="bx bx-upload"></i></div>
                 <div class="menu-title">Document Upload</div>
             </a>
         </li>
-
         <li>
             <a href="{{ route('student.admission.payment') }}">
                 <div class="parent-icon"><i class="bx bx-credit-card"></i></div>
                 <div class="menu-title">Fee Payment</div>
             </a>
         </li>
-
         <li>
-            <a href="{{ route('student.dashboard') }}">
+            <a href="{{ route('student.student_dashboard') }}">
                 <div class="parent-icon"><i class="bx bx-check-circle"></i></div>
                 <div class="menu-title">Admission Status</div>
             </a>
         </li>
-
         <li>
             <a href="#">
                 <div class="parent-icon"><i class="bx bx-help-circle"></i></div>
                 <div class="menu-title">Help & Support</div>
             </a>
         </li>
-
     @endif
 
-
 @endif
+
 {{-- ADMITTED STATUSES --}}
-{{--    @if(in_array($admission->status, ['admission_number_assigned', 'admitted']) || $students)--}}
-{{--    @if( $student->status='active')--}}
 <li>
-    <a href="{{ route('student.dashboard') }}">
+    <a href="{{ route('student.student_dashboard') }}">
         <div class="parent-icon"><i class="bx bx-home"></i></div>
         <div class="menu-title">Dashboard</div>
     </a>
@@ -120,43 +91,15 @@
     </a>
 </li>
 
-{{--<li>--}}
-{{--    <a href="{{ route('student.fee.statement') }}">--}}
-{{--        <div class="parent-icon"><i class="bx bx-money"></i></div>--}}
-{{--        <div class="menu-title">Fees & Payments</div>--}}
-{{--    </a>--}}
-{{--</li>--}}
 <li>
     <a href="{{ route('student.fees.index') }}">
-       <div class="parent-icon"> <i class="fas fa-money-bill-wave"></i></div>
-       <div class="menu-title">Fees & Statements</div>
+        <div class="parent-icon"><i class="fas fa-money-bill-wave"></i></div>
+        <div class="menu-title">Fees & Statements</div>
     </a>
 </li>
 
-
-{{--<li>--}}
-{{--    <a href="{{ route('student.dashboard') }}">--}}
-{{--        <div class="parent-icon"><i class="bx bx-book"></i></div>--}}
-{{--        <div class="menu-title">Course Units</div>--}}
-{{--    </a>--}}
-{{--</li>--}}
-
-{{--<li>--}}
-{{--    <a href="{{ route('student.dashboard') }}">--}}
-{{--        <div class="parent-icon"><i class="bx bx-award"></i></div>--}}
-{{--        <div class="menu-title">Exam Results</div>--}}
-{{--    </a>--}}
-{{--</li>--}}
-
-{{--<li>--}}
-{{--    <a href="{{ route('student.dashboard') }}">--}}
-{{--        <div class="parent-icon"><i class="bx bx-calendar"></i></div>--}}
-{{--        <div class="menu-title">Class Timetable</div>--}}
-{{--    </a>--}}
-{{--</li>--}}
-
 <li>
-    <a href="{{ route('student.dashboard') }}">
+    <a href="{{ route('student.student_dashboard') }}">
         <div class="parent-icon"><i class="bx bx-bell"></i></div>
         <div class="menu-title">Notices</div>
     </a>
@@ -168,5 +111,3 @@
         <div class="menu-title">Help & Support</div>
     </a>
 </li>
-
-{{--    @endif--}}

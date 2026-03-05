@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Hod;
+namespace App\Http\Controllers\HOD;
 
 use App\Http\Controllers\Controller;
 use App\Models\AcademicDepartment;
@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use App\Services\HodDashboardService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Hod\HodDashboardController;
 
 
 class HodDashboardController extends Controller

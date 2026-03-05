@@ -32,7 +32,8 @@
     <!-- Toastr -->
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.css">
 
-    <title>Admin Dashboard</title>
+    <title>@yield('title', 'Admin Dashboard')</title>
+    
 </head>
 
 <body>
