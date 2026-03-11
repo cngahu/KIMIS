@@ -5,367 +5,285 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>KIHBT – Registration & Student Portal</title>
 
-    <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/line-awesome/1.3.0/line-awesome/css/line-awesome.min.css"/>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
 
     <style>
-:root{
-    --primary:#3b2818;
-    --secondary:#f9a90f;
-    --success:#099139;
-    --tertiary:#858585;
-    --bg:#f5f6f5;
-    --text-dark:#26211d;
-    --card:#ffffff;
-    --line:#e8e8e8;
-}
+        :root{
+            --primary:#3b2818;
+            --secondary:#f9a90f;
+            --success:#099139;
+            --tertiary:#858585;
+            --bg:#f5f6f5;
+            --text-dark:#26211d;
+            --card:#ffffff;
+            --line:#e8e8e8;
+        }
 
-/* ========================= GLOBAL ========================= */
-body{
-    font-family:'Poppins',sans-serif;
-    background:
-        radial-gradient(900px 450px at 15% -10%, rgba(59,40,24,.08), transparent 60%),
-        radial-gradient(900px 450px at 90% 120%, rgba(249,169,15,.12), transparent 60%),
-        var(--bg);
-    color:var(--text-dark);
-    margin:0;
-    line-height:1.6;
-}
+        body{
+            font-family:'Poppins',sans-serif;
+            background:
+                radial-gradient(900px 450px at 15% -10%, rgba(59,40,24,.08), transparent 60%),
+                radial-gradient(900px 450px at 90% 120%, rgba(249,169,15,.12), transparent 60%),
+                var(--bg);
+            color:var(--text-dark);
+            margin:0;
+            line-height:1.6;
+        }
 
-a{text-decoration:none;color:inherit;transition:color .2s ease;}
+        a{text-decoration:none;color:inherit;transition:color .2s ease;}
 
-.boxed-container{
-    max-width:1300px;
-    margin:2rem auto;
-    background:rgba(255,255,255,.95);
-    border:1px solid rgba(0,0,0,.04);
-    box-shadow:0 20px 60px rgba(0,0,0,.08);
-    border-radius:20px;
-    overflow:hidden;
-    backdrop-filter:blur(10px);
-}
+        html{scroll-behavior:smooth;}
 
-/* ========================= NAVBAR ========================= */
-.site-header{
-    background:#fff;
-    position:sticky;
-    top:0;
-    z-index:1020;
-    box-shadow:0 6px 20px rgba(0,0,0,.06);
-}
+        .boxed-container{
+            max-width:1300px;
+            margin:2rem auto;
+            background:rgba(255,255,255,.95);
+            border:1px solid rgba(0,0,0,.04);
+            box-shadow:0 20px 60px rgba(0,0,0,.08);
+            border-radius:20px;
+            overflow:hidden;
+            backdrop-filter:blur(10px);
+        }
 
-.navbar{padding:1rem 0;}
+        /* ── Navbar ── */
+        .site-header{
+            background:#fff;
+            position:sticky;
+            top:0;
+            z-index:1020;
+            box-shadow:0 6px 20px rgba(0,0,0,.06);
+        }
 
-.nav-link,.navbar-brand{
-    color:var(--primary)!important;
-    font-weight:600;
-}
+        .navbar{padding:1rem 0;}
 
-.nav-link{
-    padding:.5rem .9rem !important;
-    border-radius:8px;
-    transition:.2s ease;
-}
+        .nav-link,.navbar-brand{
+            color:var(--primary)!important;
+            font-weight:600;
+        }
 
-.nav-link:hover{
-    color:var(--secondary)!important;
-    background:rgba(59,40,24,.06);
-}
+        .nav-link{
+            padding:.5rem .9rem !important;
+            border-radius:8px;
+            transition:.2s ease;
+        }
 
-.logo-img{height:42px;}
-.brand-title{
-    font-weight:800;
-    font-size:.9rem;
-    margin-left:.6rem;
-}
+        .nav-link:hover{
+            color:var(--secondary)!important;
+            background:rgba(59,40,24,.06);
+        }
 
-/* ========================= BUTTONS ========================= */
-.btn-primary-kihbt,
-.btn-secondary-kihbt{
-    border:none;
-    border-radius:999px;
-    padding:.6rem 1.3rem;
-    font-weight:700;
-    height:44px;
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    gap:.4rem;
-    transition:.2s ease;
-    cursor:pointer;
-}
+        .logo-img{height:42px;}
 
-.btn-primary-kihbt{
-    background:var(--primary);
-    color:#fff;
-}
+        .brand-title{
+            font-weight:800;
+            font-size:.9rem;
+            margin-left:.6rem;
+            line-height:1.2;
+        }
 
-.btn-primary-kihbt:hover{
-    background:#000;
-    transform:translateY(-1px);
-    color:#fff;
-}
+        /* ── Buttons ── */
+        .btn-primary-kihbt,
+        .btn-secondary-kihbt{
+            border:none;
+            border-radius:999px;
+            padding:.6rem 1.3rem;
+            font-weight:700;
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            gap:.4rem;
+            transition:.2s ease;
+            cursor:pointer;
+            font-size:.9rem;
+        }
 
-.btn-secondary-kihbt{
-    background:var(--secondary);
-    color:#000;
-}
+        .btn-primary-kihbt{background:var(--primary);color:#fff;}
+        .btn-primary-kihbt:hover{background:#000;transform:translateY(-1px);color:#fff;}
 
-.btn-secondary-kihbt:hover{
-    background:#d18b00;
-    transform:translateY(-1px);
-    color:#000;
-}
+        .btn-secondary-kihbt{background:var(--secondary);color:#000;}
+        .btn-secondary-kihbt:hover{background:#d18b00;transform:translateY(-1px);color:#000;}
 
-/* ========================= HERO ========================= */
-.hero{
-    padding:4rem 2rem 3.5rem;
-    background:
-        radial-gradient(900px 450px at 10% 20%, rgba(249,169,15,.18), transparent 60%),
-        linear-gradient(135deg, rgba(59,40,24,.96), rgba(0,0,0,.92));
-    color:#fff;
-}
+        .btn-primary-kihbt:focus,
+        .btn-secondary-kihbt:focus{outline:2px solid var(--secondary);outline-offset:2px;}
 
-.hero-inner{
-    max-width:1100px;
-    margin:auto;
-}
+        /* ── Hero ── */
+        .hero{
+            padding:4rem 2rem 3.5rem;
+            background:
+                radial-gradient(900px 450px at 10% 20%, rgba(249,169,15,.18), transparent 60%),
+                linear-gradient(135deg, rgba(59,40,24,.96), rgba(0,0,0,.92));
+            color:#fff;
+        }
 
-.hero h1{
-    font-size:2.3rem;
-    font-weight:800;
-    margin-bottom:1rem;
-    line-height:1.3;
-}
+        .hero-inner{max-width:1100px;margin:auto;}
 
-.hero p{
-    font-size:1.05rem;
-    max-width:650px;
-    line-height:1.6;
-    margin-bottom:1.6rem;
-    color:rgba(255,255,255,.85);
-}
+        .hero h1{
+            font-size:2.3rem;
+            font-weight:800;
+            margin-bottom:1rem;
+            line-height:1.3;
+        }
 
-.hero-actions{
-    margin-bottom:1.2rem;
-    display:flex;
-    flex-wrap:wrap;
-    gap:.8rem;
-}
+        .hero p{
+            font-size:1.05rem;
+            max-width:650px;
+            line-height:1.6;
+            margin-bottom:1.6rem;
+            color:rgba(255,255,255,.85);
+        }
 
-.hero-chip-row{
-    display:flex;
-    flex-wrap:wrap;
-    gap:.6rem;
-}
+        .hero-actions{
+            margin-bottom:1.2rem;
+            display:flex;
+            flex-wrap:wrap;
+            gap:.8rem;
+        }
 
-.hero-chip{
-    background:rgba(255,255,255,.12);
-    border:1px solid rgba(255,255,255,.15);
-    padding:.55rem .85rem;
-    border-radius:999px;
-    font-size:.85rem;
-    display:inline-flex;
-    align-items:center;
-    gap:.4rem;
-}
+        .hero-chip-row{display:flex;flex-wrap:wrap;gap:.6rem;}
 
-.hero-chip i{color:var(--secondary);}
+        .hero-chip{
+            background:rgba(255,255,255,.12);
+            border:1px solid rgba(255,255,255,.15);
+            padding:.55rem .85rem;
+            border-radius:999px;
+            font-size:.85rem;
+            display:inline-flex;
+            align-items:center;
+            gap:.4rem;
+        }
 
-/* ========================= SECTION ========================= */
-.section-wrap{
-    padding:3rem 2rem 3.5rem;
-}
+        .hero-chip i{color:var(--secondary);}
 
-.section-head{
-    max-width:1100px;
-    margin:0 auto 2rem;
-}
+        /* ── Section ── */
+        .section-wrap{padding:3rem 2rem 3.5rem;}
 
-.section-title{
-    font-size:1.6rem;
-    font-weight:800;
-    color:var(--primary);
-    margin:0;
-}
+        .section-head{
+            max-width:1100px;
+            margin:0 auto 2rem;
+        }
 
-.section-subtitle{
-    margin-top:.4rem;
-    color:var(--tertiary);
-}
+        .section-title{font-size:1.6rem;font-weight:800;color:var(--primary);margin:0;}
+        .section-subtitle{margin-top:.4rem;color:var(--tertiary);}
 
-/* ========================= SERVICE CARDS ========================= */
-.services-grid{
-    max-width:1100px;
-    margin:auto;
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-    gap:1.6rem;
-}
+        /* ── Service Cards ── */
+        .services-grid{
+            max-width:1100px;
+            margin:auto;
+            display:grid;
+            grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+            gap:1.6rem;
+        }
 
-.service-card{
-    background:var(--card);
-    border:1px solid var(--line);
-    border-radius:18px;
-    padding:1.8rem 1.6rem;
-    box-shadow:0 12px 32px rgba(0,0,0,.06);
-    transition:.2s ease;
-    position:relative;
-    display:flex;
-    flex-direction:column;
-}
+        .service-card{
+            background:var(--card);
+            border:1px solid var(--line);
+            border-radius:18px;
+            padding:1.8rem 1.6rem;
+            box-shadow:0 12px 32px rgba(0,0,0,.06);
+            transition:.2s ease;
+            position:relative;
+            display:flex;
+            flex-direction:column;
+        }
 
-.service-card:hover{
-    transform:translateY(-4px);
-    box-shadow:0 18px 45px rgba(0,0,0,.1);
-    border-color:rgba(249,169,15,.4);
-}
+        .service-card:hover{
+            transform:translateY(-4px);
+            box-shadow:0 18px 45px rgba(0,0,0,.1);
+            border-color:rgba(249,169,15,.4);
+        }
 
-.service-badge{
-    position:absolute;
-    top:14px;
-    right:14px;
-    background:rgba(249,169,15,.14);
-    border:1px solid rgba(249,169,15,.25);
-    padding:.25rem .6rem;
-    border-radius:999px;
-    font-size:.75rem;
-    font-weight:800;
-    color:var(--primary);
-}
+        .service-badge{
+            position:absolute;
+            top:14px;
+            right:14px;
+            background:rgba(249,169,15,.14);
+            border:1px solid rgba(249,169,15,.25);
+            padding:.25rem .6rem;
+            border-radius:999px;
+            font-size:.75rem;
+            font-weight:800;
+            color:var(--primary);
+        }
 
-.service-icon{
-    width:60px;
-    height:60px;
-    border-radius:16px;
-    background:rgba(249,169,15,.15);
-    color:var(--secondary);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:1.8rem;
-    margin-bottom:1rem;
-    flex-shrink:0;
-}
+        .service-icon{
+            width:60px;height:60px;
+            border-radius:16px;
+            background:rgba(249,169,15,.15);
+            color:var(--secondary);
+            display:flex;align-items:center;justify-content:center;
+            font-size:1.8rem;
+            margin-bottom:1rem;
+            flex-shrink:0;
+        }
 
-.service-title{
-    font-size:1.2rem;
-    font-weight:800;
-    margin-bottom:.6rem;
-    color:var(--primary);
-}
+        .service-title{font-size:1.2rem;font-weight:800;margin-bottom:.6rem;color:var(--primary);}
 
-.service-desc{
-    font-size:.95rem;
-    color:var(--tertiary);
-    line-height:1.6;
-    margin-bottom:1.4rem;
-    flex-grow:1;
-}
+        .service-desc{
+            font-size:.95rem;
+            color:var(--tertiary);
+            line-height:1.6;
+            margin-bottom:1.4rem;
+            flex-grow:1;
+        }
 
-/* ✅ FIXED: Service Actions with Better Spacing */
-.service-actions{
-    display:flex;
-    flex-direction:column;
-    align-items:flex-start;
-    gap:0.8rem;
-    margin-top:auto;
-}
+        .service-actions{
+            display:flex;
+            flex-direction:column;
+            align-items:stretch;
+            gap:.75rem;
+            margin-top:auto;
+        }
 
-.service-actions .btn{
-    width:100%;
-    justify-content:center;
-}
+        .service-actions .btn-primary-kihbt,
+        .service-actions .btn-secondary-kihbt,
+        .service-actions .btn{
+            width:100%;
+            justify-content:center;
+        }
 
-/* ✅ FIXED: Learn More Link Styling */
-.service-link{
-    font-weight:700;
-    font-size:0.9rem;
-    display:inline-flex;
-    align-items:center;
-    gap:0.4rem;
-    color:var(--primary);
-    /* ✅ Better spacing above */
-    margin-top:1rem;
-    padding-top:0.8rem;
-    border-top:1px dashed var(--line);
-    transition:all 0.2s ease;
-    align-self:flex-start;
-}
+        .service-link{
+            font-weight:700;
+            font-size:.9rem;
+            display:inline-flex;
+            align-items:center;
+            gap:.4rem;
+            color:var(--primary);
+            margin-top:.5rem;
+            padding-top:.75rem;
+            border-top:1px dashed var(--line);
+            align-self:flex-start;
+            transition:all .2s ease;
+        }
 
-.service-link:hover{
-    color:var(--secondary);
-    gap:0.6rem;
-}
+        .service-link:hover{color:var(--secondary);gap:.6rem;}
+        .service-link:hover i{transform:translateX(3px);}
+        .service-link i{transition:transform .2s ease;}
 
-.service-link i{
-    transition:transform 0.2s ease;
-    font-size:1rem;
-}
+        /* ── Mini list ── */
+        .mini-list{list-style:none;padding:0;margin:.9rem 0 1.4rem;font-size:.9rem;color:var(--tertiary);}
+        .mini-list li{display:flex;align-items:flex-start;gap:.5rem;margin-bottom:.5rem;}
+        .mini-list i{color:var(--success);margin-top:2px;font-size:1rem;}
 
-.service-link:hover i{
-    transform:translateX(3px);
-}
+        /* ── Footer ── */
+        .footer-bottom{
+            background:var(--primary);
+            color:#fff;
+            text-align:center;
+            padding:1.2rem;
+            font-size:.95rem;
+        }
 
-/* ========================= MINI LIST ========================= */
-.mini-list{
-    list-style:none;
-    padding:0;
-    margin:.9rem 0 1.4rem;
-    font-size:.9rem;
-    color:var(--tertiary);
-}
-
-.mini-list li{
-    display:flex;
-    align-items:flex-start;
-    gap:.5rem;
-    margin-bottom:.5rem;
-}
-
-.mini-list i{
-    color:var(--success);
-    margin-top:2px;
-    font-size:1rem;
-}
-
-/* ========================= FOOTER ========================= */
-.footer-bottom{
-    background:var(--primary);
-    color:#fff;
-    text-align:center;
-    padding:1.2rem;
-    font-size:.95rem;
-}
-
-/* ========================= MOBILE ========================= */
-@media(max-width:768px){
-    .hero{padding:3rem 1.3rem 2.8rem;}
-    .hero h1{font-size:1.75rem;}
-    .section-wrap{padding:2.4rem 1.4rem 3rem;}
-    .services-grid{gap:1.2rem;}
-    .service-card{padding:1.4rem 1.2rem;}
-    .service-actions{gap:0.6rem;}
-    .service-link{
-        margin-top:0.8rem;
-        padding-top:0.6rem;
-        font-size:0.85rem;
-    }
-}
-
-/* ✅ Bonus: Smooth scroll for anchor links */
-html{scroll-behavior:smooth;}
-
-/* ✅ Bonus: Focus states for accessibility */
-.btn-primary-kihbt:focus,
-.btn-secondary-kihbt:focus,
-.service-link:focus{
-    outline:2px solid var(--secondary);
-    outline-offset:2px;
-}
-</style>
+        /* ── Mobile ── */
+        @media(max-width:768px){
+            .hero{padding:3rem 1.3rem 2.8rem;}
+            .hero h1{font-size:1.75rem;}
+            .section-wrap{padding:2.4rem 1.4rem 3rem;}
+            .services-grid{gap:1.2rem;}
+            .service-card{padding:1.4rem 1.2rem;}
+        }
+    </style>
 </head>
 <body>
 
@@ -406,18 +324,21 @@ html{scroll-behavior:smooth;}
     <section class="hero">
         <div class="hero-inner">
             <div>
-                <h1>Registration & Student Portal</h1>
+                <h1>Registration &amp; Student Portal</h1>
                 <p>
                     Apply for KIHBT short courses and long term programmes, verify certificates,
                     and access student services from one place.
                 </p>
 
                 <div class="hero-actions">
-                    <a href="{{ route('public.trainings.short') }}" class="btn-secondary-kihbt d-inline-flex align-items-center gap-2">
+                    <a href="{{ route('public.trainings.short') }}"
+                       class="btn-secondary-kihbt d-inline-flex align-items-center gap-2">
                         <i class="la la-calendar-check"></i> Short Courses
                     </a>
 
-                    <a href="{{ route('certificates.verify') }}" class="btn-primary-kihbt d-inline-flex align-items-center gap-2" style="background:#099139;">
+                    <a href="{{ route('certificates.verify') }}"
+                       class="btn-primary-kihbt d-inline-flex align-items-center gap-2"
+                       style="background:#099139;">
                         <i class="la la-certificate"></i> Verify Certificate
                     </a>
                 </div>
@@ -434,10 +355,8 @@ html{scroll-behavior:smooth;}
     <!-- Services -->
     <section class="section-wrap">
         <div class="section-head">
-            <div>
-                <h2 class="section-title">Our Services</h2>
-                <p class="section-subtitle">Choose what you want to do today.</p>
-            </div>
+            <h2 class="section-title">Our Services</h2>
+            <p class="section-subtitle">Choose what you want to do today.</p>
         </div>
 
         <div class="services-grid">
@@ -448,38 +367,38 @@ html{scroll-behavior:smooth;}
                 <div class="service-icon"><i class="la la-calendar-check"></i></div>
 
                 <h3 class="service-title">Short Course Application</h3>
-
                 <p class="service-desc">
                     Browse available short trainings across all KIHBT campuses and apply online.
                     Already applied? You can make a partial payment using your application reference.
                 </p>
 
                 <div class="service-actions">
-
-                    {{-- Primary action --}}
                     <a href="{{ route('public.trainings.short') }}"
-                       class="btn-primary-kihbt d-inline-flex align-items-center gap-2">
+                       class="btn-primary-kihbt">
                         <i class="la la-arrow-right"></i> View Trainings
                     </a>
 
-                    {{-- Secondary action --}}
                     <a href="{{ route('payments.lookup.form') }}"
-                       class="btn btn-outline-success d-inline-flex align-items-center gap-2"
-                       style="font-size: 0.9rem; padding: 0.4rem 1rem;">
-                        <i class="la la-credit-card"></i> Partial Payment
+                       class="btn btn-outline-success d-inline-flex align-items-center gap-2">
+                        <i class="la la-credit-card"></i> Partial Payment (Short Courses)
                     </a>
 
-                    {{-- ✅ Learn more - now with proper spacing --}}
+                    <a href="{{ url('/hostel/book') }}" class="btn-secondary-kihbt">
+                        <i class="la la-bed"></i> Book Hostel
+                    </a>
+
                     <a class="service-link" href="{{ route('public.trainings.short') }}">
                         Learn more <i class="la la-angle-right"></i>
                     </a>
-
                 </div>
             </div>
 
             <!-- Certificate Verification -->
             <div class="service-card">
-                <div class="service-badge" style="background:rgba(9,145,57,.12);border-color:rgba(9,145,57,.25);color:#0b5e2c;">VERIFY</div>
+                <div class="service-badge"
+                     style="background:rgba(9,145,57,.12);border-color:rgba(9,145,57,.25);color:#0b5e2c;">
+                    VERIFY
+                </div>
                 <div class="service-icon" style="background:rgba(9,145,57,.10);color:#099139;">
                     <i class="la la-certificate"></i>
                 </div>
@@ -497,7 +416,7 @@ html{scroll-behavior:smooth;}
 
                 <div class="service-actions">
                     <a href="{{ route('certificates.verify') }}"
-                       class="btn-primary-kihbt d-inline-flex align-items-center gap-2"
+                       class="btn-primary-kihbt"
                        style="background:#099139;">
                         <i class="la la-search"></i> Verify Certificate
                     </a>
@@ -511,13 +430,9 @@ html{scroll-behavior:smooth;}
             <!-- Student Activation -->
             <div class="service-card">
                 <div class="service-badge">ACTIVATION</div>
-
-                <div class="service-icon">
-                    <i class="la la-user-check"></i>
-                </div>
+                <div class="service-icon"><i class="la la-user-check"></i></div>
 
                 <h3 class="service-title">Student Activation</h3>
-
                 <p class="service-desc">
                     Activate your student portal account using your admission number.
                     Secure access to services and reset password on first login.
@@ -525,13 +440,13 @@ html{scroll-behavior:smooth;}
 
                 <ul class="mini-list">
                     <li><i class="la la-check-circle"></i> Admission number validation</li>
-                    <li><i class="la la-check-circle"></i> Phone & email confirmation</li>
+                    <li><i class="la la-check-circle"></i> Phone &amp; email confirmation</li>
                     <li><i class="la la-check-circle"></i> OTP-secured first login</li>
                 </ul>
 
                 <div class="service-actions">
                     <a href="{{ route('student.activation.start') }}"
-                       class="btn-primary-kihbt d-inline-flex align-items-center gap-2">
+                       class="btn-primary-kihbt">
                         <i class="la la-unlock"></i> Activate Account
                     </a>
 
@@ -546,7 +461,7 @@ html{scroll-behavior:smooth;}
 
     <!-- Footer -->
     <footer class="footer-bottom">
-        © {{ date('Y') }} Kenya Institute of Highways and Building Technology (KIHBT). All rights reserved.
+        &copy; {{ date('Y') }} Kenya Institute of Highways and Building Technology (KIHBT). All rights reserved.
     </footer>
 
 </div>

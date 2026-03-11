@@ -26,6 +26,10 @@ use App\Http\Controllers\Student\StudentCourseController;
 use App\Http\Controllers\Application\PaymentController;
 
 
+Route::post('/student-activation-verification', [StudentActivationController::class, 'verifyAdmission'])
+    ->name('student.activation.verify.new');
+
+
 /*
 |--------------------------------------------------------------------------
 | DEVELOPMENT ROUTES (PROTECT THESE)

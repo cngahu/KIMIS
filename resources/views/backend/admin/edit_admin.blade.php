@@ -37,8 +37,9 @@
                             <!-- end timeline content-->
 
                             <div class="tab-pane" id="settings">
-                                <form id="myForm" method="post" action="{{ route('admin.update') }}" enctype="multipart/form-data">
+                                <form id="myForm" method="post" action="{{ route('admin.users.update') }}" enctype="multipart/form-data">
                                     @csrf
+                                    @method('PUT')
 
                                     <input type="hidden" name="id" value="{{ $adminuser->id }}">
 

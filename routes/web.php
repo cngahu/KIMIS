@@ -223,21 +223,33 @@ Route::middleware(['auth', 'role:superadmin|admin'])->prefix('admin')->group(fun
 // ADMIN CONTROLLER ROUTES (Legacy Structure)
 // =====================================================
 
-Route::controller(AdminController::class)->group(function () {
-    Route::get('/dashboard', 'AdminDashboard')->name('dashboard')->middleware('verified');
-    // ✅ FIXED: Removed redundant /admin/logout (use global logout route instead)
-    Route::get('/admin/profile', 'AdminProfile')->name('admin.profile');
-    Route::post('/admin/profile/store', 'AdminProfileStore')->name('admin.profile.store');
-    Route::get('/admin/change/password', 'AdminChangePassword')->name('admin.change.password');
-    Route::post('/admin/update/password', 'AdminUpdatePassword')->name('update.password');
-    Route::get('/all/admin', 'AllAdmin')->name('all.admin');
-    Route::get('/add/admin', 'AddAdmin')->name('add.admin');
-    Route::post('/store/admin', 'StoreAdmin')->name('admin.store');
-    Route::get('/edit/admin/{id}', 'EditAdmin')->name('edit.admin');
-    Route::post('/update/admin', 'UpdateAdmin')->name('admin.update');
-    Route::get('/delete/admin/{id}', 'DeleteAdmin')->name('delete.admin');
-});
+Route::middleware(['auth', 'role:superadmin|admin'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->controller(AdminController::class)
+    ->group(function () {
+        
+        // ✅ Dashboard
+        Route::get('/dashboard', 'AdminDashboard')->name('dashboard')->middleware('verified');
 
+        // ✅ Profile Management
+        Route::get('/profile', 'AdminProfile')->name('profile');
+        Route::post('/profile', 'AdminProfileStore')->name('profile.store');
+        Route::post('/profile/photo', 'AdminProfilePhoto')->name('profile.photo');
+
+        // ✅ Password Management
+        Route::get('/change-password', 'AdminChangePassword')->name('change.password');
+        Route::post('/update-password', 'AdminUpdatePassword')->name('password.update');
+
+        // ✅ Admin User Management (RESTful)
+        Route::get('/users', 'AllAdmin')->name('users.index');           // List all admins
+        Route::get('/users/create', 'AddAdmin')->name('users.create');   // Show create form
+        Route::post('/users', 'StoreAdmin')->name('users.store');        // Store new admin
+        Route::get('/users/{id}/edit', 'EditAdmin')->name('users.edit'); // Show edit form
+        Route::put('/users/{id}', 'UpdateAdmin')->name('users.update');  // Update admin
+        Route::delete('/users/{id}', 'DeleteAdmin')->name('users.destroy'); // Delete admin
+
+    });
 // =====================================================
 // ROLES & PERMISSIONS ROUTES
 // =====================================================
@@ -561,6 +573,23 @@ Route::get('/admin/colleges/{college}/departments', function ($college) {
         ->get(['id', 'name']);
 })->name('admin.colleges.departments');
 
+// ── Hostel Booking ──
+Route::prefix('hostel')->group(function () {
+    Route::get('/book', [\App\Http\Controllers\public\HostelBookingController::class, 'create'])
+        ->name('hostel.book');
+    Route::post('/book', [\App\Http\Controllers\public\HostelBookingController::class, 'store'])
+        ->name('hostel.book.store');
+    Route::get('/payment/{reference}', [\App\Http\Controllers\public\HostelBookingController::class, 'showPaymentPage'])
+        ->name('hostel.booking.payment');
+    Route::post('/payment/{reference}', [\App\Http\Controllers\public\HostelBookingPaymentController::class, 'createInvoice'])
+        ->name('hostel.booking.payment.create');
+    Route::get('/pay/{invoice}', [\App\Http\Controllers\public\HostelBookingPaymentController::class, 'show'])
+        ->name('hostel.payment');
+    Route::get('/invoice/{invoice}/pdf', [\App\Http\Controllers\public\HostelInvoiceController::class, 'pdf'])
+        ->name('hostel.invoice.pdf');
+    Route::get('/invoice/{invoice}/pay', [\App\Http\Controllers\public\HostelInvoiceController::class, 'payByInvoice'])
+        ->name('hostel.invoice.pay');
+});
 // =====================================================
 // EXTERNAL ROUTE FILES (Student, Finance, HOD, etc.)
 // =====================================================

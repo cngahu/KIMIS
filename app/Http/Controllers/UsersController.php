@@ -57,35 +57,48 @@ class UsersController extends Controller
 
     } // End Mehtod
 
+    public function ApplicantProfileStore(Request $request)
+{
+    $request->validate([
+        'name'    => 'required|string|max:255',
+        'email'   => 'required|email|max:255',
+        'phone'   => 'nullable|string|max:20',
+        'address' => 'nullable|string|max:255',
+    ]);
 
-    public function ApplicantProfileStore(Request $request){
+    $id   = Auth::id();
+    $data = User::findOrFail($id);
 
-        $id = Auth::user()->id;
-        $data = User::find($id);
-        $data->name = $request->name;
-        $data->email = $request->email;
-        $data->phone = $request->phone;
-        $data->address = $request->address;
+    // ✅ FIXED: No 'name' column — split full name into firstname & surname
+    $nameParts       = explode(' ', trim($request->name), 2);
+    $data->firstname = $nameParts[0] ?? '';
+    $data->surname   = $nameParts[1] ?? '';
 
+    $data->email   = $request->email;
+    $data->phone   = $request->phone;
+    $data->address = $request->address;
 
-        if ($request->file('photo')) {
-            $file = $request->file('photo');
-            @unlink(public_path('upload/admin_images/'.$data->photo));
-            $filename = date('YmdHi').$file->getClientOriginalName();
-            $file->move(public_path('upload/admin_images'),$filename);
-            $data['photo'] = $filename;
+    if ($request->hasFile('photo')) {
+        $file     = $request->file('photo');
+        $oldPhoto = public_path('upload/admin_images/' . $data->photo);
+
+        if ($data->photo && file_exists($oldPhoto)) {
+            @unlink($oldPhoto);
         }
 
-        $data->save();
+        $filename    = date('YmdHi') . '_' . $file->getClientOriginalName();
+        $file->move(public_path('upload/admin_images'), $filename);
+        $data->photo = $filename;
+    }
 
-        $notification = array(
-            'message' => 'Admin Profile Updated Successfully',
-            'alert-type' => 'success'
-        );
+    $data->save();
 
-        return redirect()->back()->with($notification);
+    return redirect()->back()->with([
+        'message'    => 'Profile Updated Successfully',
+        'alert-type' => 'success',
+    ]);
+}
 
-    } // End Mehtod
 
     public function ApplicantChangePassword(){
         return view('admin.admin_change_password');

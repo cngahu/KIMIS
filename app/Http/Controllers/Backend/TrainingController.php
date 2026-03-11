@@ -117,7 +117,6 @@ class TrainingController extends Controller
             'collegeId'
         ));
     }
-
     public function longTerm(Request $request)
     {
         $search   = $request->input('search');
@@ -139,7 +138,8 @@ class TrainingController extends Controller
 
         $colleges = \App\Models\College::orderBy('name')->get();
 
-        return view('training_long_term', compact('trainings', 'colleges', 'search', 'campusId'));
+        // ✅ Fixed: view path matches file location
+        return view('public.trainings_long_term', compact('trainings', 'colleges', 'search', 'campusId'));
     }
 
     public function shortTerm(Request $request)
@@ -163,11 +163,9 @@ class TrainingController extends Controller
 
         $colleges = \App\Models\College::orderBy('name')->get();
 
-        return view('training_short_term', compact('trainings', 'colleges', 'search', 'campusId'));
+        // ✅ Fixed: "puclic" → "public" AND "training_short_term" → "trainings_short_term"
+        return view('public.trainings_short_term', compact('trainings', 'colleges', 'search', 'campusId'));
     }
-
-
-
 
     /**
      * Show the form for creating a new training.
