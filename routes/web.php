@@ -140,6 +140,7 @@ Route::post('/otp/channel', [AuthenticatedSessionController::class, 'chooseOtpCh
 // ✅ FIXED: Logout route - uses AuthenticatedSessionController, POST method
 Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
     ->name('logout');
+Route::get('/logout', function () { return redirect()->route('login'); });
 
 // =====================================================
 // FORCE PASSWORD CHANGE ROUTES

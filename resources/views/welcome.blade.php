@@ -33,7 +33,6 @@
         }
 
         a{text-decoration:none;color:inherit;transition:color .2s ease;}
-
         html{scroll-behavior:smooth;}
 
         .boxed-container{
@@ -309,7 +308,26 @@
 
                         @if (Route::has('login'))
                             @auth
-                                <li class="nav-item"><a class="nav-link" href="{{ url('/dashboard') }}">Dashboard</a></li>
+                                {{-- Route to the correct dashboard based on role --}}
+                                @php
+                                    $user = Auth::user();
+                                    if ($user->hasRole('student')) {
+                                        $dashboardUrl = route('student.student_dashboard');
+                                    } elseif ($user->hasRole('superadmin') || $user->hasRole('admin')) {
+                                        $dashboardUrl = route('dashboard');
+                                    } elseif ($user->hasRole('accounts') || $user->hasRole('cash_office')) {
+                                        $dashboardUrl = route('accounts.dashboard');
+                                    } elseif ($user->hasRole('hod') || $user->hasRole('campus_registrar') || $user->hasRole('kihbt_registrar') || $user->hasRole('director')) {
+                                        $dashboardUrl = route('dashboard');
+                                    } else {
+                                        $dashboardUrl = route('dashboard');
+                                    }
+                                @endphp
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{{ $dashboardUrl }}">
+                                        <i class="la la-tachometer-alt"></i> Dashboard
+                                    </a>
+                                </li>
                             @else
                                 <li class="nav-item"><a class="nav-link" href="{{ route('login') }}">Log in</a></li>
                             @endauth
