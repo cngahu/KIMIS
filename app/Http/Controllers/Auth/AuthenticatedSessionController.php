@@ -140,7 +140,7 @@ class AuthenticatedSessionController extends Controller
             'Principal',
             'Deputy Principal Academics',
         ])) {
-            return redirect()->route('dashboard');
+            return redirect()->route('admin.dashboard');
         }
 
         // ⚠️ Fallback: No matching role found

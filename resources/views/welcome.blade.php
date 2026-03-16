@@ -314,13 +314,13 @@
                                     if ($user->hasRole('student')) {
                                         $dashboardUrl = route('student.student_dashboard');
                                     } elseif ($user->hasRole('superadmin') || $user->hasRole('admin')) {
-                                        $dashboardUrl = route('dashboard');
+                                        $dashboardUrl = route('admin.dashboard');
                                     } elseif ($user->hasRole('accounts') || $user->hasRole('cash_office')) {
                                         $dashboardUrl = route('accounts.dashboard');
                                     } elseif ($user->hasRole('hod') || $user->hasRole('campus_registrar') || $user->hasRole('kihbt_registrar') || $user->hasRole('director')) {
-                                        $dashboardUrl = route('dashboard');
+                                        $dashboardUrl = route('admin.dashboard');
                                     } else {
-                                        $dashboardUrl = route('dashboard');
+                                        $dashboardUrl = route('admin.dashboard');
                                     }
                                 @endphp
                                 <li class="nav-item">
