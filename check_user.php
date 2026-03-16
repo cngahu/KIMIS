@@ -1,0 +1,1 @@
+﻿<?php \ = App\Models\User::whereHas('student')->first(); echo 'surname:[' . \->surname . '] firstname:[' . \->firstname . '] first_name:[' . \->first_name . '] last_name:[' . \->last_name . '] othername:[' . \->othername . ']';

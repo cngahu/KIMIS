@@ -144,6 +144,28 @@
 </head>
 <body>
 
+@php
+    // ── Resolve full name ──────────────────────────────────────────
+    // Priority 1: biodatas.studentsname (most complete, linked by admission number)
+    // Priority 2: masterdata.full_name
+    // Priority 3: user.surname (fallback)
+    $admissionNo = $student->student_number ?? ($master->admissionNo ?? null);
+
+    $biodata = $admissionNo
+        ? \App\Models\Biodata::where('admissionno', $admissionNo)->first()
+        : null;
+
+    if ($biodata && $biodata->studentsname) {
+        $fullName = $biodata->studentsname;
+    } elseif ($master && $master->full_name) {
+        $fullName = $master->full_name;
+    } elseif ($student && $student->user) {
+        $fullName = $student->user->surname ?? '-';
+    } else {
+        $fullName = '-';
+    }
+@endphp
+
 {{-- HEADER --}}
 <div class="header">
     <table class="header-table">
@@ -154,7 +176,7 @@
             </td>
             <td width="60%" class="institution-details">
                 <h2>KENYA INSTITUTE OF HIGHWAY &amp; BUILDING TECHNOLOGY</h2>
-                <p>P.O. Box 57511 &ndash; 00200, Nairobi</p>
+                <p>P.O. Box 57511 – 00200, Nairobi</p>
                 <p>Website: www.kihbt.ac.ke</p>
             </td>
             <td width="20%" style="text-align: right;">
@@ -173,51 +195,48 @@
 <table class="info-table">
     <tr>
         <td class="label">Admission Number</td>
-        <td>{{ $student->student_number ?? ($master->admissionNo ?? '—') }}</td>
+        <td>{{ $student->student_number ?? ($master->admissionNo ?? '-') }}</td>
+
         <td class="label">Learner Status</td>
         <td>{{ $student ? 'Activated Student' : 'Provisional / Legacy Learner' }}</td>
     </tr>
     <tr>
         <td class="label">Full Name</td>
-        <td colspan="3">
-            {{ $student->user->surname ?? ($master->full_name ?? '—') }}
-        </td>
+        <td colspan="3">{{ $fullName }}</td>
     </tr>
     <tr>
         <td class="label">Course</td>
-        <td colspan="3">
-            {{ $master->course_name ?? 'N/A' }}
-        </td>
+        <td colspan="3">{{ $master->course_name ?? 'N/A' }}</td>
     </tr>
 </table>
 
 {{-- LEDGER TABLE --}}
 <table class="ledger-table">
     <thead>
-        <tr>
-            <th width="12%">Date</th>
-            <th width="44%">Description</th>
-            <th width="14%">Debit (KES)</th>
-            <th width="14%">Credit (KES)</th>
-            <th width="16%">Balance (KES)</th>
-        </tr>
+    <tr>
+        <th width="12%">Date</th>
+        <th width="44%">Description</th>
+        <th width="14%">Debit (KES)</th>
+        <th width="14%">Credit (KES)</th>
+        <th width="16%">Balance (KES)</th>
+    </tr>
     </thead>
     <tbody>
-        @foreach($ledger as $row)
-            <tr>
-                <td>{{ $row->created_at->format('d M Y') }}</td>
-                <td>{{ $row->description }}</td>
-                <td class="text-right">
-                    {{ $row->entry_type === 'debit' ? number_format($row->amount, 2) : '' }}
-                </td>
-                <td class="text-right">
-                    {{ $row->entry_type === 'credit' ? number_format($row->amount, 2) : '' }}
-                </td>
-                <td class="text-right">
-                    {{ number_format($row->running_balance, 2) }}
-                </td>
-            </tr>
-        @endforeach
+    @foreach($ledger as $row)
+        <tr>
+            <td>{{ $row->created_at->format('d M Y') }}</td>
+            <td>{{ $row->description }}</td>
+            <td class="text-right">
+                {{ $row->entry_type === 'debit' ? number_format($row->amount, 2) : '' }}
+            </td>
+            <td class="text-right">
+                {{ $row->entry_type === 'credit' ? number_format($row->amount, 2) : '' }}
+            </td>
+            <td class="text-right">
+                {{ number_format($row->running_balance, 2) }}
+            </td>
+        </tr>
+    @endforeach
     </tbody>
 </table>
 

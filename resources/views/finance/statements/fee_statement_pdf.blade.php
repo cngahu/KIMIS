@@ -151,10 +151,9 @@
             <td width="20%">
                 <img src="{{ public_path('adminbackend/assets/images/logokihbt.jpeg') }}"
                      class="logo">
-
             </td>
             <td width="60%" class="institution-details">
-                <h2>KENYA INSTITUTE OF HIGHWAY & BUILDING TECHNOLOGY</h2>
+                <h2>KENYA INSTITUTE OF HIGHWAY &amp; BUILDING TECHNOLOGY</h2>
                 <p>P.O. Box 57511 – 00200, Nairobi</p>
                 <p>Website: www.kihbt.ac.ke</p>
             </td>
@@ -171,25 +170,31 @@
 </div>
 
 {{-- STUDENT / LEARNER INFO --}}
+@php
+    $fullName = $student
+        ? trim(
+            ($student->user->surname    ?? '') . ' ' .
+            ($student->user->first_name ?? '') . ' ' .
+            ($student->user->last_name  ?? '')
+          )
+        : ($master->full_name ?? '-');
+@endphp
+
 <table class="info-table">
     <tr>
         <td class="label">Admission Number</td>
-        <td>{{ $student->student_number ?? $master->admissionNo }}</td>
+        <td>{{ $student->student_number ?? ($master->admissionNo ?? '-') }}</td>
 
         <td class="label">Learner Status</td>
         <td>{{ $student ? 'Activated Student' : 'Provisional / Legacy Learner' }}</td>
     </tr>
     <tr>
         <td class="label">Full Name</td>
-        <td colspan="3">
-            {{ $student->user->surname ?? $master->full_name }}
-        </td>
+        <td colspan="3">{{ $fullName }}</td>
     </tr>
     <tr>
         <td class="label">Course</td>
-        <td colspan="3">
-            {{ $master->course_name ?? 'N/A' }}
-        </td>
+        <td colspan="3">{{ $master->course_name ?? 'N/A' }}</td>
     </tr>
 </table>
 
@@ -210,13 +215,13 @@
             <td>{{ $row->created_at->format('d M Y') }}</td>
             <td>{{ $row->description }}</td>
             <td class="text-right">
-                {{ $row->entry_type === 'debit' ? number_format($row->amount,2) : '' }}
+                {{ $row->entry_type === 'debit' ? number_format($row->amount, 2) : '' }}
             </td>
             <td class="text-right">
-                {{ $row->entry_type === 'credit' ? number_format($row->amount,2) : '' }}
+                {{ $row->entry_type === 'credit' ? number_format($row->amount, 2) : '' }}
             </td>
             <td class="text-right">
-                {{ number_format($row->running_balance,2) }}
+                {{ number_format($row->running_balance, 2) }}
             </td>
         </tr>
     @endforeach
